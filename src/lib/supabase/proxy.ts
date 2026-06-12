@@ -2,6 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
 
+const guestOnlyRoutes = ["/"];
+const protectedRoutes = ["/protected"];
+
+function validateRoute(route: string) {
+  return protectedRoutes.some((protectedRoute) =>
+    protectedRoute.startsWith(route),
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -47,15 +56,22 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  const isProtectedRoute = validateRoute(request.nextUrl.pathname);
+
+  if (request.nextUrl.pathname !== "/" && isProtectedRoute && !user) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (
+    request.nextUrl.pathname !== "/" &&
+    user &&
+    request.nextUrl.pathname.startsWith("/auth")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/protected";
     return NextResponse.redirect(url);
   }
 
