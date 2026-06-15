@@ -14,6 +14,7 @@ const schemas = {
 //   headers: z.object({
 //     "time-zone": z.string(),
 //   }),
+
 } satisfies SchemaMap;
 
 type ContextReturnType = ApiContext & InferSchemas<typeof schemas>;

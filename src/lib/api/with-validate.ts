@@ -17,7 +17,7 @@ export function withValidate<
       const rawBody = schemas.body ? await req.json() : undefined;
       const rawQuery = Object.fromEntries(url.searchParams.entries());
       const rawHeaders = Object.fromEntries(req.headers.entries());
-      console.log("rawHeaders", rawHeaders);
+
       const parsed = {
         body: schemas.body ? schemas.body.parse(rawBody) : undefined,
         query: schemas.query ? schemas.query.parse(rawQuery) : undefined,
@@ -31,7 +31,7 @@ export function withValidate<
         ...ctx,
       } as TContext & InferSchemas<TSchemas>);
     } catch (error) {
-      console.log("error", error);
+      console.log("[ERROR] ", error);
       if (error instanceof z.ZodError) {
         return NextResponse.json(
           {
