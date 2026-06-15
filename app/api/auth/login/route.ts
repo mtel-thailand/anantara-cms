@@ -39,9 +39,9 @@ async function postRouteHandler(
   });
 }
 
-const postWithLoginValidateSchemaHandler = withValidate<
+const postWithValidateSchemaHandler = withValidate<
   typeof loginSchema,
   ApiContext
 >(loginSchema, postRouteHandler);
 
-export const POST = postWithLoginValidateSchemaHandler;
+export const POST = postWithValidateSchemaHandler;

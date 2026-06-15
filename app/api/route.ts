@@ -11,10 +11,9 @@ const schemas = {
       preview: z.enum(["true", "false"]).transform((value) => value === "true"),
     })
     .strict(),
-//   headers: z.object({
-//     "time-zone": z.string(),
-//   }),
-
+  //   headers: z.object({
+  //     "time-zone": z.string(),
+  //   }),
 } satisfies SchemaMap;
 
 type ContextReturnType = ApiContext & InferSchemas<typeof schemas>;
@@ -51,7 +50,7 @@ async function postRouteHandler(
   return Response.json({ message: "eiei", test: query });
 }
 
-const authWithValidateSchemaHandler = withAuth(
+const getAuthWithValidateSchemaHandler = withAuth(
   withValidate<typeof schemas, ApiContext>(schemas, routeHandler),
 );
 
@@ -59,6 +58,6 @@ const postAuthWithValidateSchemaHandler = withAuth(
   withValidate<typeof postSchemas, ApiContext>(postSchemas, postRouteHandler),
 );
 
-export const GET = authWithValidateSchemaHandler;
+export const GET = getAuthWithValidateSchemaHandler;
 
 export const POST = postAuthWithValidateSchemaHandler;
