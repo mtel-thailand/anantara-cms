@@ -2,14 +2,17 @@ import { DeployButton } from "@/src/components/deploy-button";
 import { EnvVarWarning } from "@/src/components/env-var-warning";
 import { AuthButton } from "@/src/components/auth-button";
 import { Hero } from "@/src/components/hero";
-import { ThemeSwitcher } from "@/src/components/theme-switcher";
 import { ConnectSupabaseSteps } from "@/src/components/tutorial/connect-supabase-steps";
 import { SignUpUserSteps } from "@/src/components/tutorial/sign-up-user-steps";
 import { hasEnvVars } from "@/src/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
+import LocaleSwitcher from "@/src/components/locale-switcher";
+import { useTranslations } from "next-intl";
 
 export default function Home() {
+  const t = useTranslations();
+
   return (
     <main className="min-h-screen flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col gap-20 items-center">
@@ -19,6 +22,7 @@ export default function Home() {
               <Link href={"/"}>Next.js Supabase Starter</Link>
               <div className="flex items-center gap-2">
                 <DeployButton />
+                {t('main.main')}
               </div>
             </div>
             {!hasEnvVars ? (
@@ -28,6 +32,7 @@ export default function Home() {
                 <AuthButton />
               </Suspense>
             )}
+            <LocaleSwitcher />
           </div>
         </nav>
         <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
@@ -50,7 +55,6 @@ export default function Home() {
               Supabase
             </a>
           </p>
-          <ThemeSwitcher />
         </footer>
       </div>
     </main>

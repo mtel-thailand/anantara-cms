@@ -1,10 +1,10 @@
 import { DeployButton } from "@/src/components/deploy-button";
 import { EnvVarWarning } from "@/src/components/env-var-warning";
 import { AuthButton } from "@/src/components/auth-button";
-import { ThemeSwitcher } from "@/src/components/theme-switcher";
 import { hasEnvVars } from "@/src/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
+import LocaleSwitcher from "@/src/components/locale-switcher";
 
 export default function ProtectedLayout({
   children,
@@ -27,6 +27,7 @@ export default function ProtectedLayout({
             ) : (
               <Suspense>
                 <AuthButton />
+                <LocaleSwitcher />
               </Suspense>
             )}
           </div>
@@ -47,7 +48,6 @@ export default function ProtectedLayout({
               Supabase
             </a>
           </p>
-          <ThemeSwitcher />
         </footer>
       </div>
     </main>

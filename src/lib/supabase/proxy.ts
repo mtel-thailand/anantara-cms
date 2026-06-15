@@ -1,20 +1,52 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasEnvVars } from "../utils";
+import createMiddleware from "next-intl/middleware";
+import { routing } from "../../i18n/routing";
+import { hasLocale, Locale } from "next-intl";
 
 const guestOnlyRoutes = ["/"];
 const protectedRoutes = ["/protected"];
+const COOKIE_LOCALE_KEY = "NEXT_LOCALE";
 
-function validateRoute(route: string) {
-  return protectedRoutes.some((protectedRoute) =>
-    protectedRoute.startsWith(route),
+function getPathInfo(pathname: string, fallbackLocale: Locale) {
+  const [, maybeLocale, ...segments] = pathname.split("/");
+
+  const isMatchedLocale = hasLocale(routing.locales, maybeLocale);
+
+  const locale = isMatchedLocale ? maybeLocale : fallbackLocale;
+  const pathnameWithoutLocale = isMatchedLocale
+    ? `/${segments.join("/")}`
+    : pathname;
+
+  return {
+    locale,
+    pathnameWithoutLocale:
+      pathnameWithoutLocale === "/"
+        ? "/"
+        : pathnameWithoutLocale.replace(/\/$/, ""),
+  };
+}
+
+function isProtectedRoute(pathname: string) {
+  return protectedRoutes.some(
+    (protectedRoute) =>
+      pathname === protectedRoute || pathname.startsWith(`${protectedRoute}/`),
   );
 }
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
+  const requestedLocale = request.cookies.get(COOKIE_LOCALE_KEY);
+  const defaultLocale = hasLocale(routing.locales, requestedLocale?.value)
+    ? requestedLocale.value
+    : routing.defaultLocale;
+
+  const handleI18nRouting = createMiddleware({
+    locales: routing.locales,
+    defaultLocale,
   });
+
+  let supabaseResponse = handleI18nRouting(request);
 
   // If the env vars are not set, skip proxy check. You can remove this
   // once you setup the project.
@@ -36,9 +68,7 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = handleI18nRouting(request);
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );
@@ -56,23 +86,29 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  const isProtectedRoute = validateRoute(request.nextUrl.pathname);
+  const { locale, pathnameWithoutLocale } = getPathInfo(
+    request.nextUrl.pathname,
+    defaultLocale ?? routing.defaultLocale,
+  );
 
-  if (request.nextUrl.pathname !== "/" && isProtectedRoute && !user) {
+  // Redirect unauthenticated users to the login page
+  // when attempting to access protected routes.
+  if (isProtectedRoute(pathnameWithoutLocale) && !user) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+    url.pathname = `/${locale}/auth/login`;
+    const redirectResponse = NextResponse.redirect(url);
+    return redirectResponse;
   }
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    user &&
-    request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  // Prevent authenticated users from accessing authentication pages
+  // (e.g. /auth/login, /auth/sign-up).
+  // If the user is already signed in, redirect them to the protected area.
+  if (user && pathnameWithoutLocale.startsWith("/auth")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/protected";
-    return NextResponse.redirect(url);
+    url.pathname = `/${locale}/protected`;
+    const redirectResponse = NextResponse.redirect(url);
+    return redirectResponse;
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
