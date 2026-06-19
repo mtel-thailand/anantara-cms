@@ -1,6 +1,8 @@
+import { withApiLogger } from "@/src/lib/api/with-api-logger";
 import { ApiContext } from "@/src/lib/api/types";
 import { withAuth } from "@/src/lib/api/with-auth";
 import { withValidate } from "@/src/lib/api/with-validate";
+import { logger } from "@/src/lib/logger";
 import { InferSchemas, SchemaMap } from "@/src/types/common";
 import { NextRequest } from "next/server";
 import { z } from "zod";
@@ -34,7 +36,7 @@ const postSchemas = {
 type PostContextReturnType = ApiContext & InferSchemas<typeof postSchemas>;
 
 async function routeHandler(request: NextRequest, ctx: ContextReturnType) {
-  console.log("ctx", ctx.query.preview);
+  logger.debug("API", "GET context parsed", { preview: ctx.query.preview });
   const { searchParams } = new URL(request.url);
   const query = Object.fromEntries(searchParams.entries());
   return Response.json({ message: "eiei", test: query });
@@ -44,7 +46,10 @@ async function postRouteHandler(
   request: NextRequest,
   ctx: PostContextReturnType,
 ) {
-  console.log("ctx", ctx.body.id, ctx.body.title);
+  logger.debug("API", "POST context parsed", {
+    id: ctx.body.id,
+    title: ctx.body.title,
+  });
   const { searchParams } = new URL(request.url);
   const query = Object.fromEntries(searchParams.entries());
   return Response.json({ message: "eiei", test: query });
@@ -58,6 +63,6 @@ const postAuthWithValidateSchemaHandler = withAuth(
   withValidate<typeof postSchemas, ApiContext>(postSchemas, postRouteHandler),
 );
 
-export const GET = getAuthWithValidateSchemaHandler;
+export const GET = withApiLogger(getAuthWithValidateSchemaHandler);
 
-export const POST = postAuthWithValidateSchemaHandler;
+export const POST = withApiLogger(postAuthWithValidateSchemaHandler);

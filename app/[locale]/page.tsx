@@ -9,7 +9,48 @@ import Link from "next/link";
 import { Suspense } from "react";
 import LocaleSwitcher from "@/src/components/locale-switcher";
 import { useTranslations } from "next-intl";
+import ClientSideCustomEditor from "@/src/components/ui/editor/client-side-custom-editor";
 
+import { ColumnDef } from "@tanstack/react-table";
+import TestTable from "@/src/components/test-table";
+
+type User = {
+  id: string;
+
+  name: string;
+
+  email: string;
+
+  role: string;
+};
+
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: "name",
+
+    header: "Name",
+  },
+
+  {
+    accessorKey: "email",
+
+    header: "Email",
+  },
+
+  {
+    accessorKey: "role",
+
+    header: "Role",
+  },
+];
+
+const initialData: User[] = [
+  { id: "1", name: "John", email: "john@test.com", role: "Admin" },
+
+  { id: "2", name: "Jane", email: "jane@test.com", role: "User" },
+
+  { id: "3", name: "Bob", email: "bob@test.com", role: "Editor" },
+];
 export default function Home() {
   const t = useTranslations();
 
@@ -22,7 +63,7 @@ export default function Home() {
               <Link href={"/"}>Next.js Supabase Starter</Link>
               <div className="flex items-center gap-2">
                 <DeployButton />
-                {t('main.main')}
+                {t("main.main")}
               </div>
             </div>
             {!hasEnvVars ? (
@@ -42,7 +83,8 @@ export default function Home() {
             {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
           </main>
         </div>
-
+        <TestTable />
+        <ClientSideCustomEditor />
         <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
           <p>
             Powered by{" "}

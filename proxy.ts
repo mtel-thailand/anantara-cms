@@ -1,7 +1,9 @@
 import { updateSession } from "@/src/lib/supabase/proxy";
 import { type NextRequest } from "next/server";
+import { logHandler } from "./src/lib/api/with-api-logger";
 
 export async function proxy(request: NextRequest) {
+  logHandler(request, "MIDDLEWARE");
   return await updateSession(request);
 }
 

@@ -1,3 +1,4 @@
+import { withApiLogger } from "@/src/lib/api/with-api-logger";
 import { ApiContext } from "@/src/lib/api/types";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { createClient } from "@/src/lib/supabase/server";
@@ -44,4 +45,4 @@ const postWithValidateSchemaHandler = withValidate<
   ApiContext
 >(loginSchema, postRouteHandler);
 
-export const POST = postWithValidateSchemaHandler;
+export const POST = withApiLogger(postWithValidateSchemaHandler);

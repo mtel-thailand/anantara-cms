@@ -1,12 +1,17 @@
 import { createClient } from "@/src/lib/supabase/server";
+import { logger } from "@/src/lib/logger";
 import { InfoIcon } from "lucide-react";
 import { FetchDataSteps } from "@/src/components/tutorial/fetch-data-steps";
 import { Suspense } from "react";
 
-async function UserDetails() {
+export async function UserDetails() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-  console.log("data", data);
+
+  logger.debug("AUTH", "protected user claims loaded", {
+    hasClaims: Boolean(data?.claims),
+  });
+
   if (error || !data?.claims) {
     return "No authenticated user.";
   }
@@ -27,9 +32,9 @@ export default function ProtectedPage() {
       <div className="flex flex-col gap-2 items-start">
         <h2 className="font-bold text-2xl mb-4">Your user details</h2>
         <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
-          {/* <Suspense>
+          <Suspense>
             <UserDetails />
-          </Suspense> */}
+          </Suspense>
         </pre>
       </div>
       <div>

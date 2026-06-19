@@ -9,6 +9,7 @@ export type ApiContext = {
   body?: unknown;
   query?: unknown;
   headers?: unknown;
+  files?: File[];
 };
 
 export type ApiHandler<TContext extends ApiContext = ApiContext> = (
