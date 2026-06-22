@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import AnantaraLogoBlack from "@/public/images/logo-black.png";
 import clsx from "clsx";
 import { useTranslations } from "next-intl";
-import { ChevronDown, Loader } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { type NavChild, type NavItem } from "@/src/constants/nav-config";
 import { createClient } from "@/src/lib/supabase/client";
 import { Link, usePathname, useRouter } from "@/src/i18n/navigation";
 import { Button } from "@/src/components/ui/button";
-import { SIDEBAR_WIDTH } from "@/src/constants/localstorage";
 import {
   selectIsMenuExpanded,
   selectSetMenuExpanded,
+  selectSetSidebarWidth,
   selectToggleMenuExpanded,
+  selectWidth,
   useSidebarStore,
 } from "@/src/stores/sidebar-store";
 import useAsync from "@/src/hooks/use-async";
@@ -89,8 +90,8 @@ function NavItemButton({ item }: { item: NavItem }) {
         className={clsx(
           "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
           isActive
-            ? "bg-black text-white"
-            : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950",
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground hover:bg-accent",
         )}
       >
         <Icon className="size-4 shrink-0" />
@@ -107,8 +108,8 @@ function NavItemButton({ item }: { item: NavItem }) {
         className={clsx(
           "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors cursor-pointer",
           hasActiveChild
-            ? "bg-neutral-100 text-neutral-950"
-            : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950",
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground hover:bg-accent",
         )}
       >
         <Icon className="size-4 shrink-0" />
@@ -142,44 +143,29 @@ function NavItemButton({ item }: { item: NavItem }) {
 
 const MIN_WIDTH = 250;
 const MAX_WIDTH = 500;
-const DEFAULT_WIDTH = 350;
 
 export default function Sidebar({ menu }: { menu: NavItem[] }) {
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const widthRef = useRef<number>(MIN_WIDTH);
-  const [width, setWidth] = useState<number>(MIN_WIDTH);
-  const { isLoading, execute } = useAsync();
+  const dragStartXRef = useRef(0);
+  const dragStartWidthRef = useRef(MIN_WIDTH);
 
-  useEffect(() => {
-    const setLocaleWidth = async () => {
-      if (window !== undefined) {
-        const localWidthString = window.localStorage.getItem(SIDEBAR_WIDTH);
+  const sidebarWidth = useSidebarStore(selectWidth);
+  const setSidebarWidth = useSidebarStore(selectSetSidebarWidth);
 
-        const localWidth = localWidthString
-          ? parseInt(localWidthString)
-          : MIN_WIDTH;
-        setWidth(localWidth);
-      }
-    };
-    execute(setLocaleWidth);
-  }, []);
-
-  const startResize = () => {
+  const startResize = (event: React.MouseEvent<HTMLButtonElement>) => {
+    dragStartXRef.current = event.clientX;
+    dragStartWidthRef.current = sidebarWidth;
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
 
     const handleMouseMove = (e: MouseEvent) => {
-      setWidth((prev) => {
-        const newWidth = prev + e.movementX;
-        const currentWidth = Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH);
-        widthRef.current = currentWidth;
-        return currentWidth;
-      });
+      const movement = e.clientX - dragStartXRef.current;
+      const newWidth = dragStartWidthRef.current + movement;
+      const currentWidth = Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH);
+      setSidebarWidth(currentWidth);
     };
 
     const handleMouseUp = () => {
-      window.localStorage.setItem(SIDEBAR_WIDTH, widthRef.current.toString());
-      document.body.style.pointerEvents = "";
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
       window.removeEventListener("mousemove", handleMouseMove);
@@ -191,15 +177,14 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
   };
 
   return (
-    <div ref={sidebarRef} className="flex h-full flex-row shrink-0">
+    <div ref={sidebarRef} className="flex h-full shrink-0 flex-row">
       <div
         className={clsx(
-          "h-screen border-r bg-white transition-opacity",
-          "flex flex-col items-center",
-          !isLoading ? "opacity-100" : "opacity-0",
+          "flex h-full flex-col items-center border-r bg-sidebar",
+          "bg-white transition-opacity",
         )}
         style={{
-          width: `${width}px`,
+          width: `${sidebarWidth}px`,
         }}
       >
         <Image
@@ -219,7 +204,7 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
         </aside>
       </div>
       <button
-        className="group w-2 h-full py-2 cursor-col-resize bg-black"
+        className="group h-full w-2 cursor-col-resize bg-black py-2"
         onMouseDown={startResize}
       >
         <div className="w-0.5 h-full rounded-lg mx-auto group-hover:bg-white duration-200" />

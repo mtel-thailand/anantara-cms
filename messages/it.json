@@ -9,7 +9,7 @@
       "submissions": "Candidature",
       "classes": "Classi",
       "list": "Elenco auto",
-      "websiteDescription": "Descrizione sito"
+      "contentField": "Campo contenuto"
     },
     "awards": {
       "root": "Premi",
@@ -20,12 +20,12 @@
     "sponsors": {
       "root": "Sponsor",
       "list": "Elenco sponsor",
-      "websiteDescription": "Descrizione sito"
+      "contentField": "Campo contenuto"
     },
     "judges": {
       "root": "Giudici",
       "list": "Elenco giudici",
-      "websiteDescriptions": "Descrizioni sito"
+      "contentField": "Campo contenuto"
     },
     "news": "Notizie",
     "press": "Stampa",
@@ -40,7 +40,7 @@
     "gallery": {
       "root": "Galleria",
       "items": "Elementi galleria",
-      "websiteDescription": "Descrizione sito"
+      "contentField": "Campo contenuto"
     },
     "volunteers": {
       "root": "Volontari",

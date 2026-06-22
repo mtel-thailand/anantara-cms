@@ -23,17 +23,17 @@ export type MenuTranslationKey =
   | "cars.submissions"
   | "cars.classes"
   | "cars.list"
-  | "cars.websiteDescription"
+  | "cars.contentField"
   | "awards.root"
   | "awards.bestOfShow"
   | "awards.bestInClass"
   | "awards.specialAwards"
   | "sponsors.root"
   | "sponsors.list"
-  | "sponsors.websiteDescription"
+  | "sponsors.contentField"
   | "judges.root"
   | "judges.list"
-  | "judges.websiteDescriptions"
+  | "judges.contentField"
   | "news"
   | "press"
   | "staticPages.root"
@@ -44,7 +44,7 @@ export type MenuTranslationKey =
   | "staticPages.venue"
   | "gallery.root"
   | "gallery.items"
-  | "gallery.websiteDescription"
+  | "gallery.contentField"
   | "volunteers.root"
   | "volunteers.submissions"
   | "volunteers.list"
@@ -72,8 +72,8 @@ export type NavItem = {
   action?: "logout";
 };
 
-export const menuConfig: NavItem[] = [
-  { titleKey: "agenda", icon: CalendarDays, href: "/agenda" },
+export const NAV_ITEMS: NavItem[] = [
+  { titleKey: "agenda", icon: CalendarDays, href: "/app/agenda" },
   {
     titleKey: "cars.root",
     icon: Car,
@@ -82,7 +82,7 @@ export const menuConfig: NavItem[] = [
       { titleKey: "cars.classes", href: "/cars/classes" },
       { titleKey: "cars.list", href: "/cars/list" },
       {
-        titleKey: "cars.websiteDescription",
+        titleKey: "cars.contentField",
         href: "/cars/website-description",
       },
     ],
@@ -102,7 +102,7 @@ export const menuConfig: NavItem[] = [
     children: [
       { titleKey: "sponsors.list", href: "/sponsors/list" },
       {
-        titleKey: "sponsors.websiteDescription",
+        titleKey: "sponsors.contentField",
         href: "/sponsors/website-description",
       },
     ],
@@ -113,7 +113,7 @@ export const menuConfig: NavItem[] = [
     children: [
       { titleKey: "judges.list", href: "/judges/list" },
       {
-        titleKey: "judges.websiteDescriptions",
+        titleKey: "judges.contentField",
         href: "/judges/website-descriptions",
       },
     ],
@@ -143,7 +143,7 @@ export const menuConfig: NavItem[] = [
     children: [
       { titleKey: "gallery.items", href: "/gallery/items" },
       {
-        titleKey: "gallery.websiteDescription",
+        titleKey: "gallery.contentField",
         href: "/gallery/website-description",
       },
     ],
@@ -180,4 +180,5 @@ export const menuConfig: NavItem[] = [
   { titleKey: "logout", icon: LogOut, action: "logout" },
 ] satisfies NavItem[];
 
-export const MenuConfig = () => menuConfig;
+export const menuConfig = NAV_ITEMS;
+export const MenuConfig = () => NAV_ITEMS;

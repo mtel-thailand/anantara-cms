@@ -9,7 +9,7 @@
       "submissions": "Submissions",
       "classes": "Classes",
       "list": "Car list",
-      "websiteDescription": "Website description"
+      "contentField": "Content field"
     },
     "awards": {
       "root": "Awards",
@@ -20,12 +20,12 @@
     "sponsors": {
       "root": "Sponsors",
       "list": "Sponsor list",
-      "websiteDescription": "Website description"
+      "contentField": "Content field"
     },
     "judges": {
       "root": "Judges",
       "list": "Judges list",
-      "websiteDescriptions": "Website descriptions"
+      "contentField": "Content field"
     },
     "news": "News",
     "press": "Press",
@@ -40,7 +40,7 @@
     "gallery": {
       "root": "Gallery",
       "items": "Gallery Items",
-      "websiteDescription": "Website description"
+      "contentField": "Content field"
     },
     "volunteers": {
       "root": "Volunteers",
