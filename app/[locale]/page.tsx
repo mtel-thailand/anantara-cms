@@ -12,7 +12,7 @@ import { useTranslations } from "next-intl";
 import ClientSideCustomEditor from "@/src/components/ui/editor/client-side-custom-editor";
 
 import { ColumnDef } from "@tanstack/react-table";
-import TestTable from "@/src/components/test-table";
+import TestParent from "@/src/features/test-parent";
 
 type User = {
   id: string;
@@ -53,7 +53,7 @@ const initialData: User[] = [
 ];
 export default function Home() {
   const t = useTranslations();
-
+  console.log("Home trigger");
   return (
     <main className="min-h-screen flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col gap-20 items-center">
@@ -83,8 +83,8 @@ export default function Home() {
             {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
           </main>
         </div>
-        <TestTable />
-        <ClientSideCustomEditor />
+        <TestParent />
+
         <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
           <p>
             Powered by{" "}

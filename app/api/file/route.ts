@@ -1,4 +1,7 @@
-import { storageAdaptorUploadFile } from "@/src/lib/s3/client";
+import {
+  storageAdaptorDeleteFile,
+  storageAdaptorUploadFile,
+} from "@/src/lib/s3/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { InferSchemas, SchemaMap } from "@/src/types/common";
@@ -36,6 +39,16 @@ const postSchemas = {
 
 type PostContextReturnType = ApiContext & InferSchemas<typeof postSchemas>;
 
+const deleteSchemas = {
+  body: z
+    .object({
+      key: z.string().min(1, "S3 key is required."),
+    })
+    .strict(),
+} satisfies SchemaMap;
+
+type DeleteContextReturnType = ApiContext & InferSchemas<typeof deleteSchemas>;
+
 async function postRouteHandler(
   request: NextRequest,
   ctx: PostContextReturnType,
@@ -68,3 +81,23 @@ const postAuthWithValidateSchemaHandler = withAuth(
 );
 
 export const POST = withApiLogger(postAuthWithValidateSchemaHandler);
+
+async function deleteRouteHandler(
+  request: NextRequest,
+  ctx: DeleteContextReturnType,
+) {
+  logger.info("FILE", "delete request validated", { key: ctx.body.key });
+
+  await storageAdaptorDeleteFile(ctx.body.key);
+
+  return NextResponse.json({ message: "File deleted" });
+}
+
+const deleteAuthWithValidateSchemaHandler = withAuth(
+  withValidate<typeof deleteSchemas, ApiContext>(
+    deleteSchemas,
+    deleteRouteHandler,
+  ),
+);
+
+export const DELETE = withApiLogger(deleteAuthWithValidateSchemaHandler);

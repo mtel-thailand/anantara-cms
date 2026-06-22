@@ -6,7 +6,7 @@ import { routing } from "../../i18n/routing";
 import { hasLocale, Locale } from "next-intl";
 
 const guestOnlyRoutes = ["/"];
-const protectedRoutes = ["/protected"];
+const protectedRoutes = ["/app"];
 const COOKIE_LOCALE_KEY = "NEXT_LOCALE";
 
 function getPathInfo(pathname: string, fallbackLocale: Locale) {
@@ -85,7 +85,7 @@ export async function updateSession(request: NextRequest) {
   // with the Supabase client, your users may be randomly logged out.
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
-
+  console.log("user", user);
   const { locale, pathnameWithoutLocale } = getPathInfo(
     request.nextUrl.pathname,
     defaultLocale ?? routing.defaultLocale,
@@ -106,7 +106,7 @@ export async function updateSession(request: NextRequest) {
   // If the user is already signed in, redirect them to the protected area.
   if (user && pathnameWithoutLocale.startsWith("/auth")) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${locale}/protected`;
+    url.pathname = `/${locale}/app`;
     const redirectResponse = NextResponse.redirect(url);
     return redirectResponse;
   }

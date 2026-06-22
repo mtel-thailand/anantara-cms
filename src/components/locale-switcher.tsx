@@ -47,7 +47,7 @@ export default function LocaleSwitcher() {
             key={locale}
             onClick={() => onSelectChange(locale)}
             className={clsx(
-              "w-full p-4 cursor-pointer duration-200",
+              "w-full px-4 py-2 cursor-pointer duration-200",
               "hover:bg-black/5 hover:font-semibold ",
             )}
           >

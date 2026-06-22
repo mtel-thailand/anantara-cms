@@ -1,0 +1,229 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import AnantaraLogoBlack from "@/public/images/logo-black.png";
+import clsx from "clsx";
+import { useTranslations } from "next-intl";
+import { ChevronDown, Loader } from "lucide-react";
+import { type NavChild, type NavItem } from "@/src/constants/nav-config";
+import { createClient } from "@/src/lib/supabase/client";
+import { Link, usePathname, useRouter } from "@/src/i18n/navigation";
+import { Button } from "@/src/components/ui/button";
+import { SIDEBAR_WIDTH } from "@/src/constants/localstorage";
+import {
+  selectIsMenuExpanded,
+  selectSetMenuExpanded,
+  selectToggleMenuExpanded,
+  useSidebarStore,
+} from "@/src/stores/sidebar-store";
+import useAsync from "@/src/hooks/use-async";
+
+function NavChildItem({ child }: { child: NavChild }) {
+  const t = useTranslations("menu");
+  const pathname = usePathname();
+  const isActive = pathname === child.href;
+  const Icon = child.icon;
+
+  return (
+    <li>
+      <Link
+        href={child.href}
+        className={clsx(
+          "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
+          isActive
+            ? "bg-black text-white"
+            : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950",
+        )}
+      >
+        {Icon ? <Icon className="size-4 shrink-0" /> : null}
+        <span className="truncate">{t(child.titleKey)}</span>
+      </Link>
+    </li>
+  );
+}
+
+function NavItemButton({ item }: { item: NavItem }) {
+  const t = useTranslations("menu");
+  const pathname = usePathname();
+  const router = useRouter();
+  const Icon = item.icon;
+  const isActive = item.href ? pathname === item.href : false;
+  const hasActiveChild = item.children?.some(
+    (child) => child.href === pathname,
+  );
+  const isExpanded = useSidebarStore(selectIsMenuExpanded(item.titleKey));
+  const setMenuExpanded = useSidebarStore(selectSetMenuExpanded);
+  const toggleMenuExpanded = useSidebarStore(selectToggleMenuExpanded);
+
+  useEffect(() => {
+    if (hasActiveChild) {
+      setMenuExpanded(item.titleKey, true);
+    }
+  }, [hasActiveChild, item.titleKey, setMenuExpanded]);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/auth/login");
+    router.refresh();
+  };
+
+  if (item.action === "logout") {
+    return (
+      <Button
+        type="button"
+        onClick={handleLogout}
+        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-950"
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="truncate">{t(item.titleKey)}</span>
+      </Button>
+    );
+  }
+
+  if (item.href) {
+    return (
+      <Link
+        href={item.href}
+        className={clsx(
+          "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+          isActive
+            ? "bg-black text-white"
+            : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950",
+        )}
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="truncate">{t(item.titleKey)}</span>
+      </Link>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      <div
+        aria-expanded={isExpanded}
+        onClick={() => toggleMenuExpanded(item.titleKey)}
+        className={clsx(
+          "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors cursor-pointer",
+          hasActiveChild
+            ? "bg-neutral-100 text-neutral-950"
+            : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950",
+        )}
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="flex-1 truncate">{t(item.titleKey)}</span>
+        <ChevronDown
+          className={clsx(
+            "size-4 shrink-0 transition-transform",
+            isExpanded && "rotate-180",
+          )}
+        />
+      </div>
+      <div
+        className={clsx(
+          "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+          isExpanded
+            ? "grid-rows-[1fr] opacity-100"
+            : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="overflow-hidden flex flex-col ml-4 border-l">
+          <ul className="space-y-1 pl-2 pt-1">
+            {item.children?.map((child) => (
+              <NavChildItem key={child.href} child={child} />
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const MIN_WIDTH = 250;
+const MAX_WIDTH = 500;
+const DEFAULT_WIDTH = 350;
+
+export default function Sidebar({ menu }: { menu: NavItem[] }) {
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const widthRef = useRef<number>(MIN_WIDTH);
+  const [width, setWidth] = useState<number>(MIN_WIDTH);
+  const { isLoading, execute } = useAsync();
+
+  useEffect(() => {
+    const setLocaleWidth = async () => {
+      if (window !== undefined) {
+        const localWidthString = window.localStorage.getItem(SIDEBAR_WIDTH);
+
+        const localWidth = localWidthString
+          ? parseInt(localWidthString)
+          : MIN_WIDTH;
+        setWidth(localWidth);
+      }
+    };
+    execute(setLocaleWidth);
+  }, []);
+
+  const startResize = () => {
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    const handleMouseMove = (e: MouseEvent) => {
+      setWidth((prev) => {
+        const newWidth = prev + e.movementX;
+        const currentWidth = Math.min(Math.max(newWidth, MIN_WIDTH), MAX_WIDTH);
+        widthRef.current = currentWidth;
+        return currentWidth;
+      });
+    };
+
+    const handleMouseUp = () => {
+      window.localStorage.setItem(SIDEBAR_WIDTH, widthRef.current.toString());
+      document.body.style.pointerEvents = "";
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  return (
+    <div ref={sidebarRef} className="flex h-full flex-row shrink-0">
+      <div
+        className={clsx(
+          "h-screen border-r bg-white transition-opacity",
+          "flex flex-col items-center",
+          !isLoading ? "opacity-100" : "opacity-0",
+        )}
+        style={{
+          width: `${width}px`,
+        }}
+      >
+        <Image
+          src={AnantaraLogoBlack}
+          alt="Anantara Concorso Roma"
+          width={132}
+          height={132}
+          priority
+          className="my-4"
+        />
+        <aside className="w-full flex-1 overflow-y-auto px-3 pb-4">
+          <nav className="space-y-1">
+            {menu.map((item) => (
+              <NavItemButton key={item.titleKey} item={item} />
+            ))}
+          </nav>
+        </aside>
+      </div>
+      <button
+        className="group w-2 h-full py-2 cursor-col-resize bg-black"
+        onMouseDown={startResize}
+      >
+        <div className="w-0.5 h-full rounded-lg mx-auto group-hover:bg-white duration-200" />
+      </button>
+    </div>
+  );
+}

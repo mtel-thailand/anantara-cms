@@ -1,5 +1,60 @@
 {
   "main": {
     "main": "eiei en"
+  },
+  "menu": {
+    "agenda": "Agenda",
+    "cars": {
+      "root": "Cars",
+      "submissions": "Submissions",
+      "classes": "Classes",
+      "list": "Car list",
+      "websiteDescription": "Website description"
+    },
+    "awards": {
+      "root": "Awards",
+      "bestOfShow": "Best of Show",
+      "bestInClass": "Best in Class",
+      "specialAwards": "Special Awards"
+    },
+    "sponsors": {
+      "root": "Sponsors",
+      "list": "Sponsor list",
+      "websiteDescription": "Website description"
+    },
+    "judges": {
+      "root": "Judges",
+      "list": "Judges list",
+      "websiteDescriptions": "Website descriptions"
+    },
+    "news": "News",
+    "press": "Press",
+    "staticPages": {
+      "root": "Static pages",
+      "about": "About",
+      "howToGetThere": "How to get there",
+      "charity": "Charity",
+      "whatToWear": "What to wear",
+      "venue": "Venue"
+    },
+    "gallery": {
+      "root": "Gallery",
+      "items": "Gallery Items",
+      "websiteDescription": "Website description"
+    },
+    "volunteers": {
+      "root": "Volunteers",
+      "submissions": "Submissions",
+      "list": "Volunteer list"
+    },
+    "carsAndCoffee": {
+      "root": "Cars & Coffee",
+      "events": "Events & participants",
+      "submissions": "Submissions"
+    },
+    "shop": "Shop",
+    "ticketsAndPackages": "Tickets & Packages",
+    "profile": "Profile",
+    "logout": "Logout"
   }
 }

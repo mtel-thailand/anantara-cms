@@ -1,5 +1,60 @@
 {
   "main": {
     "main": "eiei it"
+  },
+  "menu": {
+    "agenda": "Agenda",
+    "cars": {
+      "root": "Auto",
+      "submissions": "Candidature",
+      "classes": "Classi",
+      "list": "Elenco auto",
+      "websiteDescription": "Descrizione sito"
+    },
+    "awards": {
+      "root": "Premi",
+      "bestOfShow": "Best of Show",
+      "bestInClass": "Best in Class",
+      "specialAwards": "Premi speciali"
+    },
+    "sponsors": {
+      "root": "Sponsor",
+      "list": "Elenco sponsor",
+      "websiteDescription": "Descrizione sito"
+    },
+    "judges": {
+      "root": "Giudici",
+      "list": "Elenco giudici",
+      "websiteDescriptions": "Descrizioni sito"
+    },
+    "news": "Notizie",
+    "press": "Stampa",
+    "staticPages": {
+      "root": "Pagine statiche",
+      "about": "Chi siamo",
+      "howToGetThere": "Come arrivare",
+      "charity": "Beneficenza",
+      "whatToWear": "Cosa indossare",
+      "venue": "Sede"
+    },
+    "gallery": {
+      "root": "Galleria",
+      "items": "Elementi galleria",
+      "websiteDescription": "Descrizione sito"
+    },
+    "volunteers": {
+      "root": "Volontari",
+      "submissions": "Candidature",
+      "list": "Elenco volontari"
+    },
+    "carsAndCoffee": {
+      "root": "Cars & Coffee",
+      "events": "Eventi e partecipanti",
+      "submissions": "Candidature"
+    },
+    "shop": "Negozio",
+    "ticketsAndPackages": "Biglietti e pacchetti",
+    "profile": "Profilo",
+    "logout": "Esci"
   }
 }
