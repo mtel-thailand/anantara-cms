@@ -17,12 +17,12 @@ import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { getAgendaSchema } from "../agenda.schema";
+import { getAgendaSchema } from "@/src/features/agenda/agenda.schema";
 import {
   AgendaEventType,
   AgendaItemFormType,
   agendaEventToFormValues,
-} from "../types";
+} from "@/src/features/agenda/types";
 import { AgendaIconGlyph } from "./agenda-icon";
 
 const EMPTY_VALUES: AgendaItemFormType = {

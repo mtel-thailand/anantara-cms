@@ -1,4 +1,4 @@
-import { DEFAULT_TZ } from "../constants/timezone";
+import { DEFAULT_TZ } from "@/src/constants/timezone";
 import dayjs from "./dayjs";
 
 type DateInput = Date | string | null | undefined;

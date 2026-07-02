@@ -1,5 +1,5 @@
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
-import { Input, InputProps } from "../ui/input";
+import { Input, type InputProps } from "@/src/components/ui/input";
 
 interface ControlledInputProps<T extends FieldValues> extends Omit<
   InputProps,

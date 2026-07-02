@@ -2,7 +2,8 @@
 
 import dynamic from "next/dynamic";
 import type { DraggableTableProps } from "./draggable-table";
-import Loader from "../loader";
+import type { ReactElement } from "react";
+import Loader from "@/src/components/ui/loader";
 
 const DynamicDraggableTable = dynamic(
   () => import("@/src/components/ui/table/draggable-table"),
@@ -16,7 +17,7 @@ const DynamicDraggableTable = dynamic(
   },
 ) as <TData extends { id: string }>(
   props: DraggableTableProps<TData>,
-) => React.ReactElement;
+) => ReactElement;
 
 const ClientSideDraggableTable = <TData extends { id: string }>(
   props: DraggableTableProps<TData>,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import type { ApiContext, ApiHandler } from "./types";
-import { createClient } from "../supabase/server";
+import { createClient } from "@/src/lib/supabase/server";
 
 type AuthContext = {
   user: User;

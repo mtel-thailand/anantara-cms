@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  useEffect,
+  useRef,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import Image from "next/image";
 import AnantaraLogoBlack from "@/public/images/logo-black.png";
 import clsx from "clsx";
@@ -19,8 +23,8 @@ import {
   useSidebarStore,
 } from "@/src/stores/sidebar-store";
 import useAsync from "@/src/hooks/use-async";
-import { useModal } from "../providers/modal-provider";
-import Text from "../ui/text";
+import { useModal } from "@/src/components/providers/modal-provider";
+import Text from "@/src/components/ui/text";
 
 function NavChildItem({ child }: { child: NavChild }) {
   const t = useTranslations("menu");
@@ -193,7 +197,7 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
   const sidebarWidth = useSidebarStore(selectWidth);
   const setSidebarWidth = useSidebarStore(selectSetSidebarWidth);
 
-  const startResize = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const startResize = (event: ReactMouseEvent<HTMLButtonElement>) => {
     dragStartXRef.current = event.clientX;
     dragStartWidthRef.current = sidebarWidth;
     document.body.style.cursor = "col-resize";

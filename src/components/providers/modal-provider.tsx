@@ -1,12 +1,20 @@
 "use client";
 
-import * as React from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
-} from "../ui/dialog";
+} from "@/src/components/ui/dialog";
 import { cn } from "@/src/lib/utils";
 
 type ModalContextValue = {
@@ -19,7 +27,7 @@ type ModalContextValue = {
   handleHideShowCloseButton: () => void;
 };
 
-const ModalContext = React.createContext<ModalContextValue | null>(null);
+const ModalContext = createContext<ModalContextValue | null>(null);
 
 type ModalRun = (action: () => void | Promise<void>) => Promise<void>;
 
@@ -30,14 +38,14 @@ type ModalFooterRenderProps = {
 };
 
 type ElementModalType = {
-  header?: React.ReactNode | null;
+  header?: ReactNode | null;
   className?: string;
   headerClassName?: string;
-  content?: React.ReactNode | null;
+  content?: ReactNode | null;
   contentClassName?: string;
   footer?:
-    | React.ReactNode
-    | ((props: ModalFooterRenderProps) => React.ReactNode)
+    | ReactNode
+    | ((props: ModalFooterRenderProps) => ReactNode)
     | null;
   footerClassName?: string;
   onOpenChange?: ((open: boolean) => void) | null;
@@ -55,23 +63,23 @@ const defaultElement: ElementModalType = {
 export default function ModalProvider({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const [element, setElement] =
-    React.useState<ElementModalType>(defaultElement);
-  const [modalOpen, setModalOpen] = React.useState<boolean>(false);
-  const [allowBackdropClose, setAllowBackdropClose] = React.useState(false);
-  const [showCloseButton, setShowCloseButton] = React.useState<boolean>(true);
-  const [loading, setLoading] = React.useState<boolean>(false);
-  const runningRef = React.useRef(false);
-  const onOpenChangeRef = React.useRef<((open: boolean) => void) | null>(null);
+    useState<ElementModalType>(defaultElement);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [allowBackdropClose, setAllowBackdropClose] = useState(false);
+  const [showCloseButton, setShowCloseButton] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const runningRef = useRef(false);
+  const onOpenChangeRef = useRef<((open: boolean) => void) | null>(null);
 
-  const close = React.useCallback(() => {
+  const close = useCallback(() => {
     setModalOpen(false);
     onOpenChangeRef.current?.(false);
   }, []);
 
-  const open = React.useCallback((elements?: ElementModalType) => {
+  const open = useCallback((elements?: ElementModalType) => {
     if (elements) {
       onOpenChangeRef.current = elements.onOpenChange ?? null;
       setElement({ ...defaultElement, ...elements });
@@ -79,7 +87,7 @@ export default function ModalProvider({
     setModalOpen(true);
   }, []);
 
-  const reset = React.useCallback(() => {
+  const reset = useCallback(() => {
     setElement(defaultElement);
     onOpenChangeRef.current = null;
     setAllowBackdropClose(true);
@@ -87,7 +95,7 @@ export default function ModalProvider({
     setLoading(false);
   }, []);
 
-  const run = React.useCallback<ModalRun>(async (action) => {
+  const run = useCallback<ModalRun>(async (action) => {
     if (runningRef.current) return;
 
     runningRef.current = true;
@@ -101,28 +109,28 @@ export default function ModalProvider({
     }
   }, []);
 
-  const preventBackdropClose = React.useCallback(() => {
+  const preventBackdropClose = useCallback(() => {
     setAllowBackdropClose(false);
   }, []);
 
-  const disableBackdropClose = React.useCallback(() => {
+  const disableBackdropClose = useCallback(() => {
     setAllowBackdropClose(true);
   }, []);
 
-  const handleShowShowCloseButton = React.useCallback(() => {
+  const handleShowShowCloseButton = useCallback(() => {
     setShowCloseButton(true);
   }, []);
 
-  const handleHideShowCloseButton = React.useCallback(() => {
+  const handleHideShowCloseButton = useCallback(() => {
     setShowCloseButton(false);
   }, []);
 
-  const handleOpenChange = React.useCallback((open: boolean) => {
+  const handleOpenChange = useCallback((open: boolean) => {
     setModalOpen(open);
     onOpenChangeRef.current?.(open);
   }, []);
 
-  const contextValue = React.useMemo<ModalContextValue>(
+  const contextValue = useMemo<ModalContextValue>(
     () => ({
       open,
       close,
@@ -185,7 +193,7 @@ export default function ModalProvider({
 }
 
 export function useModal() {
-  const context = React.useContext(ModalContext);
+  const context = useContext(ModalContext);
 
   if (!context) {
     throw new Error("useModal must be used within ModalProvider");

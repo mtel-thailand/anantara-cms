@@ -18,7 +18,7 @@ import {
   AgendaType,
   agendaEventLanguageStatus,
   hasAgendaLanguageGap,
-} from "../types";
+} from "@/src/features/agenda/types";
 import { useAgendaItemModal } from "./agenda-item-modals";
 import { AgendaIconGlyph } from "./agenda-icon";
 

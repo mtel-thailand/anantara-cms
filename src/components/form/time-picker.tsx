@@ -1,5 +1,8 @@
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
-import { TimePicker, TimePickerProps } from "../ui/time-picker";
+import {
+  TimePicker,
+  type TimePickerProps,
+} from "@/src/components/ui/time-picker";
 
 interface ControlledTimePickerProps<T extends FieldValues> extends Omit<
   TimePickerProps,

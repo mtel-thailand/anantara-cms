@@ -1,10 +1,10 @@
 "use client";
 import { ColumnDef } from "@tanstack/react-table";
-import ClientSideDraggableTable from "../components/ui/table/client-side-custom-table";
+import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
 import { useEffect, useState } from "react";
-import ClientSideCustomEditor from "../components/ui/editor/client-side-custom-editor";
-import { logger } from "../lib/logger";
-import { eventEmitter } from "../lib/events";
+import ClientSideCustomEditor from "@/src/components/ui/editor/client-side-custom-editor";
+import { logger } from "@/src/lib/logger";
+import { eventEmitter } from "@/src/lib/events";
 
 type User = {
   id: string;

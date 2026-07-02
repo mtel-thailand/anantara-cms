@@ -1,8 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { hasEnvVars } from "../utils";
+import { hasEnvVars } from "@/src/lib/utils";
 import createMiddleware from "next-intl/middleware";
-import { routing } from "../../i18n/routing";
+import { routing } from "@/src/i18n/routing";
 import { hasLocale, Locale } from "next-intl";
 
 const guestOnlyRoutes = ["/"];

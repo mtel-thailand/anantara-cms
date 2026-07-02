@@ -1,6 +1,12 @@
 "use client";
 
-import React, { memo, useCallback, useMemo } from "react";
+import {
+  memo,
+  useCallback,
+  useMemo,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import {
   Cell,
   ColumnDef,
@@ -38,7 +44,7 @@ export type DraggableTableProps<TData extends { id: string }> = {
   headerClassName?: string;
   bodyClassName?: string;
   sorting?: boolean;
-  emptyRow?: React.ReactNode;
+  emptyRow?: ReactNode;
   getRowClassName?: (data: TData) => string | undefined;
 };
 
@@ -196,7 +202,7 @@ const DraggableRow = memo(function DraggableRow<TData>({
     id: row.id,
   });
 
-  const style: React.CSSProperties = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: transition
       ? `${transition}, background-color 200ms ease`

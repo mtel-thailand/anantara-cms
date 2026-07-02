@@ -1,4 +1,4 @@
-import { AgendaCommand } from "../features/agenda/agenda.commands";
+import type { AgendaCommand } from "@/src/features/agenda/agenda.commands";
 
 type EventArgsMap = {
   "image-uploaded": [url: string];

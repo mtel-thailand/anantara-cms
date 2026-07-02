@@ -1,5 +1,5 @@
-import { LanguageToggle } from "../language-toggle";
-import { useTheme } from "../providers/theme-provider";
+import { LanguageToggle } from "@/src/components/language-toggle";
+import { useTheme } from "@/src/components/providers/theme-provider";
 
 const Topbar = () => {
   const { resolvedTheme, setTheme } = useTheme();

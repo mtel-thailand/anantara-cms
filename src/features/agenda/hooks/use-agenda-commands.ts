@@ -1,12 +1,12 @@
 import { eventEmitter } from "@/src/lib/events";
-import { useEffect } from "react";
+import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { toast } from "sonner";
-import { AgendaCommand } from "../agenda.commands";
-import { agendaReducer } from "../agenda.reducer";
-import { AgendaType } from "../types";
+import type { AgendaCommand } from "@/src/features/agenda/agenda.commands";
+import { agendaReducer } from "@/src/features/agenda/agenda.reducer";
+import type { AgendaType } from "@/src/features/agenda/types";
 
 function useAgendaCommands(
-  setAgendas: React.Dispatch<React.SetStateAction<AgendaType[]>>,
+  setAgendas: Dispatch<SetStateAction<AgendaType[]>>,
 ) {
   useEffect(() => {
     const handleCommand = (command: AgendaCommand) => {

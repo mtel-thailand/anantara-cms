@@ -1,4 +1,8 @@
-import * as React from "react";
+import {
+  forwardRef,
+  type ComponentProps,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/src/lib/utils";
@@ -6,7 +10,7 @@ import { Button } from "./button";
 import Text from "./text";
 import { Label } from "./label";
 
-export interface InputProps extends React.ComponentProps<"input"> {
+export interface InputProps extends ComponentProps<"input"> {
   label?: string;
   htmlFor?: string;
   required?: boolean;
@@ -17,12 +21,12 @@ export interface InputProps extends React.ComponentProps<"input"> {
   rightButton?: {
     label: string;
     disabled?: boolean;
-    onClick?: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+    onClick?: (event: ReactMouseEvent<HTMLButtonElement>) => void;
     icon: LucideIcon;
   };
 }
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
+const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     { className, type, label, htmlFor, required, error, rightButton, ...props },
     ref,

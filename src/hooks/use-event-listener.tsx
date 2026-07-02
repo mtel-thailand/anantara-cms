@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { logger } from "../lib/logger";
+import { logger } from "@/src/lib/logger";
 
 export default function useEventListener<K extends keyof WindowEventMap>(
   event: K,

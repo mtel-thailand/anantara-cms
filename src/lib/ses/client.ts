@@ -1,6 +1,6 @@
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { submissionConfirmationTemplate } from './templates/submissionConfirmation';
-import { logger } from '../logger';
+import { logger } from "@/src/lib/logger";
 
 const sesClient = new SESClient({
   region: process.env.AWS_REGION,

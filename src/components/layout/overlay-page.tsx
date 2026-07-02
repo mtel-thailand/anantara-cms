@@ -1,6 +1,6 @@
 import { cn } from "@/src/lib/utils";
 import React from "react";
-import { OverlayElementType } from "../providers/app-layout";
+import type { OverlayElementType } from "@/src/components/providers/app-layout";
 
 interface OverlayPageProps {
   open: boolean;

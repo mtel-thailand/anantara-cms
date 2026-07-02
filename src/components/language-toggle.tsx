@@ -1,10 +1,10 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { LOCALES } from "../constants/locale";
-import { cn } from "../lib/utils";
-import { Locale } from "../types/locale";
-import { usePathname, useRouter } from "../i18n/navigation";
+import { LOCALES } from "@/src/constants/locale";
+import { cn } from "@/src/lib/utils";
+import type { Locale } from "@/src/types/locale";
+import { usePathname, useRouter } from "@/src/i18n/navigation";
 import { useParams } from "next/navigation";
 
 /**

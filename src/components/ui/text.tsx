@@ -1,4 +1,4 @@
-import { ElementType, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 import { cn } from "@/src/lib/utils";
 
 const fontStyle = {
@@ -74,7 +74,7 @@ type TextProps<T extends ElementType = "p"> = {
   font?: keyof typeof fontStyle;
   weight?: keyof typeof fontWeight;
   children: ReactNode;
-} & Omit<React.ComponentPropsWithoutRef<T>, "children" | "component">;
+} & Omit<ComponentPropsWithoutRef<T>, "children" | "component">;
 
 const Text = <T extends ElementType = "p">({
   component,

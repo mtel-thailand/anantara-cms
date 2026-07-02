@@ -1,6 +1,12 @@
 "use client";
 
-import * as React from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type WheelEvent,
+} from "react";
 import { ClockIcon } from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
@@ -63,7 +69,7 @@ export function TimePicker({
   placeholder = "Select time",
   className,
 }: TimePickerProps) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const selected = parse(value);
   const minMins = toMinutes(min);
   const maxMins = toMinutes(max);
@@ -165,13 +171,13 @@ function TimeColumn({
   children,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   // The picker is portalled outside the dialog, so the dialog's scroll-lock
   // (react-remove-scroll) swallows wheel events here — only thumb-dragging
   // scrolls. Manually translate the wheel into scrollTop on the viewport so
   // hovering anywhere over the column scrolls it.
-  function handleWheel(e: React.WheelEvent<HTMLDivElement>) {
+  function handleWheel(e: WheelEvent<HTMLDivElement>) {
     const viewport = e.currentTarget.querySelector<HTMLElement>(
       "[data-slot=scroll-area-viewport]",
     );
@@ -199,12 +205,12 @@ function TimeOption({
   selected: boolean;
   disabled?: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const ref = React.useRef<HTMLButtonElement>(null);
+  const ref = useRef<HTMLButtonElement>(null);
 
   // Bring the active row into view when the picker mounts.
-  React.useEffect(() => {
+  useEffect(() => {
     if (selected) ref.current?.scrollIntoView({ block: "center" });
   }, [selected]);
 

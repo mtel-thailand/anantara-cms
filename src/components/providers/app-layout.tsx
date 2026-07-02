@@ -1,17 +1,23 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import Topbar from "../layout/topbar";
-import Sidebar from "../layout/sidebar";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import Topbar from "@/src/components/layout/topbar";
+import Sidebar from "@/src/components/layout/sidebar";
 import { JwtPayload } from "@supabase/supabase-js";
 import { selectSetUser, useAuthStore } from "@/src/stores/auth";
 import { menuConfig } from "@/src/constants/nav-config";
-import OverlayPage from "../layout/overlay-page";
+import OverlayPage from "@/src/components/layout/overlay-page";
 
 export type OverlayElementType = {
-  header?: React.ReactNode | null;
-  content?: React.ReactNode | null;
-  footer?: React.ReactNode | null;
+  header?: ReactNode | null;
+  content?: ReactNode | null;
+  footer?: ReactNode | null;
 };
 
 type AppLayoutContextType = {
@@ -35,7 +41,7 @@ export default function AppLayoutProvider({
   children,
   user,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   user: JwtPayload | null;
 }) {
   const [overlayElement, setOverlayElement] =

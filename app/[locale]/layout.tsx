@@ -9,7 +9,7 @@ import { routing } from "@/src/i18n/routing";
 import enMessages from "@/messages/en.json";
 import itMessages from "@/messages/it.json";
 import { ThemeProvider } from "@/src/components/providers/theme-provider";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Toaster } from "@/src/components/ui/sonner";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -55,7 +55,7 @@ export default async function RootLayout({
   children,
   params,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
   const { locale: requestedLocale } = (await params) as { locale?: string };

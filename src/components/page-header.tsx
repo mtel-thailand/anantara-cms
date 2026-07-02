@@ -1,6 +1,7 @@
 import { cn } from "@/src/lib/utils";
 import { GenericTooltip } from "./ui/tooltip";
 import { Monitor, Smartphone } from "lucide-react";
+import type { ReactNode } from "react";
 
 type Viewport = "desktop" | "mobile";
 
@@ -49,10 +50,10 @@ export function PageHeader({
   title: string;
   description?: string;
   /** Rendered inline to the right of the title (e.g. a status badge). */
-  titleAccessory?: React.ReactNode;
+  titleAccessory?: ReactNode;
   /** Which surfaces this page's content drives — shown as icons after the title. */
   viewport?: Viewport[];
-  children?: React.ReactNode;
+  children?: ReactNode;
   className?: string;
 }) {
   return (

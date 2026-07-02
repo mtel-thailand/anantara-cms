@@ -3,7 +3,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { DEFAULT_TZ } from "../constants/timezone";
+import { DEFAULT_TZ } from "@/src/constants/timezone";
 
 const dayjsSingleton = dayjs;
 

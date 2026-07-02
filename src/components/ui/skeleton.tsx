@@ -1,9 +1,10 @@
 import { cn } from "@/src/lib/utils";
+import type { ComponentProps } from "react";
 
 function Skeleton({
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: ComponentProps<"div">) {
   return (
     <div
       data-slot="skeleton"

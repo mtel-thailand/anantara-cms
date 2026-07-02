@@ -6,7 +6,7 @@ import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ComponentPropsWithoutRef } from "react";
 import { useForm } from "react-hook-form";
 import { SignInFormType } from "./types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,7 +27,7 @@ const defaultValues: SignInFormType = {
 export function SignInClient({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: ComponentPropsWithoutRef<"div">) {
   const t = useTranslations();
   const signInSchema = getSignInSchema(t);
   const { control, handleSubmit, formState } = useForm<SignInFormType>({

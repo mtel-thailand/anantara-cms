@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import type { ApiContext, ApiHandler } from "./types";
 import type { InferSchemas, SchemaMap } from "@/src/types/api-schema";
-import { logger } from "../logger";
+import { logger } from "@/src/lib/logger";
 
 export function withValidate<
   TSchemas extends SchemaMap,

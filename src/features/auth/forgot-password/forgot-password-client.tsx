@@ -5,7 +5,7 @@ import { createClient } from "@/src/lib/supabase/client";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ComponentPropsWithoutRef } from "react";
 import Image from "next/image";
 import Text from "@/src/components/ui/text";
 import LogoBlack from "@/public/images/logo-black.png";
@@ -25,7 +25,7 @@ const defaultValues: ForgotPasswordFormType = {
 export function ForgotPasswordClient({
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: ComponentPropsWithoutRef<"div">) {
   const t = useTranslations();
   const forgetPasswordSchema = getForgotPasswordSchema(t);
 
