@@ -1,14 +1,9 @@
-import { DeployButton } from "@/src/components/deploy-button";
-import { EnvVarWarning } from "@/src/components/env-var-warning";
-import { AuthButton } from "@/src/components/auth-button";
-import { hasEnvVars } from "@/src/lib/utils";
-import Link from "next/link";
-import { Suspense } from "react";
-import LocaleSwitcher from "@/src/components/locale-switcher";
-import AppLayoutProvider from "@/src/components/layout/app-layout";
+import AppLayoutProvider from "@/src/components/providers/app-layout";
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "@/src/i18n/navigation";
 import { getLocale } from "next-intl/server";
+import ModalProvider from "@/src/components/providers/modal-provider";
+import { TooltipProvider } from "@/src/components/ui/tooltip";
 
 export default async function ProtectedLayout({
   children,
@@ -24,8 +19,10 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <AppLayoutProvider user={data ? data.claims : null}>
-      {children}
-    </AppLayoutProvider>
+    <ModalProvider>
+      <AppLayoutProvider user={data ? data.claims : null}>
+        <TooltipProvider>{children}</TooltipProvider>
+      </AppLayoutProvider>
+    </ModalProvider>
   );
 }

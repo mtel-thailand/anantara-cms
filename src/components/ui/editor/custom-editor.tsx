@@ -127,4 +127,6 @@ const CustomEditor = memo((props: CustomEditorProps) => {
   );
 });
 
+CustomEditor.displayName = "CustomEditor";
+
 export default CustomEditor;

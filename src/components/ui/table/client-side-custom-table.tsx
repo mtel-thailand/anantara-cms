@@ -1,20 +1,22 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { ComponentType } from "react";
 import type { DraggableTableProps } from "./draggable-table";
+import Loader from "../loader";
 
-const DynamicDraggableTable = dynamic<DraggableTableProps<any>>(
+const DynamicDraggableTable = dynamic(
   () => import("@/src/components/ui/table/draggable-table"),
   {
     ssr: false,
     loading: () => (
-      <div className="rounded-md border p-4 text-sm text-muted-foreground">
-        Loading table...
+      <div className="w-full h-10 flex items-center justify-center">
+        <Loader />
       </div>
     ),
   },
-);
+) as <TData extends { id: string }>(
+  props: DraggableTableProps<TData>,
+) => React.ReactElement;
 
 const ClientSideDraggableTable = <TData extends { id: string }>(
   props: DraggableTableProps<TData>,

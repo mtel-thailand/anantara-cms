@@ -1,8 +1,8 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { logger } from "@/src/lib/logger";
 import { InfoIcon } from "lucide-react";
-import { FetchDataSteps } from "@/src/components/tutorial/fetch-data-steps";
 import { Suspense } from "react";
+import { CalendarDemo } from "./test";
 
 export async function UserDetails() {
   const supabase = await createClient();
@@ -29,14 +29,42 @@ export default function ProtectedPage() {
           user
         </div>
       </div>
+
       <div className="flex flex-col gap-2 items-start">
         <h2 className="font-bold text-2xl mb-4">Your user details</h2>
         <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
           <Suspense>
             <UserDetails />
           </Suspense>
+        </pre>{" "}
+        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
+          <Suspense>
+            <UserDetails />
+          </Suspense>
+        </pre>{" "}
+        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
+          <Suspense>
+            <UserDetails />
+          </Suspense>
+        </pre>{" "}
+        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
+          <Suspense>
+            <UserDetails />
+          </Suspense>
+        </pre>{" "}
+        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
+          <Suspense>
+            <UserDetails />
+          </Suspense>
+        </pre>{" "}
+        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
+          <Suspense>
+            <UserDetails />
+          </Suspense>
         </pre>
+        <CalendarDemo />
       </div>
+
       <div>
         <h2 className="font-bold text-2xl mb-4">Next steps</h2>
       </div>

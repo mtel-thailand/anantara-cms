@@ -4,7 +4,7 @@ import {
 } from "@/src/lib/s3/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { InferSchemas, SchemaMap } from "@/src/types/common";
+import { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 import { ApiContext } from "@/src/lib/api/types";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { withApiLogger } from "@/src/lib/api/with-api-logger";

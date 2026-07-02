@@ -1,50 +1,48 @@
-type EventMap = {
-  "image-uploaded": string;
+import { AgendaCommand } from "../features/agenda/agenda.commands";
+
+type EventArgsMap = {
+  "image-uploaded": [url: string];
+
+  "agenda:command": [command: AgendaCommand];
 };
 
-type EventName = keyof EventMap;
-type EventHandler<TName extends EventName> = (payload: EventMap[TName]) => void;
+type EventName = keyof EventArgsMap;
+type EventHandler<TName extends EventName> = (
+  ...args: EventArgsMap[TName]
+) => void;
+type AnyEventHandler = (...args: unknown[]) => void;
 
 class BrowserEventEmitter {
   private target = new EventTarget();
-  private listeners = new WeakMap<
-    EventHandler<EventName>,
-    EventListener
-  >();
+  private listeners = new WeakMap<AnyEventHandler, EventListener>();
 
-  on<TName extends EventName>(
-    eventName: TName,
-    handler: EventHandler<TName>,
-  ) {
+  on<TName extends EventName>(eventName: TName, handler: EventHandler<TName>) {
     const listener: EventListener = (event) => {
-      handler((event as CustomEvent<EventMap[TName]>).detail);
+      handler(...(event as CustomEvent<EventArgsMap[TName]>).detail);
     };
 
-    this.listeners.set(handler as EventHandler<EventName>, listener);
+    this.listeners.set(handler as AnyEventHandler, listener);
     this.target.addEventListener(eventName, listener);
   }
 
-  off<TName extends EventName>(
-    eventName: TName,
-    handler: EventHandler<TName>,
-  ) {
-    const listener = this.listeners.get(handler as EventHandler<EventName>);
+  off<TName extends EventName>(eventName: TName, handler: EventHandler<TName>) {
+    const listener = this.listeners.get(handler as AnyEventHandler);
 
     if (!listener) {
       return;
     }
 
     this.target.removeEventListener(eventName, listener);
-    this.listeners.delete(handler as EventHandler<EventName>);
+    this.listeners.delete(handler as AnyEventHandler);
   }
 
   emit<TName extends EventName>(
     eventName: TName,
-    payload: EventMap[TName],
+    ...args: EventArgsMap[TName]
   ) {
     this.target.dispatchEvent(
       new CustomEvent(eventName, {
-        detail: payload,
+        detail: args,
       }),
     );
   }
