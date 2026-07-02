@@ -22,10 +22,13 @@ function PopoverContent({
   className,
   align = "center",
   sideOffset = 4,
+  container,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+}: React.ComponentProps<typeof PopoverPrimitive.Content> & {
+  container?: React.ComponentProps<typeof PopoverPrimitive.Portal>["container"];
+}) {
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={container}>
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}
@@ -79,9 +82,10 @@ function PopoverDescription({
   );
 }
 
-interface MainPopoverProps extends React.ComponentProps<
+export interface MainPopoverProps extends React.ComponentProps<
   typeof PopoverPrimitive.Root
 > {
+  container?: React.ComponentProps<typeof PopoverPrimitive.Portal>["container"];
   name?: React.ReactNode;
   trigger?: React.ReactElement;
   title?: React.ReactNode;
@@ -99,6 +103,7 @@ interface MainPopoverProps extends React.ComponentProps<
 }
 
 function Popover({
+  container,
   name,
   trigger,
   title,
@@ -132,6 +137,7 @@ function Popover({
         side={side}
         sideOffset={sideOffset}
         className={contentClassName}
+        container={container}
       >
         {(title || description) && (
           <PopoverHeader className="mb-4">

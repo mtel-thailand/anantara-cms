@@ -2,7 +2,7 @@ import { withApiLogger } from "@/src/lib/api/with-api-logger";
 import { ApiContext } from "@/src/lib/api/types";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { createClient } from "@/src/lib/supabase/server";
-import { InferSchemas, SchemaMap } from "@/src/types/common";
+import { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 

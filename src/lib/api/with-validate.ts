@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import type { ApiContext, ApiHandler } from "./types";
-import type { InferSchemas, SchemaMap } from "@/src/types/common";
+import type { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 import { logger } from "../logger";
 
 export function withValidate<
