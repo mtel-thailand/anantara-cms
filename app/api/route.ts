@@ -3,7 +3,7 @@ import { ApiContext } from "@/src/lib/api/types";
 import { withAuth } from "@/src/lib/api/with-auth";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { logger } from "@/src/lib/logger";
-import { InferSchemas, SchemaMap } from "@/src/types/common";
+import { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 

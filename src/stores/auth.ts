@@ -11,7 +11,7 @@ type AuthStore = {
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
-  setUser: (user) => set((state) => ({ user: user })),
+  setUser: (user) => set(() => ({ user: user })),
 }));
 
 export const selectUser = (state: AuthStore) => state.user;

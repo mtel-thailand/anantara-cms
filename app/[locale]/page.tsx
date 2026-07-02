@@ -7,55 +7,14 @@ import { SignUpUserSteps } from "@/src/components/tutorial/sign-up-user-steps";
 import { hasEnvVars } from "@/src/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
-import LocaleSwitcher from "@/src/components/locale-switcher";
 import { useTranslations } from "next-intl";
-import ClientSideCustomEditor from "@/src/components/ui/editor/client-side-custom-editor";
-
-import { ColumnDef } from "@tanstack/react-table";
 import TestParent from "@/src/features/test-parent";
 
-type User = {
-  id: string;
-
-  name: string;
-
-  email: string;
-
-  role: string;
-};
-
-const columns: ColumnDef<User>[] = [
-  {
-    accessorKey: "name",
-
-    header: "Name",
-  },
-
-  {
-    accessorKey: "email",
-
-    header: "Email",
-  },
-
-  {
-    accessorKey: "role",
-
-    header: "Role",
-  },
-];
-
-const initialData: User[] = [
-  { id: "1", name: "John", email: "john@test.com", role: "Admin" },
-
-  { id: "2", name: "Jane", email: "jane@test.com", role: "User" },
-
-  { id: "3", name: "Bob", email: "bob@test.com", role: "Editor" },
-];
 export default function Home() {
   const t = useTranslations();
-  console.log("Home trigger");
+
   return (
-    <main className="min-h-screen flex flex-col items-center">
+    <main className="flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col gap-20 items-center">
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
@@ -73,7 +32,6 @@ export default function Home() {
                 <AuthButton />
               </Suspense>
             )}
-            <LocaleSwitcher />
           </div>
         </nav>
         <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">

@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  useEffect,
+  useRef,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import Image from "next/image";
 import AnantaraLogoBlack from "@/public/images/logo-black.png";
 import clsx from "clsx";
@@ -19,6 +23,8 @@ import {
   useSidebarStore,
 } from "@/src/stores/sidebar-store";
 import useAsync from "@/src/hooks/use-async";
+import { useModal } from "@/src/components/providers/modal-provider";
+import Text from "@/src/components/ui/text";
 
 function NavChildItem({ child }: { child: NavChild }) {
   const t = useTranslations("menu");
@@ -57,6 +63,9 @@ function NavItemButton({ item }: { item: NavItem }) {
   const setMenuExpanded = useSidebarStore(selectSetMenuExpanded);
   const toggleMenuExpanded = useSidebarStore(selectToggleMenuExpanded);
 
+  const modal = useModal();
+  const { execute } = useAsync();
+
   useEffect(() => {
     if (hasActiveChild) {
       setMenuExpanded(item.titleKey, true);
@@ -64,18 +73,53 @@ function NavItemButton({ item }: { item: NavItem }) {
   }, [hasActiveChild, item.titleKey, setMenuExpanded]);
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/auth/login");
-    router.refresh();
+    return execute<[], void>(async () => {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/auth/login");
+      router.refresh();
+    });
+  };
+
+  const handleOpenLogoutModal = () => {
+    modal.open({
+      className: "gap-0",
+      headerClassName: "border-b-0 px-4",
+      header: (
+        <>
+          <Text.FormTitle size="base" className="font-medium">
+            Log out of the CMS?
+          </Text.FormTitle>
+          <Text size="sm" color="muted-foreground">
+            You will be signed out and returned to the login page.
+          </Text>
+        </>
+      ),
+      footer: ({ loading, close, run }) => (
+        <>
+          <Button variant="outline" disabled={loading} onClick={close}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            loading={loading}
+            onClick={() => void run(handleLogout)}
+          >
+            Logout
+          </Button>
+        </>
+      ),
+    });
+    modal.handleHideShowCloseButton();
+    modal.disableBackdropClose();
   };
 
   if (item.action === "logout") {
     return (
       <Button
         type="button"
-        onClick={handleLogout}
-        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-950"
+        onClick={handleOpenLogoutModal}
+        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100 hover:text-neutral-950"
       >
         <Icon className="size-4 shrink-0" />
         <span className="truncate">{t(item.titleKey)}</span>
@@ -115,8 +159,9 @@ function NavItemButton({ item }: { item: NavItem }) {
         <Icon className="size-4 shrink-0" />
         <span className="flex-1 truncate">{t(item.titleKey)}</span>
         <ChevronDown
+          strokeWidth={1.75}
           className={clsx(
-            "size-4 shrink-0 transition-transform",
+            "size-3.5 shrink-0 transition-transform",
             isExpanded && "rotate-180",
           )}
         />
@@ -152,7 +197,7 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
   const sidebarWidth = useSidebarStore(selectWidth);
   const setSidebarWidth = useSidebarStore(selectSetSidebarWidth);
 
-  const startResize = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const startResize = (event: ReactMouseEvent<HTMLButtonElement>) => {
     dragStartXRef.current = event.clientX;
     dragStartWidthRef.current = sidebarWidth;
     document.body.style.cursor = "col-resize";
@@ -177,11 +222,14 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
   };
 
   return (
-    <div ref={sidebarRef} className="flex h-full shrink-0 flex-row">
+    <div
+      ref={sidebarRef}
+      className="flex h-full shrink-0 flex-row content-animate-in"
+    >
       <div
         className={clsx(
           "flex h-full flex-col items-center border-r bg-sidebar",
-          "bg-white transition-opacity",
+          "bg-sidebar transition-opacity",
         )}
         style={{
           width: `${sidebarWidth}px`,

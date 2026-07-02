@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { ApiContext, ApiHandler } from "./types";
-import { logger } from "../logger";
+import { logger } from "@/src/lib/logger";
 
 function getRequestMeta(request: NextRequest) {
   const url = new URL(request.url);

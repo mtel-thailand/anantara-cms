@@ -1,6 +1,12 @@
 "use client";
 
-import React, { memo, useCallback, useMemo } from "react";
+import {
+  memo,
+  useCallback,
+  useMemo,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import {
   Cell,
   ColumnDef,
@@ -28,11 +34,18 @@ import {
   restrictToFirstScrollableAncestor,
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
+import { cn } from "@/src/lib/utils";
 
 export type DraggableTableProps<TData extends { id: string }> = {
   data: TData[];
   columns: ColumnDef<TData, unknown>[];
   onReorder: (data: TData[]) => void;
+  className?: string;
+  headerClassName?: string;
+  bodyClassName?: string;
+  sorting?: boolean;
+  emptyRow?: ReactNode;
+  getRowClassName?: (data: TData) => string | undefined;
 };
 
 const dragModifiers = [
@@ -44,6 +57,12 @@ const DraggableTableComponent = <TData extends { id: string }>({
   data,
   columns,
   onReorder,
+  className,
+  headerClassName,
+  bodyClassName,
+  sorting,
+  emptyRow,
+  getRowClassName,
 }: DraggableTableProps<TData>) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -53,7 +72,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
     }),
   );
 
-  const getRowId = (row: TData) => row.id;
+  const getRowId = useCallback((row: TData) => row.id, []);
 
   const table = useReactTable({
     data,
@@ -63,6 +82,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
   });
 
   const ids = useMemo(() => data.map(getRowId), [data, getRowId]);
+  const emptyColSpan = table.getVisibleLeafColumns().length + (sorting ? 1 : 0);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -79,7 +99,6 @@ const DraggableTableComponent = <TData extends { id: string }>({
     },
     [data, ids, onReorder],
   );
-  console.log("re-render DraggableTableComponent");
   return (
     <DndContext
       sensors={sensors}
@@ -88,12 +107,17 @@ const DraggableTableComponent = <TData extends { id: string }>({
       autoScroll={false}
       onDragEnd={handleDragEnd}
     >
-      <div className="max-h-[500px] overflow-y-auto overscroll-contain">
-        <table className="w-full border-collapse border">
-          <thead>
+      <div
+        className={cn(
+          "max-h-[500px] overflow-y-auto overscroll-contain",
+          className,
+        )}
+      >
+        <table className="w-full border-collapse">
+          <thead className={headerClassName}>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b bg-gray-100">
-                <th className="w-10 p-2"></th>
+              <tr key={headerGroup.id} className="border-b">
+                {sorting && <th className="w-10 p-2"></th>}
 
                 {headerGroup.headers.map((header) => (
                   <th key={header.id} className="p-2 text-left">
@@ -109,11 +133,33 @@ const DraggableTableComponent = <TData extends { id: string }>({
             ))}
           </thead>
 
-          <tbody>
+          <tbody className={bodyClassName}>
             <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-              {table.getRowModel().rows.map((row) => (
-                <DraggableRow key={row.id} row={row} />
-              ))}
+              {table.getRowModel().rows.length > 0 ? (
+                table
+                  .getRowModel()
+                  .rows.map((row) => (
+                    <DraggableRow
+                      key={row.id}
+                      row={row}
+                      sorting={sorting}
+                      className={getRowClassName?.(row.original)}
+                    />
+                  ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={emptyColSpan}
+                    className="p-0 hover:bg-muted/50 duration-150"
+                  >
+                    {emptyRow ?? (
+                      <div className="flex min-h-20 items-center justify-center px-4 py-6 text-center text-sm text-muted-foreground">
+                        No data available.
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              )}
             </SortableContext>
           </tbody>
         </table>
@@ -129,7 +175,8 @@ function arePropsEqual<TData extends { id: string }>(
   return (
     oldProps.data === newProps.data &&
     oldProps.columns === newProps.columns &&
-    oldProps.onReorder === newProps.onReorder
+    oldProps.onReorder === newProps.onReorder &&
+    oldProps.getRowClassName === newProps.getRowClassName
   );
 }
 
@@ -137,8 +184,12 @@ const DraggableTable = memo(DraggableTableComponent, arePropsEqual);
 
 const DraggableRow = memo(function DraggableRow<TData>({
   row,
+  sorting,
+  className,
 }: {
   row: Row<TData>;
+  sorting?: boolean;
+  className?: string;
 }) {
   const {
     attributes,
@@ -151,24 +202,32 @@ const DraggableRow = memo(function DraggableRow<TData>({
     id: row.id,
   });
 
-  const style: React.CSSProperties = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transition: transition
+      ? `${transition}, background-color 200ms ease`
+      : undefined,
+    opacity: isDragging ? 0.5 : undefined,
   };
-  console.log("render")
+
   return (
-    <tr ref={setNodeRef} style={style} className="border-b bg-white">
-      <td className="p-2">
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="touch-none cursor-grab rounded border px-2 py-1 active:cursor-grabbing"
-        >
-          ☰
-        </button>
-      </td>
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={cn("border-b hover:bg-muted/50", className)}
+    >
+      {sorting && (
+        <td className="p-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="touch-none cursor-grab rounded border px-2 py-1 active:cursor-grabbing"
+          >
+            ☰
+          </button>
+        </td>
+      )}
 
       {row.getVisibleCells().map((cell) => (
         <DraggableCell key={cell.id} cell={cell} />

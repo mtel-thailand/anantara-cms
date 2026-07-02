@@ -15,7 +15,7 @@ import {
   Image,
   Style,
 } from "ckeditor5";
-import { memo, useRef } from "react";
+import { memo, useRef, type ComponentProps } from "react";
 import "ckeditor5/ckeditor5.css";
 import {
   CkEditorUploadAdapter,
@@ -37,7 +37,7 @@ function getImageKeysFromHtml(html: string) {
 }
 
 interface CustomEditorProps extends Omit<
-  React.ComponentProps<typeof CKEditor>,
+  ComponentProps<typeof CKEditor>,
   "onChange" | "editor"
 > {
   onChange?: (data: string) => void;
@@ -126,5 +126,7 @@ const CustomEditor = memo((props: CustomEditorProps) => {
     />
   );
 });
+
+CustomEditor.displayName = "CustomEditor";
 
 export default CustomEditor;

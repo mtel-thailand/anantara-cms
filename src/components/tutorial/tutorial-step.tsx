@@ -1,11 +1,12 @@
-import { Checkbox } from "../ui/checkbox";
+import { Checkbox } from "@/src/components/ui/checkbox";
+import type { ReactNode } from "react";
 
 export function TutorialStep({
   title,
   children,
 }: {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <li className="relative">

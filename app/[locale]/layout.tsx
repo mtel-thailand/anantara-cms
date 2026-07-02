@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { EB_Garamond, Figtree, Playfair_Display } from "next/font/google";
 import { hasLocale } from "next-intl";
 import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -8,31 +8,44 @@ import "../../styles/globals.css";
 import { routing } from "@/src/i18n/routing";
 import enMessages from "@/messages/en.json";
 import itMessages from "@/messages/it.json";
-import { ThemeProvider } from "@/src/components/theme-provider";
-import { Suspense } from "react";
+import { ThemeProvider } from "@/src/components/providers/theme-provider";
+import { Suspense, type ReactNode } from "react";
+import { Toaster } from "@/src/components/ui/sonner";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
-};
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  display: "swap",
-  subsets: ["latin"],
+const figtree = Figtree({
+  variable: "--font-figtree",
+  subsets: ["latin", "latin-ext"],
 });
 
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin", "latin-ext"],
+});
+
+// Serif body face for the public-site WYSIWYG editor / preview (alongside
+// Playfair). Includes the 600 weight used by the "SemiBold" font option.
+const ebGaramond = EB_Garamond({
+  variable: "--font-eb-garamond",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+});
 const messages = {
   en: enMessages,
   it: itMessages,
 } as const;
 
 type Locale = keyof typeof messages;
+
+export const metadata: Metadata = {
+  metadataBase: new URL(defaultUrl),
+  title: "Next.js and Supabase Starter Kit",
+  description: "The fastest way to build apps with Next.js and Supabase",
+};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -42,7 +55,7 @@ export default async function RootLayout({
   children,
   params,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
   const { locale: requestedLocale } = (await params) as { locale?: string };
@@ -56,15 +69,22 @@ export default async function RootLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+    <html
+      lang={locale}
+      className={`${figtree.variable} ${playfair.variable} ${ebGaramond.variable} antialiased`}
+      suppressHydrationWarning
+    >
+      <body>
         <Suspense fallback={null}>
           <NextIntlClientProvider
             locale={locale}
             messages={messages[locale]}
             timeZone="UTC"
           >
-            {children}
+            <ThemeProvider>
+              <Toaster />
+              {children}
+            </ThemeProvider>
           </NextIntlClientProvider>
         </Suspense>
       </body>

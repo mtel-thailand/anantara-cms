@@ -1,7 +1,7 @@
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import crypto from "node:crypto";
 import { buildStorageKey } from "./key";
-import { logger } from "../logger";
+import { logger } from "@/src/lib/logger";
 
 const bucketName = process.env.AWS_S3_BUCKET?.trim() || "";
 const region = process.env.AWS_REGION?.trim() || "";
