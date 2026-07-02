@@ -79,6 +79,8 @@ function NavItemButton({ item }: { item: NavItem }) {
 
   const handleOpenLogoutModal = () => {
     modal.open({
+      className: "gap-0",
+      headerClassName: "border-b-0 px-4",
       header: (
         <>
           <Text.FormTitle size="base" className="font-medium">

@@ -31,6 +31,7 @@ type ModalFooterRenderProps = {
 
 type ElementModalType = {
   header?: React.ReactNode | null;
+  className?: string;
   headerClassName?: string;
   content?: React.ReactNode | null;
   contentClassName?: string;
@@ -146,6 +147,7 @@ export default function ModalProvider({
     <ModalContext.Provider value={contextValue}>
       <Dialog open={modalOpen} onOpenChange={handleOpenChange}>
         <DialogContent
+          className={element.className}
           showCloseButton={showCloseButton}
           onInteractOutside={(e) => !allowBackdropClose && e.preventDefault()}
           onEscapeKeyDown={(e) => !allowBackdropClose && e.preventDefault()}
