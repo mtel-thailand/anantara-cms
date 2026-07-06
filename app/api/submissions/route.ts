@@ -1,10 +1,9 @@
 import { ApiContext } from '@/src/lib/api/types';
 import { withApiLogger } from '@/src/lib/api/with-api-logger';
-import { withAuth } from '@/src/lib/api/with-auth';
 import { withValidate } from '@/src/lib/api/with-validate';
 import { logger } from '@/src/lib/logger';
 import { sendSubmissionEmail } from '@/src/lib/ses/client';
-import { InferSchemas, SchemaMap } from '@/src/types/common';
+import { InferSchemas, SchemaMap } from '@/src/types/api-schema';
 import { NextRequest, NextResponse } from 'next/server';
 import * as z from 'zod';
 
