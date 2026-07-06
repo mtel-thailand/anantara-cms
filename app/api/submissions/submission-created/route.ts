@@ -50,7 +50,7 @@ async function postRouteHandler(
 
     logger.info(
       'SUBMISSION-CREATED',
-      `Sending email for submission: ${submissionId}`,
+      `Sending email for submissionId: ${submissionId}`,
     );
     await sendSubmissionEmail(submissionForm);
   } catch (error) {
@@ -65,7 +65,7 @@ async function postRouteHandler(
 
   logger.success(
     'SUBMISSION-CREATED',
-    `Email sent successfully for submission: ${submissionId}`,
+    `Email sent successfully for submissionId: ${submissionId}`,
   );
 
   return NextResponse.json({ message: 'Email sent' });
