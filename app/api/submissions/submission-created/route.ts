@@ -48,13 +48,11 @@ async function postRouteHandler(
       throw new Error('Error fetching submission form');
     }
 
-    const email = submissionForm?.email ?? process.env.AWS_SES_TO!;
-
     logger.info(
       'SUBMISSION-CREATED',
       `Sending email for submission: ${submissionId}`,
     );
-    await sendSubmissionEmail(email);
+    await sendSubmissionEmail(submissionForm);
   } catch (error) {
     logger.error('SUBMISSION-CREATED', 'Error sending email', {
       error: error instanceof Error ? error.message : String(error),

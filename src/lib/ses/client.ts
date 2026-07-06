@@ -1,6 +1,9 @@
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { submissionConfirmationTemplate } from './templates/submissionConfirmation';
-import { logger } from "@/src/lib/logger";
+import { logger } from '@/src/lib/logger';
+import { Database } from '@/src/types/database.types';
+
+const DEFAULT_EMAIL = process.env.AWS_SES_TO ?? '';
 
 const sesClient = new SESClient({
   region: process.env.AWS_REGION,
@@ -10,10 +13,15 @@ const sesClient = new SESClient({
   },
 });
 
-// TODO: Update the Subject email message later.
-export const sendSubmissionEmail = async (receiverEmail: string) => {
+type CarSubmissionForm =
+  Database['public']['Tables']['car_submissions_form']['Row'];
+
+const sendEmail = async (
+  receiver: string,
+  subject: string,
+  htmlBody: string,
+) => {
   try {
-    const receiver = receiverEmail ?? process.env.AWS_SES_TO!;
     logger.info('SES', `Sending email to: ${receiver}`);
     await sesClient.send(
       new SendEmailCommand({
@@ -23,11 +31,11 @@ export const sendSubmissionEmail = async (receiverEmail: string) => {
         },
         Message: {
           Subject: {
-            Data: `We've received your Concorso Roma submission`,
+            Data: subject,
           },
           Body: {
             Html: {
-              Data: submissionConfirmationTemplate(),
+              Data: htmlBody,
             },
           },
         },
@@ -36,6 +44,38 @@ export const sendSubmissionEmail = async (receiverEmail: string) => {
     logger.success('SES', `Email sent successfully to: ${receiver}`);
   } catch (error) {
     logger.error('SES', 'Error sending email', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error('Error sending email');
+  }
+};
+
+// TODO: Update the Subject email message later.
+export const sendSubmissionEmail = async (
+  submissionForm: CarSubmissionForm,
+) => {
+  try {
+    const { name, first_name, email, access_token } = submissionForm;
+    const receiver = email ?? DEFAULT_EMAIL;
+    const recipientName = `${first_name} ${name}`;
+    logger.info(
+      'SES-sendSubmissionEmail',
+      `Sending submission email to: ${receiver}`,
+    );
+    await sendEmail(
+      receiver,
+      `We've received your Concorso Roma submission`,
+      submissionConfirmationTemplate({
+        recipientName,
+        accessToken: access_token ?? '',
+      }),
+    );
+    logger.success(
+      'SES-sendSubmissionEmail',
+      `Submission email sent successfully to: ${receiver}`,
+    );
+  } catch (error) {
+    logger.error('SES-sendSubmissionEmail', 'Error sending email', {
       error: error instanceof Error ? error.message : String(error),
     });
     throw new Error('Error sending email');
