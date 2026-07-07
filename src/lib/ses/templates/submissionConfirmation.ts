@@ -1,4 +1,15 @@
-export const submissionConfirmationTemplate = () => {
+type CarSubmissionTemplate = {
+  recipientName: string;
+  accessToken: string;
+};
+
+const ANANTARA_CLIENT_BASE_URL = process.env.ANANTARA_CLIENT_BASE_URL ?? '';
+
+export const submissionConfirmationTemplate = (
+  templateData: CarSubmissionTemplate,
+) => {
+  const { accessToken, recipientName } = templateData;
+  const submissionUrl = `${ANANTARA_CLIENT_BASE_URL}/en/my-submission?token=${accessToken}`;
   return `
     <!doctype html>
     <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -126,7 +137,7 @@ export const submissionConfirmationTemplate = () => {
                             text-align: center;
                             "
                         >
-                            Thank you, <strong>John Smith</strong>. Your
+                            Thank you, <strong>${recipientName}</strong>. Your
                             registration for the Anantara Concorso Roma has been
                             received.
                         </p>
@@ -426,7 +437,7 @@ export const submissionConfirmationTemplate = () => {
                                 </p>
                                 <!-- ★ BUTTON — add your URL to the href below -->
                                 <a
-                                href="YOUR_URL_HERE"
+                                href="${submissionUrl}"
                                 style="
                                     display: inline-block;
                                     background-color: #c71a4e;
