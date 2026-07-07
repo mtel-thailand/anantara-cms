@@ -1,12 +1,12 @@
-import { ApiContext } from '@/src/lib/api/types';
-import { withApiLogger } from '@/src/lib/api/with-api-logger';
-import { withValidate } from '@/src/lib/api/with-validate';
-import { logger } from '@/src/lib/logger';
-import { sendSubmissionEmail } from '@/src/lib/ses/client';
-import { createClient } from '@/src/lib/supabase/client';
-import { InferSchemas, SchemaMap } from '@/src/types/api-schema';
-import { NextRequest, NextResponse } from 'next/server';
-import * as z from 'zod';
+import { ApiContext } from "@/src/lib/api/types";
+import { withApiLogger } from "@/src/lib/api/with-api-logger";
+import { withValidate } from "@/src/lib/api/with-validate";
+import { logger } from "@/src/lib/logger";
+import { sendEmail } from "@/src/lib/ses/email";
+import { createClient } from "@/src/lib/supabase/client";
+import { InferSchemas, SchemaMap } from "@/src/types/api-schema";
+import { NextRequest, NextResponse } from "next/server";
+import * as z from "zod";
 
 const submissionCreatedSchema = {
   body: z
@@ -25,9 +25,9 @@ async function postRouteHandler(
 ) {
   const submissionId = ctx?.body?.submissionId;
   if (!submissionId) {
-    logger.error('SUBMISSION-CREATED', 'Submission ID is required');
+    logger.error("SUBMISSION-CREATED", "Submission ID is required");
     return NextResponse.json(
-      { error: 'Submission ID is required' },
+      { error: "Submission ID is required" },
       { status: 400 },
     );
   }
@@ -35,40 +35,57 @@ async function postRouteHandler(
   try {
     const supabase = await createClient();
 
-    const { data: submissionForm, error } = await supabase
-      .from('car_submissions_form')
-      .select()
-      .eq('id', submissionId)
-      .single();
+    // const { data: submissionForm, error } = await supabase
+    //   .from("car_submissions_form")
+    //   .select()
+    //   .eq("id", submissionId)
+    //   .single();
 
-    if (error) {
-      logger.error('SUBMISSION-CREATED', 'Error fetching submission form', {
-        error,
-      });
-      throw new Error('Error fetching submission form');
-    }
+    // if (error) {
+    //   logger.error("SUBMISSION-CREATED", "Error fetching submission form", {
+    //     error,
+    //   });
+    //   throw new Error("Error fetching submission form");
+    // }
 
     logger.info(
-      'SUBMISSION-CREATED',
+      "SUBMISSION-CREATED",
       `Sending email for submissionId: ${submissionId}`,
     );
-    await sendSubmissionEmail(submissionForm);
+    // await sendSubmissionEmail(submissionForm);
+    await sendEmail(
+      process.env.AWS_SES_TO?.split(",")[0]?.trim() ??
+        "suphasan.sae@mtel.co.th",
+      "We've received your Concorso Roma submission",
+      {
+        template: "submission-confirm",
+        params: {
+          recipientName: "Poohdude",
+          accessToken: "poohdude-xx",
+          submissionUrl: `${process.env.ANANTARA_CLIENT_BASE_URL ?? ""}/en/my-submission?token=${"poohdude-xx"}`,
+          eiei: "",
+          // recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
+          // accessToken: submissionForm.access_token ?? "",
+          // submissionUrl: `${process.env.ANANTARA_CLIENT_BASE_URL ?? ""}/en/my-submission?token=${submissionForm.access_token ?? ""}`,
+        },
+      },
+    );
   } catch (error) {
-    logger.error('SUBMISSION-CREATED', 'Error sending email', {
+    logger.error("SUBMISSION-CREATED", "Error sending email", {
       error: error instanceof Error ? error.message : String(error),
     });
     return NextResponse.json(
-      { error: 'Error sending email submission' },
+      { error: "Error sending email submission" },
       { status: 500 },
     );
   }
 
   logger.success(
-    'SUBMISSION-CREATED',
+    "SUBMISSION-CREATED",
     `Email sent successfully for submissionId: ${submissionId}`,
   );
 
-  return NextResponse.json({ message: 'Email sent' });
+  return NextResponse.json({ message: "Email sent" });
 }
 
 const postAuthWithValidateSchemaHandler = withValidate<
