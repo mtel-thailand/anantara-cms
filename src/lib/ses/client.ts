@@ -5,7 +5,7 @@ import { Database } from '@/src/types/database.types';
 
 const DEFAULT_EMAIL = process.env.AWS_SES_TO ?? '';
 
-const sesClient = new SESClient({
+export const sesClient = new SESClient({
   region: process.env.AWS_REGION,
   credentials: {
     accessKeyId: process.env.AWS_SES_ACCESS_KEY_ID!,

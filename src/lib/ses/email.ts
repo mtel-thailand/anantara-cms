@@ -1,7 +1,8 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import { logger } from "../logger";
-import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
+import { SendEmailCommand } from "@aws-sdk/client-ses";
+import { sesClient } from "./client";
 
 export type EmailTemplateParams = {
   "submission-confirm": {
@@ -61,14 +62,6 @@ export async function renderEmailTemplate(options: EmailTemplateOptions) {
   return html;
 }
 
-const sesClient = new SESClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_SES_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SES_SECRET_ACCESS_KEY!,
-  },
-});
-
 export async function sendEmail(
   receiver: string,
   subject: string,
@@ -77,12 +70,11 @@ export async function sendEmail(
   try {
     const html = await renderEmailTemplate(options);
     logger.info("SES", `Sending email to: ${receiver}`);
-    console.log("html", html);
     await sesClient.send(
       new SendEmailCommand({
         Source: process.env.AWS_SES_FROM!,
         Destination: {
-          ToAddresses: [receiver],
+          ToAddresses: [...receiver.split(",").map((email) => email.trim())],
         },
         Message: {
           Subject: {

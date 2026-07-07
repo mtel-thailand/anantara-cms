@@ -33,40 +33,35 @@ async function postRouteHandler(
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = createClient();
 
-    // const { data: submissionForm, error } = await supabase
-    //   .from("car_submissions_form")
-    //   .select()
-    //   .eq("id", submissionId)
-    //   .single();
+    const { data: submissionForm, error } = await supabase
+      .from("car_submissions_form")
+      .select()
+      .eq("id", submissionId)
+      .single();
 
-    // if (error) {
-    //   logger.error("SUBMISSION-CREATED", "Error fetching submission form", {
-    //     error,
-    //   });
-    //   throw new Error("Error fetching submission form");
-    // }
+    if (error) {
+      logger.error("SUBMISSION-CREATED", "Error fetching submission form", {
+        error,
+      });
+      throw new Error("Error fetching submission form");
+    }
 
     logger.info(
       "SUBMISSION-CREATED",
       `Sending email for submissionId: ${submissionId}`,
     );
-    // await sendSubmissionEmail(submissionForm);
+
     await sendEmail(
-      process.env.AWS_SES_TO?.split(",")[0]?.trim() ??
-        "suphasan.sae@mtel.co.th",
+      submissionForm.email,
       "We've received your Concorso Roma submission",
       {
         template: "submission-confirm",
         params: {
-          recipientName: "Poohdude",
-          accessToken: "poohdude-xx",
-          submissionUrl: `${process.env.ANANTARA_CLIENT_BASE_URL ?? ""}/en/my-submission?token=${"poohdude-xx"}`,
-          eiei: "",
-          // recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
-          // accessToken: submissionForm.access_token ?? "",
-          // submissionUrl: `${process.env.ANANTARA_CLIENT_BASE_URL ?? ""}/en/my-submission?token=${submissionForm.access_token ?? ""}`,
+          recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
+          accessToken: submissionForm.access_token ?? "",
+          submissionUrl: `${process.env.ANANTARA_CLIENT_BASE_URL ?? ""}/en/my-submission?token=${submissionForm.access_token ?? ""}`,
         },
       },
     );
