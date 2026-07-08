@@ -4,26 +4,65 @@ import { logger } from "../logger";
 import { SendEmailCommand } from "@aws-sdk/client-ses";
 import { sesClient } from "./client";
 
+export enum EmailTemplate {
+  SubmissionConfirm = "submission-confirm",
+}
+
 export type EmailTemplateParams = {
-  "submission-confirm": {
+  [EmailTemplate.SubmissionConfirm]: {
     recipientName: string;
     accessToken: string;
-    submissionUrl: string;
   };
 };
 
 export type EmailTemplateName = keyof EmailTemplateParams;
 
-type EmailTemplateOptions = {
-  [Template in EmailTemplateName]: {
-    template: Template;
-    params: EmailTemplateParams[Template];
-  };
-}[EmailTemplateName];
+type EmailTemplateOptions<Template extends EmailTemplateName> = {
+  template: Template;
+  params: EmailTemplateParams[Template];
+};
 
-const EMAIL_TEMPLATE_FILES = {
-  "submission-confirm": "submission-confirm.html",
-} as const satisfies Record<EmailTemplateName, string>;
+type EmailTemplateDefinition<Params> = {
+  file: string;
+  subject: string;
+  resolveParams: (params: Params) => Record<string, string | number | boolean>;
+};
+
+type EmailTemplateRegistry = {
+  [Template in EmailTemplateName]: EmailTemplateDefinition<
+    EmailTemplateParams[Template]
+  >;
+};
+
+function createClientUrl(
+  pathname: string,
+  searchParams?: Record<string, string>,
+) {
+  const baseUrl = process.env.ANANTARA_CLIENT_BASE_URL;
+  if (!baseUrl) {
+    throw new Error("ANANTARA_CLIENT_BASE_URL is not configured");
+  }
+
+  const url = new URL(pathname, `${baseUrl.replace(/\/$/, "")}/`);
+  Object.entries(searchParams ?? {}).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  });
+
+  return url.toString();
+}
+
+const EMAIL_TEMPLATES = {
+  [EmailTemplate.SubmissionConfirm]: {
+    file: "submission-confirm.html",
+    subject: "We've received your Concorso Roma submission",
+    resolveParams: ({ recipientName, accessToken }) => ({
+      recipientName,
+      submissionUrl: createClientUrl("/en/my-submission", {
+        token: accessToken,
+      }),
+    }),
+  },
+} satisfies EmailTemplateRegistry;
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>'"]/g, (character) => {
@@ -39,16 +78,22 @@ function escapeHtml(value: string) {
   });
 }
 
-export async function renderEmailTemplate(options: EmailTemplateOptions) {
+export async function renderEmailTemplate<Template extends EmailTemplateName>(
+  options: EmailTemplateOptions<Template>,
+) {
+  const definition = EMAIL_TEMPLATES[
+    options.template
+  ] as EmailTemplateDefinition<EmailTemplateParams[Template]>;
   const templatePath = path.join(
     process.cwd(),
     "src",
     "templates",
-    EMAIL_TEMPLATE_FILES[options.template],
+    definition.file,
   );
   let html = await readFile(templatePath, "utf-8");
+  const templateParams = definition.resolveParams(options.params);
 
-  Object.entries(options.params).forEach(([key, value]) => {
+  Object.entries(templateParams).forEach(([key, value]) => {
     html = html.replaceAll(`{{${key}}}`, escapeHtml(String(value)));
   });
 
@@ -62,13 +107,13 @@ export async function renderEmailTemplate(options: EmailTemplateOptions) {
   return html;
 }
 
-export async function sendEmail(
+export async function sendEmail<Template extends EmailTemplateName>(
   receiver: string,
-  subject: string,
-  options: EmailTemplateOptions,
+  options: EmailTemplateOptions<Template>,
 ) {
   try {
     const html = await renderEmailTemplate(options);
+    const subject = EMAIL_TEMPLATES[options.template].subject;
     logger.info("SES", `Sending email to: ${receiver}`);
     await sesClient.send(
       new SendEmailCommand({

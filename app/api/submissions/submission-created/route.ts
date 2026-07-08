@@ -2,7 +2,7 @@ import { ApiContext } from "@/src/lib/api/types";
 import { withApiLogger } from "@/src/lib/api/with-api-logger";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { logger } from "@/src/lib/logger";
-import { sendEmail } from "@/src/lib/ses/email";
+import { EmailTemplate, sendEmail } from "@/src/lib/ses/email";
 import { createClient } from "@/src/lib/supabase/client";
 import { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 import { NextRequest, NextResponse } from "next/server";
@@ -53,18 +53,13 @@ async function postRouteHandler(
       `Sending email for submissionId: ${submissionId}`,
     );
 
-    await sendEmail(
-      submissionForm.email,
-      "We've received your Concorso Roma submission",
-      {
-        template: "submission-confirm",
-        params: {
-          recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
-          accessToken: submissionForm.access_token ?? "",
-          submissionUrl: `${process.env.ANANTARA_CLIENT_BASE_URL ?? ""}/en/my-submission?token=${submissionForm.access_token ?? ""}`,
-        },
+    await sendEmail<EmailTemplate.SubmissionConfirm>(submissionForm.email, {
+      template: EmailTemplate.SubmissionConfirm,
+      params: {
+        recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
+        accessToken: submissionForm.access_token ?? "",
       },
-    );
+    });
   } catch (error) {
     logger.error("SUBMISSION-CREATED", "Error sending email", {
       error: error instanceof Error ? error.message : String(error),
