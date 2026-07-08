@@ -5,11 +5,7 @@ import {
   toISODate,
 } from "@/src/lib/date";
 import { AgendaCommand } from "./agenda.commands";
-import {
-  AgendaEventState,
-  AgendaEventInput,
-  AgendaState,
-} from "./types";
+import { AgendaEventState, AgendaEventInput, AgendaState } from "./types";
 
 function agendaDate(agenda: AgendaState) {
   return agenda.date ?? agenda.createdAt;
@@ -87,9 +83,7 @@ export function agendaReducer(
 
       if (
         hasDuplicateDate(
-          agendas
-            .filter((agenda) => !agenda.removed)
-            .map(agendaDate),
+          agendas.filter((agenda) => !agenda.removed).map(agendaDate),
           zonedDate,
         )
       ) {
@@ -144,10 +138,20 @@ export function agendaReducer(
         .map((agenda, index) => ({ ...agenda, seq: index + 1 }));
     }
 
-    case "remove-date":
+    case "remove-date": {
+      const target = agendas.find((agenda) => agenda.id === command.id);
+      if (!target) return agendas;
+
+      if (target.id.startsWith("temp-")) {
+        return agendas
+          .filter((agenda) => agenda.id !== command.id)
+          .map((agenda, index) => ({ ...agenda, seq: index + 1 }));
+      }
+
       return agendas.map((agenda) =>
         agenda.id === command.id ? { ...agenda, removed: true } : agenda,
       );
+    }
 
     case "restore-date":
       return agendas.map((agenda) =>
@@ -190,18 +194,32 @@ export function agendaReducer(
       });
 
     case "remove-event":
-      return agendas.map((agenda) =>
-        agenda.id === command.agendaId
-          ? {
-              ...agenda,
-              events: agenda.events.map((event) =>
-                event.id === command.eventId
-                  ? { ...event, removed: true }
-                  : event,
-              ),
-            }
-          : agenda,
-      );
+      return agendas.map((agenda) => {
+        if (agenda.id !== command.agendaId) {
+          return agenda;
+        }
+
+        const targetEvent = agenda.events.find(
+          (event) => event.id === command.eventId,
+        );
+
+        if (!targetEvent) {
+          return agenda;
+        }
+
+        const events = targetEvent.id.startsWith("temp-")
+          ? agenda.events.filter((event) => event.id !== command.eventId)
+          : agenda.events.map((event) =>
+              event.id === command.eventId
+                ? { ...event, removed: true }
+                : event,
+            );
+
+        return {
+          ...agenda,
+          events,
+        };
+      });
 
     case "restore-event":
       return agendas.map((agenda) =>

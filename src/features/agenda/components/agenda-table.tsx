@@ -121,6 +121,7 @@ const AgendaTable = memo(function AgendaTable({
             Remove {localizedValue(event.name, event.nameIt)}?
           </Text.FormTitle>
         ),
+        contentClassName: "px-4",
         content: (
           <Text size="sm" color="muted-foreground">
             This item will be marked for removal. You can restore it before
