@@ -55,10 +55,11 @@ async function postRouteHandler(
 
     await sendEmail<EmailTemplate.SubmissionConfirm>(submissionForm.email, {
       template: EmailTemplate.SubmissionConfirm,
-      params: {
-        recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
-        accessToken: submissionForm.access_token ?? "",
-      },
+        params: {
+          recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
+          accessToken: submissionForm.access_token ?? "",
+          vehicles: [],
+        },
     });
   } catch (error) {
     logger.error("SUBMISSION-CREATED", "Error sending email", {

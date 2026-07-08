@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { logger } from "@/src/lib/logger";
 import { SendEmailCommand } from "@aws-sdk/client-ses";
+import Handlebars from "handlebars";
 import sesClient from "@/src/lib/ses/client";
 
 export enum EmailTemplate {
@@ -12,6 +13,12 @@ export type EmailTemplateParams = {
   [EmailTemplate.SubmissionConfirm]: {
     recipientName: string;
     accessToken: string;
+    vehicles: Array<{
+      name: string;
+      year: number;
+      bodyStyle: string;
+      imageUrl: string;
+    }>;
   };
 };
 
@@ -25,7 +32,7 @@ type EmailTemplateOptions<Template extends EmailTemplateName> = {
 type EmailTemplateDefinition<Params> = {
   file: string;
   subject: string;
-  resolveParams: (params: Params) => Record<string, string | number | boolean>;
+  resolveParams: (params: Params) => Record<string, unknown>;
 };
 
 type EmailTemplateRegistry = {
@@ -55,28 +62,15 @@ const EMAIL_TEMPLATES = {
   [EmailTemplate.SubmissionConfirm]: {
     file: "submission-confirm.html",
     subject: "We've received your Concorso Roma submission",
-    resolveParams: ({ recipientName, accessToken }) => ({
+    resolveParams: ({ recipientName, accessToken, vehicles }) => ({
       recipientName,
+      vehicles,
       submissionUrl: createClientUrl("/en/my-submission", {
         token: accessToken,
       }),
     }),
   },
 } satisfies EmailTemplateRegistry;
-
-function escapeHtml(value: string) {
-  return value.replace(/[&<>'"]/g, (character) => {
-    const entities: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      "'": "&#39;",
-      '"': "&quot;",
-    };
-
-    return entities[character];
-  });
-}
 
 export async function renderEmailTemplate<Template extends EmailTemplateName>(
   options: EmailTemplateOptions<Template>,
@@ -90,21 +84,11 @@ export async function renderEmailTemplate<Template extends EmailTemplateName>(
     "templates",
     definition.file,
   );
-  let html = await readFile(templatePath, "utf-8");
+  const source = await readFile(templatePath, "utf-8");
   const templateParams = definition.resolveParams(options.params);
+  const render = Handlebars.compile(source, { strict: true });
 
-  Object.entries(templateParams).forEach(([key, value]) => {
-    html = html.replaceAll(`{{${key}}}`, escapeHtml(String(value)));
-  });
-
-  const unresolvedPlaceholders = html.match(/{{[^{}]+}}/g);
-  if (unresolvedPlaceholders) {
-    throw new Error(
-      `Missing parameters for template "${options.template}": ${unresolvedPlaceholders.join(", ")}`,
-    );
-  }
-
-  return html;
+  return render(templateParams);
 }
 
 export async function sendEmail<Template extends EmailTemplateName>(
