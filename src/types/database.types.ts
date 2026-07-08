@@ -161,6 +161,86 @@ export type Database = {
         }
         Relationships: []
       }
+      car_submission_vehicles: {
+        Row: {
+          archived_at: string | null
+          body_style: string | null
+          chassis_no: string | null
+          coachbuilder: string | null
+          created_at: string
+          engine_no: string | null
+          exterior_colour: string | null
+          id: string
+          interior_colour: string | null
+          internal_comment: Json | null
+          make_of_vehicle: string
+          model: string
+          review_note: string | null
+          reviewed_at: string | null
+          sequence: number
+          status: Database["public"]["Enums"]["submission_status"]
+          submission_id: string
+          updated_at: string
+          vehicle_history_en: string | null
+          vehicle_history_it: string | null
+          year_of_manufacture: string
+        }
+        Insert: {
+          archived_at?: string | null
+          body_style?: string | null
+          chassis_no?: string | null
+          coachbuilder?: string | null
+          created_at?: string
+          engine_no?: string | null
+          exterior_colour?: string | null
+          id?: string
+          interior_colour?: string | null
+          internal_comment?: Json | null
+          make_of_vehicle: string
+          model: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          sequence: number
+          status?: Database["public"]["Enums"]["submission_status"]
+          submission_id: string
+          updated_at?: string
+          vehicle_history_en?: string | null
+          vehicle_history_it?: string | null
+          year_of_manufacture: string
+        }
+        Update: {
+          archived_at?: string | null
+          body_style?: string | null
+          chassis_no?: string | null
+          coachbuilder?: string | null
+          created_at?: string
+          engine_no?: string | null
+          exterior_colour?: string | null
+          id?: string
+          interior_colour?: string | null
+          internal_comment?: Json | null
+          make_of_vehicle?: string
+          model?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          sequence?: number
+          status?: Database["public"]["Enums"]["submission_status"]
+          submission_id?: string
+          updated_at?: string
+          vehicle_history_en?: string | null
+          vehicle_history_it?: string | null
+          year_of_manufacture?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_submission_vehicles_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "car_submissions_form"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       car_submissions_email_subscribers: {
         Row: {
           created_at: string | null
@@ -187,6 +267,7 @@ export type Database = {
           accept_news: boolean | null
           accept_terms: boolean
           access_token: string | null
+          additional_photo_link: string | null
           address: string | null
           body_style: string | null
           chassis_no: string | null
@@ -212,6 +293,7 @@ export type Database = {
           accept_news?: boolean | null
           accept_terms?: boolean
           access_token?: string | null
+          additional_photo_link?: string | null
           address?: string | null
           body_style?: string | null
           chassis_no?: string | null
@@ -237,6 +319,7 @@ export type Database = {
           accept_news?: boolean | null
           accept_terms?: boolean
           access_token?: string | null
+          additional_photo_link?: string | null
           address?: string | null
           body_style?: string | null
           chassis_no?: string | null
@@ -274,6 +357,7 @@ export type Database = {
           ref: string | null
           seq: number | null
           short_name: string | null
+          submission_vehicle_id: string | null
           votable: boolean
           year: number
         }
@@ -290,6 +374,7 @@ export type Database = {
           ref?: string | null
           seq?: number | null
           short_name?: string | null
+          submission_vehicle_id?: string | null
           votable?: boolean
           year: number
         }
@@ -306,6 +391,7 @@ export type Database = {
           ref?: string | null
           seq?: number | null
           short_name?: string | null
+          submission_vehicle_id?: string | null
           votable?: boolean
           year?: number
         }
@@ -315,6 +401,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "car_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cars_submission_vehicle_fk"
+            columns: ["submission_vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "car_submission_vehicles"
             referencedColumns: ["id"]
           },
         ]
@@ -854,7 +947,15 @@ export type Database = {
       gen_ref: { Args: { length: number; prefix: string }; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      submission_status:
+        | "pending"
+        | "under_review"
+        | "requested_info"
+        | "waitlist"
+        | "approved"
+        | "rejected"
+        | "finalized"
+        | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -981,6 +1082,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      submission_status: [
+        "pending",
+        "under_review",
+        "requested_info",
+        "waitlist",
+        "approved",
+        "rejected",
+        "finalized",
+        "archived",
+      ],
+    },
   },
 } as const
