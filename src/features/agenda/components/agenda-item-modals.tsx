@@ -234,6 +234,7 @@ export function useAgendaItemModal(agendaId: string) {
       modal.handleShowShowCloseButton();
       modal.disableBackdropClose();
       modal.open({
+        headerClassName:"px-6 py-4 border-b",
         header: (
           <div>
             <Text.FormTitle size="xl">

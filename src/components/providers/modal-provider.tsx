@@ -43,10 +43,7 @@ type ElementModalType = {
   headerClassName?: string;
   content?: ReactNode | null;
   contentClassName?: string;
-  footer?:
-    | ReactNode
-    | ((props: ModalFooterRenderProps) => ReactNode)
-    | null;
+  footer?: ReactNode | ((props: ModalFooterRenderProps) => ReactNode) | null;
   footerClassName?: string;
   onOpenChange?: ((open: boolean) => void) | null;
 };
@@ -60,13 +57,8 @@ const defaultElement: ElementModalType = {
   onOpenChange: null,
 };
 
-export default function ModalProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const [element, setElement] =
-    useState<ElementModalType>(defaultElement);
+export default function ModalProvider({ children }: { children: ReactNode }) {
+  const [element, setElement] = useState<ElementModalType>(defaultElement);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [allowBackdropClose, setAllowBackdropClose] = useState(false);
   const [showCloseButton, setShowCloseButton] = useState<boolean>(true);

@@ -142,12 +142,16 @@ export default function AgendaClient() {
     //   return;
     // }
     try {
-      const agendasToSave = sortAgendas(agendas).map((agenda, index) => ({
-        ...agenda,
-        seq: index + 1,
-      }));
+      let activeSequence = 0;
+      const agendasToSave = sortAgendas(agendas).map((agenda) =>
+        agenda.removed
+          ? agenda
+          : {
+              ...agenda,
+              seq: ++activeSequence,
+            },
+      );
       const savedAgendas = sortAgendas(await saveAgendas(agendasToSave));
-
       window.localStorage.removeItem(AGENDA_STORAGE_KEY);
       setAgendas(savedAgendas);
       setPublishedAgendas(savedAgendas);
