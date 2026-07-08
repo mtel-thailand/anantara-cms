@@ -1,8 +1,8 @@
 import { readFile } from "fs/promises";
 import path from "path";
-import { logger } from "../logger";
+import { logger } from "@/src/lib/logger";
 import { SendEmailCommand } from "@aws-sdk/client-ses";
-import { sesClient } from "./client";
+import sesClient from "@/src/lib/ses/client";
 
 export enum EmailTemplate {
   SubmissionConfirm = "submission-confirm",
