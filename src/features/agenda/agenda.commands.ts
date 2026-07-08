@@ -1,4 +1,4 @@
-import { AgendaItemType } from "./types";
+import type { AgendaEventInput } from "./types";
 
 export type AgendaCommand =
   | { type: "add-date"; date: string }
@@ -9,8 +9,8 @@ export type AgendaCommand =
       type: "add-event";
       eventId: string;
       createdAt: string;
-      item: AgendaItemType;
+      item: AgendaEventInput;
     }
-  | { type: "edit-event"; eventId: string; item: AgendaItemType }
+  | { type: "edit-event"; eventId: string; item: AgendaEventInput }
   | { type: "remove-event"; agendaId: string; eventId: string }
   | { type: "restore-event"; agendaId: string; eventId: string };

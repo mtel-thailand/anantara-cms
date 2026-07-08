@@ -1,74 +1,63 @@
-export type AgendaEventType = {
-  id: string;
-  created_at: string;
-  agenda_id: string;
-  name: string;
-  name_it: string | undefined | null;
-  description: string;
-  description_it: string | undefined | null;
-  started_at: string;
-  ended_at: string | null | undefined;
-  app_icon: string;
+import { CamelCasedPropertiesDeep } from "@/src/types/common";
+import type { Database } from "@/src/types/database.types";
+
+export type AgendaRow = Database["public"]["Tables"]["agendas"]["Row"];
+export type AgendaInsert = Database["public"]["Tables"]["agendas"]["Insert"];
+export type EventRow = Database["public"]["Tables"]["events"]["Row"];
+export type EventInsert = Database["public"]["Tables"]["events"]["Insert"];
+
+type AgendaStateRow = CamelCasedPropertiesDeep<AgendaRow>;
+type AgendaEventStateRow = CamelCasedPropertiesDeep<EventRow>;
+type AgendaEventInsertState = CamelCasedPropertiesDeep<EventInsert>;
+
+export type AgendaEventState = AgendaEventStateRow & {
   removed?: boolean;
 };
 
-export type AgendaType = {
-  id: string;
-  created_at: string;
-  name: string;
-  date: string;
-  events: AgendaEventType[];
+export type AgendaState = AgendaStateRow & {
+  events: AgendaEventState[];
   removed?: boolean;
-  seq: number;
 };
 
-export type AgendaEventFormType = Pick<
-  AgendaEventType,
+type AgendaEventFormField =
   | "name"
-  | "name_it"
+  | "nameIt"
   | "description"
-  | "description_it"
-  | "app_icon"
-  | "started_at"
-  | "ended_at"
->;
+  | "descriptionIt"
+  | "appIcon"
+  | "startedAt"
+  | "endedAt";
 
-export type AgendaItemFormType = {
-  name: string;
-  nameIt?: string;
-  start: string;
-  end?: string;
-  icon: string;
-  description: string;
-  descriptionIt?: string;
+export type AgendaEventFormType = {
+  [Field in AgendaEventFormField]-?: NonNullable<AgendaEventInsertState[Field]>;
 };
 
-export type AgendaItemType = AgendaItemFormType & {
-  agendaId: string;
+export type AgendaEventInput = AgendaEventFormType & {
+  agendaId: NonNullable<AgendaEventInsertState["agendaId"]>;
 };
 
 export function agendaEventToFormValues(
-  event: AgendaEventType,
-): AgendaItemFormType {
+  event: AgendaEventState,
+): AgendaEventFormType {
   return {
     name: event.name,
-    nameIt: event.name_it ?? "",
-    start: event.started_at,
-    end: event.ended_at ?? "",
-    icon: event.app_icon,
-    description: event.description,
-    descriptionIt: event.description_it ?? "",
+    nameIt: event.nameIt ?? "",
+    startedAt: event.startedAt,
+    endedAt: event.endedAt ?? "",
+    appIcon: event.appIcon ?? "",
+    description: event.description ?? "",
+    descriptionIt: event.descriptionIt ?? "",
   };
 }
 
-export function agendaEventLanguageStatus(event: AgendaEventType) {
+export function agendaEventLanguageStatus(event: AgendaEventState) {
   return {
-    en: Boolean(event.name.trim() && event.description.trim()),
-    it: Boolean(event.name_it?.trim() && event.description_it?.trim()),
+    en: Boolean(event.name.trim() && event.description?.trim()),
+    it: Boolean(event.nameIt?.trim() && event.descriptionIt?.trim()),
   };
 }
 
-export function hasAgendaLanguageGap(event: AgendaEventType): boolean {
+export function hasAgendaLanguageGap(event: AgendaEventState): boolean {
   const status = agendaEventLanguageStatus(event);
   return status.en !== status.it;
 }

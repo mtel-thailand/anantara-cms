@@ -1,10 +1,49 @@
 import { createClient } from "@/src/lib/supabase/client";
-import { AgendaEventType, AgendaType } from "./types";
 import { unwrap } from "@/src/lib/supabase/unwrap";
+import type {
+  AgendaEventState,
+  AgendaRow,
+  AgendaState,
+  EventRow,
+} from "./types";
+
+type AgendaRecordWithEvents = AgendaRow & {
+  events: EventRow[];
+};
 
 const isTemporaryId = (id: string) => id.startsWith("temp-");
 
-function agendaPayload(agenda: AgendaType) {
+function toAgendaEventState(event: EventRow): AgendaEventState {
+  return {
+    active: event.active,
+    agendaId: event.agenda_id,
+    appIcon: event.app_icon,
+    createdAt: event.created_at,
+    description: event.description,
+    descriptionIt: event.description_it,
+    endedAt: event.ended_at,
+    id: event.id,
+    name: event.name,
+    nameIt: event.name_it,
+    remark: event.remark,
+    remarkIt: event.remark_it,
+    startDateFormat: event.start_date_format,
+    startedAt: event.started_at,
+  };
+}
+
+function toAgendaState(agenda: AgendaRecordWithEvents): AgendaState {
+  return {
+    id: agenda.id,
+    createdAt: agenda.created_at,
+    name: agenda.name,
+    date: agenda.date,
+    seq: agenda.seq,
+    events: agenda.events.map(toAgendaEventState),
+  };
+}
+
+function agendaPayload(agenda: AgendaState) {
   return {
     name: agenda.name,
     date: agenda.date,
@@ -12,16 +51,16 @@ function agendaPayload(agenda: AgendaType) {
   };
 }
 
-function eventPayload(event: AgendaEventType, agendaId: string) {
+function eventPayload(event: AgendaEventState, agendaId: string) {
   return {
     agenda_id: agendaId,
     name: event.name,
-    name_it: event.name_it ?? null,
+    name_it: event.nameIt ?? null,
     description: event.description,
-    description_it: event.description_it ?? null,
-    started_at: event.started_at,
-    ended_at: event.ended_at ?? null,
-    app_icon: event.app_icon,
+    description_it: event.descriptionIt ?? null,
+    started_at: event.startedAt,
+    ended_at: event.endedAt ?? null,
+    app_icon: event.appIcon,
   };
 }
 
@@ -38,7 +77,7 @@ function ensureAffected(
   if (!data) throw new Error(`${label} was not found or could not be changed.`);
 }
 
-export const getAgendas = async (): Promise<AgendaType[]> => {
+export const getAgendas = async (): Promise<AgendaState[]> => {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("agendas")
@@ -52,12 +91,13 @@ export const getAgendas = async (): Promise<AgendaType[]> => {
     )
     .order("date", { ascending: true });
 
-  return unwrap(data, error);
+  const agendas: AgendaRecordWithEvents[] = unwrap(data, error);
+  return agendas.map(toAgendaState);
 };
 
 export const saveAgendas = async (
-  agendas: AgendaType[],
-): Promise<AgendaType[]> => {
+  agendas: AgendaState[],
+): Promise<AgendaState[]> => {
   const supabase = createClient();
 
   for (const agenda of agendas) {

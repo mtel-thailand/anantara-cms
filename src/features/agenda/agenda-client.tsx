@@ -8,7 +8,7 @@ import Text from "@/src/components/ui/text";
 import { CalendarPlus, Clock, Save, TriangleAlert, Undo2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getAgendas, saveAgendas } from "./agenda.service";
-import { AgendaType, hasAgendaLanguageGap } from "./types";
+import { AgendaState, hasAgendaLanguageGap } from "./types";
 import useAsync from "@/src/hooks/use-async";
 import AgendaTable from "./components/agenda-table";
 import AgendaClientSkeleton from "./components/agenda-table-skeleton";
@@ -22,8 +22,10 @@ import { sortAgendas } from "./agenda.reducer";
 const AGENDA_STORAGE_KEY = "agenda";
 
 export default function AgendaClient() {
-  const [agendas, setAgendas] = useState<AgendaType[]>([]);
-  const [publishedAgendas, setPublishedAgendas] = useState<AgendaType[]>([]);
+  const [agendas, setAgendas] = useState<AgendaState[]>([]);
+  const [publishedAgendas, setPublishedAgendas] = useState<AgendaState[]>(
+    [],
+  );
   const [storageReady, setStorageReady] = useState(false);
   const { isLoading, execute } = useAsync(true);
 
@@ -35,7 +37,7 @@ export default function AgendaClient() {
     () =>
       agendas
         .filter((agenda) => !agenda.removed)
-        .map((agenda) => toISODate(agenda.date ?? agenda.created_at)),
+        .map((agenda) => toISODate(agenda.date ?? agenda.createdAt)),
     [agendas],
   );
   const openDateModal = useAgendaDateModal(usedDates);
@@ -49,7 +51,7 @@ export default function AgendaClient() {
 
     for (const agenda of agendas) {
       if (agenda.removed) continue;
-      const date = toISODate(agenda.date ?? agenda.created_at);
+      const date = toISODate(agenda.date ?? agenda.createdAt);
       if (seen.has(date)) duplicates.add(date);
       seen.add(date);
     }
@@ -86,7 +88,7 @@ export default function AgendaClient() {
             const parsedDraft: unknown = JSON.parse(agendaDraft);
 
             if (Array.isArray(parsedDraft) && parsedDraft.length > 0) {
-              initialAgendas = parsedDraft as AgendaType[];
+              initialAgendas = parsedDraft as AgendaState[];
             } else {
               window.localStorage.removeItem(AGENDA_STORAGE_KEY);
             }
@@ -180,10 +182,10 @@ export default function AgendaClient() {
   }
 
   const handleEditAgendaDate = useCallback(
-    (agenda: AgendaType) => {
+    (agenda: AgendaState) => {
       openDateModal({
         id: agenda.id,
-        date: toISODate(agenda.date ?? agenda.created_at),
+        date: toISODate(agenda.date ?? agenda.createdAt),
       });
     },
     [openDateModal],
@@ -273,7 +275,7 @@ export default function AgendaClient() {
               prioritizeGaps={prioritizeGaps}
               duplicate={
                 !agenda.removed &&
-                duplicateDates.has(toISODate(agenda.date ?? agenda.created_at))
+                duplicateDates.has(toISODate(agenda.date ?? agenda.createdAt))
               }
               onEditDate={handleEditAgendaDate}
             />
