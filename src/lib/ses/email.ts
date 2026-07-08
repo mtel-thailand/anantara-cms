@@ -40,7 +40,7 @@ function createClientUrl(
 ) {
   const baseUrl = process.env.ANANTARA_CLIENT_BASE_URL;
   if (!baseUrl) {
-    throw new Error("ANANTARA_CLIENT_BASE_URL is not configured");
+    throw new Error("Client path is not configured");
   }
 
   const url = new URL(pathname, `${baseUrl.replace(/\/$/, "")}/`);
