@@ -14,8 +14,8 @@ import { useLocale } from "next-intl";
 import { memo, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import {
-  AgendaEventType,
-  AgendaType,
+  AgendaEventState,
+  AgendaState,
   agendaEventLanguageStatus,
   hasAgendaLanguageGap,
 } from "@/src/features/agenda/types";
@@ -24,7 +24,7 @@ import { AgendaIconGlyph } from "./agenda-icon";
 
 type EventTableType = {
   id: string;
-  event: AgendaEventType;
+  event: AgendaEventState;
   time: string;
   icon: string;
   title: string;
@@ -51,11 +51,11 @@ const AgendaTable = memo(function AgendaTable({
   duplicate,
   onEditDate,
 }: {
-  agenda: AgendaType;
-  publishedAgenda?: AgendaType;
+  agenda: AgendaState;
+  publishedAgenda?: AgendaState;
   prioritizeGaps: boolean;
   duplicate: boolean;
-  onEditDate: (agenda: AgendaType) => void;
+  onEditDate: (agenda: AgendaState) => void;
 }) {
   const modal = useModal();
   const currentLocale = useLocale();
@@ -64,8 +64,8 @@ const AgendaTable = memo(function AgendaTable({
   const sortedEvents = useMemo(() => {
     const byTime = [...agenda.events].sort(
       (left, right) =>
-        new Date(left.started_at).getTime() -
-        new Date(right.started_at).getTime(),
+        new Date(left.startedAt).getTime() -
+        new Date(right.startedAt).getTime(),
     );
 
     if (!prioritizeGaps) return byTime;
@@ -88,15 +88,15 @@ const AgendaTable = memo(function AgendaTable({
         return {
           id: event.id,
           event,
-          time: formatTimeRange(event.started_at, event.ended_at),
-          icon: event.app_icon,
+          time: formatTimeRange(event.startedAt, event.endedAt),
+          icon: event.appIcon ?? "",
           title: localizedValue(
-            italian ? event.name_it : event.name,
-            italian ? event.name : event.name_it,
+            italian ? event.nameIt : event.name,
+            italian ? event.name : event.nameIt,
           ),
           location: localizedValue(
-            italian ? event.description_it : event.description,
-            italian ? event.description : event.description_it,
+            italian ? event.descriptionIt : event.description,
+            italian ? event.description : event.descriptionIt,
           ),
           languages: agendaEventLanguageStatus(event),
           isDraft:
@@ -114,11 +114,11 @@ const AgendaTable = memo(function AgendaTable({
   }, [modal]);
 
   const removeItem = useCallback(
-    (event: AgendaEventType) => {
+    (event: AgendaEventState) => {
       modal.open({
         header: (
           <Text.FormTitle size="base" className="font-medium">
-            Remove {localizedValue(event.name, event.name_it)}?
+            Remove {localizedValue(event.name, event.nameIt)}?
           </Text.FormTitle>
         ),
         content: (
@@ -346,7 +346,7 @@ const AgendaTable = memo(function AgendaTable({
     });
   }, [agenda.date, agenda.id, closeModal, modal]);
 
-  const dateLabel = formatLongDate(toISODate(agenda.date ?? agenda.created_at));
+  const dateLabel = formatLongDate(toISODate(agenda.date ?? agenda.createdAt));
 
   return (
     <Card

@@ -19,18 +19,18 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { getAgendaSchema } from "@/src/features/agenda/agenda.schema";
 import {
-  AgendaEventType,
-  AgendaItemFormType,
+  AgendaEventState,
+  AgendaEventFormType,
   agendaEventToFormValues,
 } from "@/src/features/agenda/types";
 import { AgendaIconGlyph } from "./agenda-icon";
 
-const EMPTY_VALUES: AgendaItemFormType = {
+const EMPTY_VALUES: AgendaEventFormType = {
   name: "",
   nameIt: "",
-  start: "",
-  end: "",
-  icon: "",
+  startedAt: "",
+  endedAt: "",
+  appIcon: "",
   description: "",
   descriptionIt: "",
 };
@@ -41,18 +41,20 @@ const localeFields = {
 } satisfies Record<
   Locale,
   {
-    name: keyof AgendaItemFormType;
-    description: keyof AgendaItemFormType;
+    name: keyof AgendaEventFormType;
+    description: keyof AgendaEventFormType;
   }
 >;
 
-function getDefaultValues(editing: AgendaEventType | null): AgendaItemFormType {
+function getDefaultValues(
+  editing: AgendaEventState | null,
+): AgendaEventFormType {
   if (!editing) return EMPTY_VALUES;
 
   return {
     ...agendaEventToFormValues(editing),
-    start: formatTime(editing.started_at),
-    end: editing.ended_at ? formatTime(editing.ended_at) : "",
+    startedAt: formatTime(editing.startedAt),
+    endedAt: editing.endedAt ? formatTime(editing.endedAt) : "",
   };
 }
 
@@ -61,13 +63,13 @@ function AgendaItemModalContent({
   editing,
 }: {
   agendaId: string;
-  editing: AgendaEventType | null;
+  editing: AgendaEventState | null;
 }) {
   const modal = useModal();
   const t = useTranslations();
   const [currentLocale, setCurrentLocale] = useState<Locale>("en");
   const { control, handleSubmit, formState, watch, setValue } =
-    useForm<AgendaItemFormType>({
+    useForm<AgendaEventFormType>({
       defaultValues: getDefaultValues(editing),
       resolver: zodResolver(getAgendaSchema(t)),
       shouldUnregister: false,
@@ -76,15 +78,15 @@ function AgendaItemModalContent({
     });
 
   const currentFields = localeFields[currentLocale];
-  const startTime = watch("start");
-  const endTime = watch("end");
-  const selectedIcon = watch("icon");
+  const startTime = watch("startedAt");
+  const endTime = watch("endedAt");
+  const selectedIcon = watch("appIcon");
   const name = watch("name");
   const nameIt = watch("nameIt");
   const description = watch("description");
   const descriptionIt = watch("descriptionIt");
 
-  function submit(data: AgendaItemFormType) {
+  function submit(data: AgendaEventFormType) {
     const item = { agendaId, ...data };
 
     if (editing) {
@@ -139,8 +141,8 @@ function AgendaItemModalContent({
             <Label>Start time</Label>
             <ControlledTimePicker
               control={control}
-              name="start"
-              invalid={Boolean(formState.errors.start)}
+              name="startedAt"
+              invalid={Boolean(formState.errors.startedAt)}
               max={endTime}
             />
           </div>
@@ -148,16 +150,16 @@ function AgendaItemModalContent({
             <Label>End time (optional)</Label>
             <ControlledTimePicker
               control={control}
-              name="end"
-              invalid={Boolean(formState.errors.end)}
+              name="endedAt"
+              invalid={Boolean(formState.errors.endedAt)}
               min={startTime}
             />
           </div>
         </div>
 
-        {formState.errors.end ? (
+        {formState.errors.endedAt ? (
           <Text size="sm" color="destructive" className="-mt-3">
-            {formState.errors.end.message}
+            {formState.errors.endedAt.message}
           </Text>
         ) : (
           <Text size="xs" color="muted-foreground" className="-mt-3">
@@ -177,7 +179,7 @@ function AgendaItemModalContent({
                   type="button"
                   aria-pressed={selected}
                   onClick={() =>
-                    setValue("icon", selected ? "" : value, {
+                    setValue("appIcon", selected ? "" : value, {
                       shouldDirty: true,
                       shouldValidate: true,
                     })
@@ -187,7 +189,7 @@ function AgendaItemModalContent({
                     selected
                       ? "border-primary bg-primary/5 text-primary"
                       : "text-muted-foreground hover:bg-accent",
-                    formState.errors.icon && "border-destructive",
+                    formState.errors.appIcon && "border-destructive",
                   )}
                 >
                   <AgendaIconGlyph icon={value} className="size-6" />
@@ -196,7 +198,7 @@ function AgendaItemModalContent({
               );
             })}
           </div>
-          {formState.errors.icon ? (
+          {formState.errors.appIcon ? (
             <Text size="sm" color="destructive">
               Select an icon.
             </Text>
@@ -228,7 +230,7 @@ export function useAgendaItemModal(agendaId: string) {
   const modal = useModal();
 
   return useCallback(
-    (editing: AgendaEventType | null = null) => {
+    (editing: AgendaEventState | null = null) => {
       modal.handleShowShowCloseButton();
       modal.disableBackdropClose();
       modal.open({

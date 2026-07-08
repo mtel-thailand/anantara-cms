@@ -3,10 +3,10 @@ import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { toast } from "sonner";
 import type { AgendaCommand } from "@/src/features/agenda/agenda.commands";
 import { agendaReducer } from "@/src/features/agenda/agenda.reducer";
-import type { AgendaType } from "@/src/features/agenda/types";
+import type { AgendaState } from "@/src/features/agenda/types";
 
 function useAgendaCommands(
-  setAgendas: Dispatch<SetStateAction<AgendaType[]>>,
+  setAgendas: Dispatch<SetStateAction<AgendaState[]>>,
 ) {
   useEffect(() => {
     const handleCommand = (command: AgendaCommand) => {

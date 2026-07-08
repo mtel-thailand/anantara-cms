@@ -61,6 +61,7 @@ export function useAgendaActionModals() {
               : "Publish changes?"}
           </Text.FormTitle>
         ),
+        contentClassName: "px-4",
         content: (
           <Text size="sm" color="muted-foreground">
             {incompleteCount > 0

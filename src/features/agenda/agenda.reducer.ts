@@ -5,53 +5,67 @@ import {
   toISODate,
 } from "@/src/lib/date";
 import { AgendaCommand } from "./agenda.commands";
-import { AgendaEventType, AgendaItemType, AgendaType } from "./types";
+import {
+  AgendaEventState,
+  AgendaEventInput,
+  AgendaState,
+} from "./types";
 
-export function sortAgendas(agendas: AgendaType[]) {
+function agendaDate(agenda: AgendaState) {
+  return agenda.date ?? agenda.createdAt;
+}
+
+export function sortAgendas(agendas: AgendaState[]) {
   return [...agendas].sort(
     (left, right) =>
-      new Date(left.date).getTime() - new Date(right.date).getTime() ||
-      left.date.localeCompare(right.date),
+      new Date(agendaDate(left)).getTime() -
+        new Date(agendaDate(right)).getTime() ||
+      agendaDate(left).localeCompare(agendaDate(right)),
   );
 }
 
-function sortAgendaEvents(events: AgendaEventType[]) {
+function sortAgendaEvents(events: AgendaEventState[]) {
   return [...events].sort(
     (left, right) =>
-      new Date(left.started_at).getTime() -
-        new Date(right.started_at).getTime() ||
-      (left.ended_at ?? left.started_at).localeCompare(
-        right.ended_at ?? right.started_at,
+      new Date(left.startedAt).getTime() -
+        new Date(right.startedAt).getTime() ||
+      (left.endedAt ?? left.startedAt).localeCompare(
+        right.endedAt ?? right.startedAt,
       ),
   );
 }
 
 function buildAgendaEvent(
-  agenda: AgendaType,
-  item: AgendaItemType,
-  existing?: AgendaEventType,
+  agenda: AgendaState,
+  item: AgendaEventInput,
+  existing?: AgendaEventState,
   newEvent?: { id: string; createdAt: string },
-): AgendaEventType | null {
-  const startedAt = setTime(agenda.date, item.start);
-  const endedAt = item.end ? setTime(agenda.date, item.end) : null;
+): AgendaEventState | null {
+  const startedAt = setTime(agendaDate(agenda), item.startedAt);
+  const endedAt = item.endedAt
+    ? setTime(agendaDate(agenda), item.endedAt)
+    : null;
   const identity = existing
-    ? { id: existing.id, createdAt: existing.created_at }
+    ? { id: existing.id, createdAt: existing.createdAt }
     : newEvent;
 
-  if (!identity || !startedAt || (item.end && !endedAt)) return null;
+  if (!identity || !startedAt || (item.endedAt && !endedAt)) return null;
 
   return {
-    ...existing,
+    active: existing?.active ?? null,
+    remark: existing?.remark ?? null,
+    remarkIt: existing?.remarkIt ?? null,
+    startDateFormat: existing?.startDateFormat ?? null,
     id: identity.id,
-    created_at: identity.createdAt,
-    agenda_id: agenda.id,
+    createdAt: identity.createdAt,
+    agendaId: agenda.id,
     name: item.name,
-    name_it: item.nameIt || null,
+    nameIt: item.nameIt || null,
     description: item.description,
-    description_it: item.descriptionIt || null,
-    started_at: startedAt.toISOString(),
-    ended_at: endedAt?.toISOString() ?? null,
-    app_icon: item.icon,
+    descriptionIt: item.descriptionIt || null,
+    startedAt: startedAt.toISOString(),
+    endedAt: endedAt?.toISOString() ?? null,
+    appIcon: item.appIcon,
   };
 }
 
@@ -62,9 +76,9 @@ function withoutRemoved<T extends { removed?: boolean }>(value: T): T {
 }
 
 export function agendaReducer(
-  agendas: AgendaType[],
+  agendas: AgendaState[],
   command: AgendaCommand,
-): AgendaType[] {
+): AgendaState[] {
   switch (command.type) {
     case "add-date": {
       const calendarDate = toISODate(command.date);
@@ -75,16 +89,16 @@ export function agendaReducer(
         hasDuplicateDate(
           agendas
             .filter((agenda) => !agenda.removed)
-            .map((agenda) => agenda.date),
+            .map(agendaDate),
           zonedDate,
         )
       ) {
         return agendas;
       }
 
-      const newAgenda: AgendaType = {
+      const newAgenda: AgendaState = {
         id: `temp-${zonedDate}`,
-        created_at: zonedDate,
+        createdAt: zonedDate,
         name: zonedDate,
         date: zonedDate,
         events: [],
@@ -107,21 +121,21 @@ export function agendaReducer(
           agenda.id === command.id
             ? {
                 ...agenda,
-                created_at: nextDate,
+                createdAt: nextDate,
                 date: nextDate,
                 name: nextDate,
                 events: agenda.events.map((event) => ({
                   ...event,
-                  started_at:
+                  startedAt:
                     setTime(
                       nextDate,
-                      formatTime(event.started_at),
-                    )?.toISOString() ?? event.started_at,
-                  ended_at: event.ended_at
+                      formatTime(event.startedAt),
+                    )?.toISOString() ?? event.startedAt,
+                  endedAt: event.endedAt
                     ? (setTime(
                         nextDate,
-                        formatTime(event.ended_at),
-                      )?.toISOString() ?? event.ended_at)
+                        formatTime(event.endedAt),
+                      )?.toISOString() ?? event.endedAt)
                     : null,
                 })),
               }
