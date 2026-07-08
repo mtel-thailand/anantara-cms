@@ -1,4 +1,4 @@
-import { SESClient } from "@aws-sdk/client-ses";
+import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 
 const sesClient = new SESClient({
   region: process.env.AWS_REGION,
@@ -8,4 +8,33 @@ const sesClient = new SESClient({
   },
 });
 
-export default sesClient;
+type SendSesEmailOptions = {
+  receiver: string;
+  subject: string;
+  html: string;
+};
+
+export async function sendSesEmail({
+  receiver,
+  subject,
+  html,
+}: SendSesEmailOptions) {
+  await sesClient.send(
+    new SendEmailCommand({
+      Source: process.env.AWS_SES_FROM!,
+      Destination: {
+        ToAddresses: receiver.split(",").map((email) => email.trim()),
+      },
+      Message: {
+        Subject: {
+          Data: subject,
+        },
+        Body: {
+          Html: {
+            Data: html,
+          },
+        },
+      },
+    }),
+  );
+}

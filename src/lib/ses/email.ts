@@ -1,9 +1,8 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import { logger } from "@/src/lib/logger";
-import { SendEmailCommand } from "@aws-sdk/client-ses";
+import { sendSesEmail } from "@/src/lib/ses/client";
 import Handlebars from "handlebars";
-import sesClient from "@/src/lib/ses/client";
 
 export enum EmailTemplate {
   SubmissionConfirm = "submission-confirm",
@@ -99,24 +98,7 @@ export async function sendEmail<Template extends EmailTemplateName>(
     const html = await renderEmailTemplate(options);
     const subject = EMAIL_TEMPLATES[options.template].subject;
     logger.info("SES", `Sending email to: ${receiver}`);
-    await sesClient.send(
-      new SendEmailCommand({
-        Source: process.env.AWS_SES_FROM!,
-        Destination: {
-          ToAddresses: [...receiver.split(",").map((email) => email.trim())],
-        },
-        Message: {
-          Subject: {
-            Data: subject,
-          },
-          Body: {
-            Html: {
-              Data: html,
-            },
-          },
-        },
-      }),
-    );
+    await sendSesEmail({ receiver, subject, html });
     logger.success("SES", `Email sent successfully to: ${receiver}`);
   } catch (error) {
     logger.error("SES", "Error sending email", {
