@@ -171,12 +171,14 @@ export type Database = {
           engine_no: string | null
           exterior_colour: string | null
           id: string
+          images: Json
           interior_colour: string | null
           internal_comment: Json | null
           make_of_vehicle: string
           model: string
           review_note: string | null
           reviewed_at: string | null
+          seen: boolean | null
           sequence: number
           status: Database["public"]["Enums"]["submission_status"]
           submission_id: string
@@ -194,12 +196,14 @@ export type Database = {
           engine_no?: string | null
           exterior_colour?: string | null
           id?: string
+          images?: Json
           interior_colour?: string | null
           internal_comment?: Json | null
           make_of_vehicle: string
           model: string
           review_note?: string | null
           reviewed_at?: string | null
+          seen?: boolean | null
           sequence: number
           status?: Database["public"]["Enums"]["submission_status"]
           submission_id: string
@@ -217,12 +221,14 @@ export type Database = {
           engine_no?: string | null
           exterior_colour?: string | null
           id?: string
+          images?: Json
           interior_colour?: string | null
           internal_comment?: Json | null
           make_of_vehicle?: string
           model?: string
           review_note?: string | null
           reviewed_at?: string | null
+          seen?: boolean | null
           sequence?: number
           status?: Database["public"]["Enums"]["submission_status"]
           submission_id?: string
