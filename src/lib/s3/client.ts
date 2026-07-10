@@ -1,13 +1,18 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import crypto from "node:crypto";
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { buildStorageKey } from "./key";
 import { logger } from "@/src/lib/logger";
 
 const bucketName = process.env.AWS_S3_BUCKET?.trim() || "";
-const region = process.env.AWS_REGION?.trim() || "";
-const accessKeyId = process.env.AWS_ACCESS_KEY?.trim() || "";
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY?.trim() || "";
-const cmsFolder = process.env.CMS_FOLDER?.trim() || "";
+const region = process.env.AWS_S3_REGION?.trim() || "";
+const accessKeyId = process.env.AWS_S3_ACCESS_KEY?.trim() || "";
+const secretAccessKey = process.env.AWS_S3_SECRET_ACCESS_KEY?.trim() || "";
+const cmsFolder = process.env.AWS_S3_CMS_FOLDER?.trim() || "";
+const clientFolder = process.env.AWS_S3_CLIENT_FOLDER?.trim() || "";
+const clientUrl = process.env.ANANTARA_CLIENT_BASE_URL?.trim() || "";
 
 function formatBytes(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(2)}MB`;
@@ -27,34 +32,45 @@ export type StorageFile = {
   fileName: string;
   contentType: string;
   size: number;
+  seq: number;
 };
 
 function buildPublicUrl(key: string) {
-  const publicBaseUrl = process.env.S3_PUBLIC_BASE_URL?.trim();
+  const publicBaseUrl = clientUrl;
 
   if (publicBaseUrl) {
-    return `${publicBaseUrl.replace(/\/$/, "")}/${key}`;
+    return new URL(key, publicBaseUrl).toString();
   }
 
   return `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
 }
 
 function assertDeletableKey(key: string) {
+  const allowedFolders = [cmsFolder, clientFolder];
+
   if (!key || key.includes("..") || key.startsWith("/")) {
     throw new Error("Invalid S3 key");
   }
 
-  if (cmsFolder && !key.startsWith(`${cmsFolder}/`)) {
-    throw new Error("S3 key is outside the CMS upload folder");
+  if (
+    !allowedFolders
+      .filter(Boolean)
+      .some((folder) => key.startsWith(`${folder}/`))
+  ) {
+    throw new Error("S3 key is outside the allowed upload folders");
   }
 }
 
-async function uploadFile(file: File): Promise<StorageFile> {
+async function uploadFile(
+  file: File,
+  index: number,
+  folder?: "client",
+): Promise<StorageFile> {
   const start = performance.now();
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const safeName = file.name.replace(/\s+/g, "-");
-  const fileKey = buildStorageKey(safeName);
+  const fileKey = buildStorageKey(safeName, folder);
 
   logger.info("S3", "upload started", {
     bucket: bucketName || "missing",
@@ -63,6 +79,7 @@ async function uploadFile(file: File): Promise<StorageFile> {
     name: file.name,
     type: file.type || "application/octet-stream",
     size: formatBytes(file.size),
+    sequence: index + 1,
   });
 
   try {
@@ -102,16 +119,20 @@ async function uploadFile(file: File): Promise<StorageFile> {
     fileName: file.name,
     contentType: file.type,
     size: file.size,
+    seq: index + 1,
   };
 }
 
-export async function storageAdaptorUploadFile(file: File | File[]) {
+export async function storageAdaptorUploadFile(
+  file: File | File[],
+  folder?: "client",
+): Promise<StorageFile | StorageFile[]> {
   if (Array.isArray(file)) {
     logger.info("S3", "upload batch started", { count: file.length });
-    return Promise.all(file.map(uploadFile));
+    return Promise.all(file.map((f, index) => uploadFile(f, index, folder)));
   }
 
-  return uploadFile(file);
+  return uploadFile(file, 0, folder);
 }
 
 export async function storageAdaptorDeleteFile(key: string) {

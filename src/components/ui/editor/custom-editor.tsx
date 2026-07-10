@@ -63,10 +63,11 @@ const CustomEditor = memo((props: CustomEditorProps) => {
       onReady={(editor) => {
         imageKeysRef.current = getImageKeysFromHtml(editor.getData());
       }}
+      onBlur={onBlur}
       onChange={(_, editor) => {
         if (onChange) {
           const data = editor.getData();
-          onChange && onChange(data);
+          onChange(data);
         }
 
         // Remove image from editor by S3 APIs
@@ -123,6 +124,7 @@ const CustomEditor = memo((props: CustomEditorProps) => {
           ],
         },
       }}
+      {...restProps}
     />
   );
 });

@@ -2,7 +2,8 @@ import { FileLoader, UploadResponse } from "ckeditor5";
 import { logger } from "@/src/lib/logger";
 import { eventEmitter } from "@/src/lib/events";
 
-const IMAGE_PUBLIC_BASE_URL = "https://d15j1ksm9qghj4.cloudfront.net/";
+const IMAGE_PUBLIC_BASE_URL =
+  process.env.NEXT_PUBLIC_ANANTARA_CLIENT_BASE_URL?.trim() || "";
 
 export function getS3KeyFromImageUrl(src: string) {
   try {
@@ -97,8 +98,7 @@ export class CkEditorUploadAdapter {
       logger.success("EDITOR_UPLOAD", "upload completed", {
         key: uploadedFile.url,
       });
-
-      const url = `${IMAGE_PUBLIC_BASE_URL}${uploadedFile.url}`;
+      const url = new URL(uploadedFile.url, IMAGE_PUBLIC_BASE_URL).toString();
       eventEmitter.emit("image-uploaded", url);
       return {
         default: url,
