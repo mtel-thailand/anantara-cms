@@ -44,7 +44,7 @@ function createClientUrl(
   pathname: string,
   searchParams?: Record<string, string>,
 ) {
-  const baseUrl = process.env.ANANTARA_CLIENT_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_ANANTARA_CLIENT_BASE_URL;
   if (!baseUrl) {
     throw new Error("Client path is not configured");
   }

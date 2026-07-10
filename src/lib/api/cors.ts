@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const allowedOrigins = [process.env.ANANTARA_CLIENT_BASE_URL!];
+const allowedOrigins = [process.env.NEXT_PUBLIC_ANANTARA_CLIENT_BASE_URL!];
 
 export function applyCors(request: NextRequest, response: NextResponse) {
   const origin = request.headers.get('origin');
