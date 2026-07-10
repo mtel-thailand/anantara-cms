@@ -1,15 +1,15 @@
-import { updateSession } from '@/src/lib/supabase/proxy';
-import { NextResponse, type NextRequest } from 'next/server';
-import { logHandler } from './src/lib/api/with-api-logger';
-import { applyCors } from './src/lib/api/cors';
+import { updateSession } from "@/src/lib/supabase/proxy";
+import { NextResponse, type NextRequest } from "next/server";
+import { logHandler } from "./src/lib/api/with-api-logger";
+import { applyCors } from "./src/lib/api/cors";
 
 export async function proxy(request: NextRequest) {
-  logHandler(request, 'MIDDLEWARE');
+  logHandler(request, "MIDDLEWARE");
   const pathname = request.nextUrl.pathname;
 
-  if (pathname.startsWith('/api')) {
+  if (pathname.startsWith("/api")) {
     // Handle preflight
-    if (request.method === 'OPTIONS') {
+    if (request.method === "OPTIONS") {
       return applyCors(
         request,
         new NextResponse(null, {
@@ -26,7 +26,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/api/submissions/:path*',
+    "/api/public/:path*",
     /*
      * Match all request paths except:
      * - _next/static (static files)
@@ -35,6 +35,6 @@ export const config = {
      * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
      * Feel free to modify this pattern to include more paths.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
