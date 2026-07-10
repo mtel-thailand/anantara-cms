@@ -2,6 +2,7 @@ import { ApiContext } from "@/src/lib/api/types";
 import { withApiLogger } from "@/src/lib/api/with-api-logger";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { logger } from "@/src/lib/logger";
+import { StorageFile } from "@/src/lib/s3/client";
 import { EmailTemplate, sendEmail } from "@/src/lib/ses/email";
 import { createClient } from "@/src/lib/supabase/client";
 import { InferSchemas, SchemaMap } from "@/src/types/api-schema";
@@ -37,7 +38,12 @@ async function postRouteHandler(
 
     const { data: submissionForm, error } = await supabase
       .from("car_submissions_form")
-      .select()
+      .select(
+        `
+        *,
+        car_submission_vehicles (*)
+        `,
+      )
       .eq("id", submissionId)
       .single();
 
@@ -53,13 +59,24 @@ async function postRouteHandler(
       `Sending email for submissionId: ${submissionId}`,
     );
 
+    const vehicles =
+      submissionForm?.car_submission_vehicles?.map((vehicle) => {
+        const imageUrl = vehicle.images as StorageFile[];
+        return {
+          name: `${vehicle.make_of_vehicle} ${vehicle.model}`,
+          year: vehicle.year_of_manufacture,
+          bodyStyle: vehicle.body_style ?? "",
+          imageUrl: imageUrl?.[0]?.publicUrl ?? "",
+        };
+      }) ?? [];
+
     await sendEmail<EmailTemplate.SubmissionConfirm>(submissionForm.email, {
       template: EmailTemplate.SubmissionConfirm,
-        params: {
-          recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
-          accessToken: submissionForm.access_token ?? "",
-          vehicles: [],
-        },
+      params: {
+        recipientName: `${submissionForm.first_name} ${submissionForm.name}`,
+        accessToken: submissionForm.access_token ?? "",
+        vehicles: vehicles,
+      },
     });
   } catch (error) {
     logger.error("SUBMISSION-CREATED", "Error sending email", {
