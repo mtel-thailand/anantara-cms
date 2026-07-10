@@ -3,7 +3,7 @@ import { logger } from "@/src/lib/logger";
 import { eventEmitter } from "@/src/lib/events";
 
 const IMAGE_PUBLIC_BASE_URL =
-  process.env.NEXT_PUBLIC_ANANTARA_CLIENT_BASE_URL?.trim() || "";
+  process.env.NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL?.trim() || "";
 
 export function getS3KeyFromImageUrl(src: string) {
   try {

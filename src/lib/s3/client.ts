@@ -12,7 +12,7 @@ const accessKeyId = process.env.AWS_S3_ACCESS_KEY?.trim() || "";
 const secretAccessKey = process.env.AWS_S3_SECRET_ACCESS_KEY?.trim() || "";
 const cmsFolder = process.env.AWS_S3_CMS_FOLDER?.trim() || "cms-uploads";
 const clientFolder = process.env.AWS_S3_CLIENT_FOLDER?.trim() || "client-uploads";
-const clientUrl = process.env.ANANTARA_CLIENT_BASE_URL?.trim() || "";
+const clientUrl = process.env.NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL?.trim() || "";
 
 function formatBytes(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(2)}MB`;
