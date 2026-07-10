@@ -183,6 +183,7 @@ export type Database = {
           status: Database["public"]["Enums"]["submission_status"]
           submission_id: string
           updated_at: string
+          vehicle_documents: Json
           vehicle_history_en: string | null
           vehicle_history_it: string | null
           year_of_manufacture: string
@@ -208,6 +209,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["submission_status"]
           submission_id: string
           updated_at?: string
+          vehicle_documents?: Json
           vehicle_history_en?: string | null
           vehicle_history_it?: string | null
           year_of_manufacture: string
@@ -233,6 +235,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["submission_status"]
           submission_id?: string
           updated_at?: string
+          vehicle_documents?: Json
           vehicle_history_en?: string | null
           vehicle_history_it?: string | null
           year_of_manufacture?: string
@@ -951,6 +954,10 @@ export type Database = {
     }
     Functions: {
       gen_ref: { Args: { length: number; prefix: string }; Returns: string }
+      submit_car_application: {
+        Args: { p_submission: Json; p_vehicles: Json }
+        Returns: string
+      }
     }
     Enums: {
       submission_status:
