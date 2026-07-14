@@ -3,6 +3,17 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "105mb",
+    },
+  },
+  images: {
+    remotePatterns: [
+      new URL("https://d15j1ksm9qghj4.cloudfront.net/**"),
+      new URL("https://www.anantaraconcorsoroma.com/**"),
+    ],
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();

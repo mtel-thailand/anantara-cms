@@ -13,14 +13,13 @@ import { Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { useLocale } from "next-intl";
 import { memo, useCallback, useMemo } from "react";
 import { toast } from "sonner";
+import { AgendaEventState, AgendaState } from "@/src/features/agenda/agenda.types";
+import { useAgendaItemModal } from "@/src/features/agenda/components/agenda-item-modals";
+import { AgendaIconGlyph } from "@/src/features/agenda/components/agenda-icon";
 import {
-  AgendaEventState,
-  AgendaState,
   agendaEventLanguageStatus,
   hasAgendaLanguageGap,
-} from "@/src/features/agenda/types";
-import { useAgendaItemModal } from "./agenda-item-modals";
-import { AgendaIconGlyph } from "./agenda-icon";
+} from "@/src/features/agenda/helper";
 
 type EventTableType = {
   id: string;

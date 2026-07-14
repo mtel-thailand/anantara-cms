@@ -19,6 +19,10 @@ export type AgendaState = AgendaStateRow & {
   removed?: boolean;
 };
 
+export type AgendaRecordWithEventsRow = AgendaRow & {
+  events: EventRow[];
+};
+
 type AgendaEventFormField =
   | "name"
   | "nameIt"
@@ -35,29 +39,3 @@ export type AgendaEventFormType = {
 export type AgendaEventInput = AgendaEventFormType & {
   agendaId: NonNullable<AgendaEventInsertState["agendaId"]>;
 };
-
-export function agendaEventToFormValues(
-  event: AgendaEventState,
-): AgendaEventFormType {
-  return {
-    name: event.name,
-    nameIt: event.nameIt ?? "",
-    startedAt: event.startedAt,
-    endedAt: event.endedAt ?? "",
-    appIcon: event.appIcon ?? "",
-    description: event.description ?? "",
-    descriptionIt: event.descriptionIt ?? "",
-  };
-}
-
-export function agendaEventLanguageStatus(event: AgendaEventState) {
-  return {
-    en: Boolean(event.name.trim() && event.description?.trim()),
-    it: Boolean(event.nameIt?.trim() && event.descriptionIt?.trim()),
-  };
-}
-
-export function hasAgendaLanguageGap(event: AgendaEventState): boolean {
-  const status = agendaEventLanguageStatus(event);
-  return status.en !== status.it;
-}

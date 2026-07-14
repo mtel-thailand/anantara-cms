@@ -1,0 +1,4 @@
+{
+  "js.preferences.importModuleSpecifier": "non-relative",
+  "ts.preferences.importModuleSpecifier": "non-relative"
+}

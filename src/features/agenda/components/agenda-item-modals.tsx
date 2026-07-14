@@ -21,9 +21,9 @@ import { getAgendaSchema } from "@/src/features/agenda/agenda.schema";
 import {
   AgendaEventState,
   AgendaEventFormType,
-  agendaEventToFormValues,
-} from "@/src/features/agenda/types";
-import { AgendaIconGlyph } from "./agenda-icon";
+} from "@/src/features/agenda/agenda.types";
+import { AgendaIconGlyph } from "@/src/features/agenda/components/agenda-icon";
+import { agendaEventToFormValues } from "@/src/features/agenda/api/agenda.serializer";
 
 const EMPTY_VALUES: AgendaEventFormType = {
   name: "",
@@ -234,7 +234,7 @@ export function useAgendaItemModal(agendaId: string) {
       modal.handleShowShowCloseButton();
       modal.disableBackdropClose();
       modal.open({
-        headerClassName:"px-6 py-4 border-b",
+        headerClassName: "px-6 py-4 border-b",
         header: (
           <div>
             <Text.FormTitle size="xl">

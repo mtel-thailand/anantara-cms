@@ -1,68 +1,13 @@
 import { createClient } from "@/src/lib/supabase/client";
 import { unwrap } from "@/src/lib/supabase/unwrap";
-import type {
-  AgendaEventState,
-  AgendaRow,
-  AgendaState,
-  EventRow,
-} from "./types";
-
-type AgendaRecordWithEvents = AgendaRow & {
-  events: EventRow[];
-};
+import type { AgendaRecordWithEventsRow, AgendaState } from "../agenda.types";
+import {
+  agendaPayload,
+  eventPayload,
+  toAgendaState,
+} from "@/src/features/agenda/api/agenda.serializer";
 
 const isTemporaryId = (id: string) => id.startsWith("temp-");
-
-function toAgendaEventState(event: EventRow): AgendaEventState {
-  return {
-    active: event.active,
-    agendaId: event.agenda_id,
-    appIcon: event.app_icon,
-    createdAt: event.created_at,
-    description: event.description,
-    descriptionIt: event.description_it,
-    endedAt: event.ended_at,
-    id: event.id,
-    name: event.name,
-    nameIt: event.name_it,
-    remark: event.remark,
-    remarkIt: event.remark_it,
-    startDateFormat: event.start_date_format,
-    startedAt: event.started_at,
-  };
-}
-
-function toAgendaState(agenda: AgendaRecordWithEvents): AgendaState {
-  return {
-    id: agenda.id,
-    createdAt: agenda.created_at,
-    name: agenda.name,
-    date: agenda.date,
-    seq: agenda.seq,
-    events: agenda.events.map(toAgendaEventState),
-  };
-}
-
-function agendaPayload(agenda: AgendaState) {
-  return {
-    name: agenda.name,
-    date: agenda.date,
-    seq: agenda.seq,
-  };
-}
-
-function eventPayload(event: AgendaEventState, agendaId: string) {
-  return {
-    agenda_id: agendaId,
-    name: event.name,
-    name_it: event.nameIt ?? null,
-    description: event.description,
-    description_it: event.descriptionIt ?? null,
-    started_at: event.startedAt,
-    ended_at: event.endedAt ?? null,
-    app_icon: event.appIcon,
-  };
-}
 
 function throwIfError(error: unknown) {
   if (error) throw error;
@@ -91,7 +36,7 @@ export const getAgendas = async (): Promise<AgendaState[]> => {
     )
     .order("date", { ascending: true });
 
-  const agendas: AgendaRecordWithEvents[] = unwrap(data, error);
+  const agendas: AgendaRecordWithEventsRow[] = unwrap(data, error);
   return agendas.map(toAgendaState);
 };
 

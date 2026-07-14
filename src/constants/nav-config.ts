@@ -73,37 +73,40 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { titleKey: "agenda", icon: CalendarDays, href: "/app/agenda" },
   {
     titleKey: "cars.root",
     icon: Car,
     children: [
-      { titleKey: "cars.submissions", href: "/cars/submissions" },
-      { titleKey: "cars.classes", href: "/cars/classes" },
-      { titleKey: "cars.list", href: "/cars/list" },
+      { titleKey: "cars.submissions", href: "/app/cars/submissions" },
+      { titleKey: "cars.classes", href: "/app/cars/classes" },
+      { titleKey: "cars.list", href: "/app/cars/list" },
       {
         titleKey: "cars.contentField",
-        href: "/cars/website-description",
+        href: "/app/cars/website-description",
       },
     ],
   },
+  { titleKey: "agenda", icon: CalendarDays, href: "/app/agenda" },
   {
     titleKey: "awards.root",
     icon: Trophy,
     children: [
-      { titleKey: "awards.bestOfShow", href: "/awards/best-of-show" },
-      { titleKey: "awards.bestInClass", href: "/awards/best-in-class" },
-      { titleKey: "awards.specialAwards", href: "/awards/special-awards" },
+      { titleKey: "awards.bestOfShow", href: "/app/awards/best-of-show" },
+      { titleKey: "awards.bestInClass", href: "/app/awards/best-in-class" },
+      {
+        titleKey: "awards.specialAwards",
+        href: "/app/awards/special-awards",
+      },
     ],
   },
   {
     titleKey: "sponsors.root",
     icon: Handshake,
     children: [
-      { titleKey: "sponsors.list", href: "/sponsors/list" },
+      { titleKey: "sponsors.list", href: "/app/sponsors/list" },
       {
         titleKey: "sponsors.contentField",
-        href: "/sponsors/website-description",
+        href: "/app/sponsors/website-description",
       },
     ],
   },
@@ -111,40 +114,43 @@ export const NAV_ITEMS: NavItem[] = [
     titleKey: "judges.root",
     icon: Gavel,
     children: [
-      { titleKey: "judges.list", href: "/judges/list" },
+      { titleKey: "judges.list", href: "/app/judges/list" },
       {
         titleKey: "judges.contentField",
-        href: "/judges/website-descriptions",
+        href: "/app/judges/website-descriptions",
       },
     ],
   },
-  { titleKey: "news", icon: Newspaper, href: "/news" },
-  { titleKey: "press", icon: Megaphone, href: "/press" },
+  { titleKey: "news", icon: Newspaper, href: "/app/news" },
+  { titleKey: "press", icon: Megaphone, href: "/app/press" },
   {
     titleKey: "staticPages.root",
     icon: FileText,
     children: [
-      { titleKey: "staticPages.about", href: "/static-pages/about" },
+      { titleKey: "staticPages.about", href: "/app/static-pages/about" },
       {
         titleKey: "staticPages.howToGetThere",
-        href: "/static-pages/how-to-get-there",
+        href: "/app/static-pages/how-to-get-there",
       },
-      { titleKey: "staticPages.charity", href: "/static-pages/charities" },
+      {
+        titleKey: "staticPages.charity",
+        href: "/app/static-pages/charities",
+      },
       {
         titleKey: "staticPages.whatToWear",
-        href: "/static-pages/what-to-wear",
+        href: "/app/static-pages/what-to-wear",
       },
-      { titleKey: "staticPages.venue", href: "/static-pages/venue" },
+      { titleKey: "staticPages.venue", href: "/app/static-pages/venue" },
     ],
   },
   {
     titleKey: "gallery.root",
     icon: Images,
     children: [
-      { titleKey: "gallery.items", href: "/gallery/items" },
+      { titleKey: "gallery.items", href: "/app/gallery/items" },
       {
         titleKey: "gallery.contentField",
-        href: "/gallery/website-description",
+        href: "/app/gallery/website-description",
       },
     ],
   },
@@ -152,8 +158,11 @@ export const NAV_ITEMS: NavItem[] = [
     titleKey: "volunteers.root",
     icon: Users,
     children: [
-      { titleKey: "volunteers.submissions", href: "/volunteers/submissions" },
-      { titleKey: "volunteers.list", href: "/volunteers/list" },
+      {
+        titleKey: "volunteers.submissions",
+        href: "/app/volunteers/submissions",
+      },
+      { titleKey: "volunteers.list", href: "/app/volunteers/list" },
     ],
   },
   {
@@ -162,21 +171,21 @@ export const NAV_ITEMS: NavItem[] = [
     children: [
       {
         titleKey: "carsAndCoffee.events",
-        href: "/cars-and-coffee/events",
+        href: "/app/cars-and-coffee/events",
       },
       {
         titleKey: "carsAndCoffee.submissions",
-        href: "/cars-and-coffee/submissions",
+        href: "/app/cars-and-coffee/submissions",
       },
     ],
   },
-  { titleKey: "shop", icon: ShoppingBag, href: "/shop" },
+  { titleKey: "shop", icon: ShoppingBag, href: "/app/shop" },
   {
     titleKey: "ticketsAndPackages",
     icon: Ticket,
-    href: "/tickets-and-packages",
+    href: "/app/tickets-and-packages",
   },
-  { titleKey: "profile", icon: UserCircle, href: "/profile" },
+  { titleKey: "profile", icon: UserCircle, href: "/app/profile" },
   { titleKey: "logout", icon: LogOut, action: "logout" },
 ] satisfies NavItem[];
 

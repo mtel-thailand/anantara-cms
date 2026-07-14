@@ -12,7 +12,10 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
+  OnChangeFn,
   Row,
+  SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -35,17 +38,25 @@ import {
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
 import { cn } from "@/src/lib/utils";
+import { ArrowDown, ArrowUp } from "lucide-react";
+
+const genericMemo: <T>(component: T) => T = memo;
 
 export type DraggableTableProps<TData extends { id: string }> = {
   data: TData[];
   columns: ColumnDef<TData, unknown>[];
   onReorder: (data: TData[]) => void;
+  columnSorting?: SortingState;
+  onColumnSortingChange?: OnChangeFn<SortingState>;
   className?: string;
+  tableClassName?: string;
   headerClassName?: string;
   bodyClassName?: string;
-  sorting?: boolean;
+  enableColumnSorting?: boolean;
+  enabledRowSorting?: boolean;
   emptyRow?: ReactNode;
   getRowClassName?: (data: TData) => string | undefined;
+  canDragRow?: (data: TData) => boolean;
 };
 
 const dragModifiers = [
@@ -58,11 +69,16 @@ const DraggableTableComponent = <TData extends { id: string }>({
   columns,
   onReorder,
   className,
+  tableClassName,
   headerClassName,
   bodyClassName,
-  sorting,
+  enableColumnSorting,
+  enabledRowSorting,
   emptyRow,
   getRowClassName,
+  canDragRow,
+  columnSorting,
+  onColumnSortingChange,
 }: DraggableTableProps<TData>) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -79,10 +95,18 @@ const DraggableTableComponent = <TData extends { id: string }>({
     columns,
     getRowId,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    enableSorting: enableColumnSorting,
+    enableMultiSort: false,
+    state: {
+      sorting: columnSorting,
+    },
+    onSortingChange: onColumnSortingChange,
   });
 
   const ids = useMemo(() => data.map(getRowId), [data, getRowId]);
-  const emptyColSpan = table.getVisibleLeafColumns().length + (sorting ? 1 : 0);
+  const emptyColSpan =
+    table.getVisibleLeafColumns().length + (enabledRowSorting ? 1 : 0);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -109,24 +133,52 @@ const DraggableTableComponent = <TData extends { id: string }>({
     >
       <div
         className={cn(
-          "max-h-[500px] overflow-y-auto overscroll-contain",
+          "max-h-[500px] overflow-y-auto overscroll-auto",
           className,
         )}
       >
-        <table className="w-full border-collapse">
+        <table className={cn("w-full border-collapse", tableClassName)}>
           <thead className={headerClassName}>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b">
-                {sorting && <th className="w-10 p-2"></th>}
+                {enabledRowSorting && <th className="w-10 p-2"></th>}
 
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="p-2 text-left">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                  <th
+                    key={header.id}
+                    className="p-2 text-left"
+                    colSpan={header.colSpan}
+                  >
+                    <div
+                      className={cn(
+                        "inline-flex items-center gap-1 font-medium text-muted-foreground transition-colors",
+                        {
+                          "hover:text-foreground cursor-pointer":
+                            header.column.getCanSort(),
+                        },
+                      )}
+                      onClick={header.column.getToggleSortingHandler()}
+                      title={
+                        header.column.getCanSort()
+                          ? header.column.getNextSortingOrder() === "asc"
+                            ? "Sort ascending"
+                            : header.column.getNextSortingOrder() === "desc"
+                              ? "Sort descending"
+                              : "Clear sort"
+                          : undefined
+                      }
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                      {{
+                        asc: <ArrowUp className={cn("size-3.5")} />,
+                        desc: <ArrowDown className={cn("size-3.5")} />,
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
                   </th>
                 ))}
               </tr>
@@ -142,7 +194,11 @@ const DraggableTableComponent = <TData extends { id: string }>({
                     <DraggableRow
                       key={row.id}
                       row={row}
-                      sorting={sorting}
+                      sorting={enabledRowSorting}
+                      draggable={
+                        Boolean(enabledRowSorting) &&
+                        (canDragRow?.(row.original) ?? true)
+                      }
                       className={getRowClassName?.(row.original)}
                     />
                   ))
@@ -176,19 +232,31 @@ function arePropsEqual<TData extends { id: string }>(
     oldProps.data === newProps.data &&
     oldProps.columns === newProps.columns &&
     oldProps.onReorder === newProps.onReorder &&
-    oldProps.getRowClassName === newProps.getRowClassName
+    oldProps.columnSorting === newProps.columnSorting &&
+    oldProps.onColumnSortingChange === newProps.onColumnSortingChange &&
+    oldProps.enableColumnSorting === newProps.enableColumnSorting &&
+    oldProps.enabledRowSorting === newProps.enabledRowSorting &&
+    oldProps.tableClassName === newProps.tableClassName &&
+    oldProps.headerClassName === newProps.headerClassName &&
+    oldProps.bodyClassName === newProps.bodyClassName &&
+    oldProps.className === newProps.className &&
+    oldProps.emptyRow === newProps.emptyRow &&
+    oldProps.getRowClassName === newProps.getRowClassName &&
+    oldProps.canDragRow === newProps.canDragRow
   );
 }
 
 const DraggableTable = memo(DraggableTableComponent, arePropsEqual);
 
-const DraggableRow = memo(function DraggableRow<TData>({
+function DraggableRowComponent<TData>({
   row,
   sorting,
+  draggable,
   className,
 }: {
   row: Row<TData>;
   sorting?: boolean;
+  draggable: boolean;
   className?: string;
 }) {
   const {
@@ -200,6 +268,7 @@ const DraggableRow = memo(function DraggableRow<TData>({
     isDragging,
   } = useSortable({
     id: row.id,
+    disabled: !draggable,
   });
 
   const style: CSSProperties = {
@@ -220,9 +289,15 @@ const DraggableRow = memo(function DraggableRow<TData>({
         <td className="p-2">
           <button
             type="button"
+            disabled={!draggable}
             {...attributes}
             {...listeners}
-            className="touch-none cursor-grab rounded border px-2 py-1 active:cursor-grabbing"
+            className={cn(
+              "touch-none rounded border px-2 py-1",
+              draggable
+                ? "cursor-grab active:cursor-grabbing"
+                : "cursor-not-allowed text-muted-foreground/40",
+            )}
           >
             ☰
           </button>
@@ -234,7 +309,9 @@ const DraggableRow = memo(function DraggableRow<TData>({
       ))}
     </tr>
   );
-});
+}
+
+const DraggableRow = genericMemo(DraggableRowComponent);
 
 function DraggableCellComponent<TData>({
   cell,
@@ -248,8 +325,6 @@ function DraggableCellComponent<TData>({
   );
 }
 
-const DraggableCell = memo(
-  DraggableCellComponent,
-) as typeof DraggableCellComponent;
+const DraggableCell = genericMemo(DraggableCellComponent);
 
 export default DraggableTable;
