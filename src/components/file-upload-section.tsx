@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/src/components/ui/button";
+import { normalizedFileName } from "@/src/lib/string";
 import { cn } from "@/src/lib/utils";
 import { Download, Eye, FileText, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
@@ -20,6 +21,7 @@ export type FileUploadSectionProps = {
   previewFiles?: Array<{
     fileName?: string;
     id: string;
+    key?: string;
     name?: string;
     url: string;
   }>;
@@ -50,7 +52,7 @@ function openFile(file: File, mode: "download" | "view") {
 }
 
 function openRemoteFile(
-  file: { name: string; url: string },
+  file: { key?: string; name: string; url: string },
   mode: "download" | "view",
 ) {
   if (mode === "view") {
@@ -59,17 +61,17 @@ function openRemoteFile(
   }
 
   const anchor = window.document.createElement("a");
-  anchor.href = file.url;
+  anchor.href = file.key
+    ? `/api/file?${new URLSearchParams({ key: file.key })}`
+    : file.url;
   anchor.download = file.name;
-  anchor.target = "_blank";
-  anchor.rel = "noopener noreferrer";
+  if (!file.key) {
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+  }
   window.document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-}
-
-function normalizedFileName(name: string) {
-  return name.normalize("NFKC").trim().toLowerCase();
 }
 
 export default function FileUploadSection({
@@ -199,7 +201,11 @@ export default function FileUploadSection({
                   title="View"
                   onClick={() =>
                     openRemoteFile(
-                      { name: file.displayName, url: file.url },
+                      {
+                        key: file.key,
+                        name: file.displayName,
+                        url: file.url,
+                      },
                       "view",
                     )
                   }
@@ -215,7 +221,11 @@ export default function FileUploadSection({
                   title="Download"
                   onClick={() =>
                     openRemoteFile(
-                      { name: file.displayName, url: file.url },
+                      {
+                        key: file.key,
+                        name: file.displayName,
+                        url: file.url,
+                      },
                       "download",
                     )
                   }

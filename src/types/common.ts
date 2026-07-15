@@ -9,3 +9,5 @@ export type CamelCasedPropertiesDeep<T> = T extends object
         : K]: CamelCasedPropertiesDeep<T[K]>;
     }
   : T;
+
+export type Override<T, R> = Omit<T, keyof R> & R;
