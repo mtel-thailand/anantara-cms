@@ -85,7 +85,7 @@ export async function updateSession(request: NextRequest) {
   // with the Supabase client, your users may be randomly logged out.
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
-  console.log("user", user);
+
   const { locale, pathnameWithoutLocale } = getPathInfo(
     request.nextUrl.pathname,
     defaultLocale ?? routing.defaultLocale,
