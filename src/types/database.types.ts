@@ -165,6 +165,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           body_style: string | null
+          car_id: string
           chassis_no: string | null
           coachbuilder: string | null
           created_at: string
@@ -191,6 +192,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           body_style?: string | null
+          car_id: string
           chassis_no?: string | null
           coachbuilder?: string | null
           created_at?: string
@@ -217,6 +219,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           body_style?: string | null
+          car_id?: string
           chassis_no?: string | null
           coachbuilder?: string | null
           created_at?: string
@@ -954,6 +957,17 @@ export type Database = {
     }
     Functions: {
       gen_ref: { Args: { length: number; prefix: string }; Returns: string }
+      get_car_submissions_list: {
+        Args: {
+          p_page?: number
+          p_page_size?: number
+          p_query?: string
+          p_sort_desc?: boolean
+          p_sort_key?: string
+          p_status?: Database["public"]["Enums"]["submission_status"]
+        }
+        Returns: Json
+      }
       submit_car_application: {
         Args: { p_submission: Json; p_vehicles: Json }
         Returns: string
