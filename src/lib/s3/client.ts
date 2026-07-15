@@ -5,7 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { buildStorageKey } from "./key";
 import { logger } from "@/src/lib/logger";
-console.log("test")
+
 const bucketName = process.env.AWS_S3_BUCKET?.trim() || "";
 const region = process.env.AWS_S3_REGION?.trim() || "";
 const accessKeyId = process.env.AWS_S3_ACCESS_KEY?.trim() || "";
