@@ -1,0 +1,18 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - yarn install --frozen-lockfile
+    build:
+      commands:
+        - env | grep -E '^(REACT_EDITOR|NEXT_PUBLIC_SUPABASE_URL|NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY|NEXT_PUBLIC_ANANTARA_CLIENT_BASE_URL|NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL|S3_REGION|S3_BUCKET|S3_CMS_FOLDER|S3_CLIENT_FOLDER|SES_REGION|SES_FROM|SES_TO)=' > .env.production
+        - yarn build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
