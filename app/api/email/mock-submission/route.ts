@@ -18,21 +18,21 @@ export async function POST() {
         vehicles: [
           {
             name: "Ferrari Roma Spider",
-            year: 1963,
+            year: '1963',
             bodyStyle: "Coupe",
             imageUrl:
               "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=240&h=160&fit=crop&auto=format",
           },
           {
             name: "Ferrari 250 GTO",
-            year: 1962,
+            year: '1962',
             bodyStyle: "Coupe",
             imageUrl:
               "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=240&h=160&fit=crop&auto=format",
           },
           {
             name: "Ferrari 250 GTO",
-            year: 1962,
+            year: '1962',
             bodyStyle: "Coupe",
             imageUrl:
               "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=240&h=160&fit=crop&auto=format",
