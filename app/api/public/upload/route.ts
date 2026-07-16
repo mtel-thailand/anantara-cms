@@ -13,11 +13,14 @@ import { logger } from "@/src/lib/logger";
 const MAX_FILES = 2;
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
-const ACCEPTED_IMAGE_TYPES = [
+const ACCEPTED_FILE_TYPES = [
   "image/jpeg",
   "image/png",
   "image/jpg",
   "image/webp",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
 const postSchemas = {
@@ -30,9 +33,8 @@ const postSchemas = {
       `Max file size is ${MAX_FILE_SIZE_MB}MB per file.`,
     )
     .refine(
-      (files) =>
-        files.every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type)),
-      "Only .jpg, .png and .webp formats are supported.",
+      (files) => files.every((file) => ACCEPTED_FILE_TYPES.includes(file.type)),
+      "Only .jpg, .png, .webp, .pdf, .doc, and .docx formats are supported.",
     ),
 } satisfies SchemaMap;
 
@@ -54,7 +56,7 @@ async function postRouteHandler(
 ) {
   if (!ctx.files?.length) {
     logger.warn("FILE", "no files found in validated context");
-    return NextResponse.json({ message: "No image found" }, { status: 400 });
+    return NextResponse.json({ message: "No file found" }, { status: 400 });
   }
 
   const files = ctx.files;

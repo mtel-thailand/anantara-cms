@@ -22,7 +22,7 @@ export type EmailTemplateParams = {
     accessToken: string;
     vehicles: Array<{
       name: string;
-      year: number;
+      year: string;
       bodyStyle: string;
       imageUrl: string;
     }>;

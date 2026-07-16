@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 const MOCK_RECIPIENT = "suphasan.sae@mtel.co.th";
 
 export async function POST() {
-  if (process.env.NODE_ENV === "production") {
+  logger.info("POST", "MOCK RECIPIENT");
+  if (process.env.ENABLE_MOCK_EMAIL_ROUTE !== "true") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -18,21 +19,21 @@ export async function POST() {
         vehicles: [
           {
             name: "Ferrari Roma Spider",
-            year: 1963,
+            year: "1963",
             bodyStyle: "Coupe",
             imageUrl:
               "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=240&h=160&fit=crop&auto=format",
           },
           {
             name: "Ferrari 250 GTO",
-            year: 1962,
+            year: "1962",
             bodyStyle: "Coupe",
             imageUrl:
               "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=240&h=160&fit=crop&auto=format",
           },
           {
             name: "Ferrari 250 GTO",
-            year: 1962,
+            year: "1962",
             bodyStyle: "Coupe",
             imageUrl:
               "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=240&h=160&fit=crop&auto=format",

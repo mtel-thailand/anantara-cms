@@ -1,11 +1,14 @@
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 
+const accessKeyId = process.env.SES_ACCESS_KEY_ID?.trim();
+const secretAccessKey = process.env.SES_SECRET_ACCESS_KEY?.trim();
+
 const sesClient = new SESClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_SES_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SES_SECRET_ACCESS_KEY!,
-  },
+  region: process.env.SES_REGION,
+  credentials:
+    accessKeyId && secretAccessKey
+      ? { accessKeyId, secretAccessKey }
+      : undefined,
 });
 
 type SendSesEmailOptions = {
@@ -21,7 +24,7 @@ export async function sendSesEmail({
 }: SendSesEmailOptions) {
   await sesClient.send(
     new SendEmailCommand({
-      Source: process.env.AWS_SES_FROM!,
+      Source: process.env.SES_FROM!,
       Destination: {
         ToAddresses: receiver.split(",").map((email) => email.trim()),
       },

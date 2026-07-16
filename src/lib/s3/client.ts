@@ -13,17 +13,16 @@ import {
 } from "./key";
 import { logger } from "@/src/lib/logger";
 
-const bucketName = process.env.AWS_S3_BUCKET?.trim() || "";
-const region = process.env.AWS_S3_REGION?.trim() || "";
-const accessKeyId = process.env.AWS_S3_ACCESS_KEY?.trim() || "";
-const secretAccessKey = process.env.AWS_S3_SECRET_ACCESS_KEY?.trim() || "";
-
-const cmsFolder = normalizeStorageFolder(
-  process.env.AWS_S3_CMS_FOLDER?.trim() || "cms-uploads",
-);
-const clientFolder = normalizeStorageFolder(
-  process.env.AWS_S3_CLIENT_FOLDER?.trim() || "client-uploads",
-);
+const bucketName = process.env.S3_BUCKET?.trim() || "";
+const region = process.env.S3_REGION?.trim() || "";
+const accessKeyId = process.env.S3_ACCESS_KEY?.trim() || "";
+const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY?.trim() || "";
+const credentials =
+  accessKeyId && secretAccessKey
+    ? { accessKeyId, secretAccessKey }
+    : undefined;
+const cmsFolder = process.env.S3_CMS_FOLDER?.trim() || "cms-uploads";
+const clientFolder = process.env.S3_CLIENT_FOLDER?.trim() || "client-uploads";
 const clientUrl = process.env.NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL?.trim() || "";
 
 function formatBytes(bytes: number) {
@@ -32,10 +31,7 @@ function formatBytes(bytes: number) {
 
 export const s3Client = new S3Client({
   region,
-  credentials: {
-    accessKeyId,
-    secretAccessKey,
-  },
+  credentials,
 });
 
 export type StorageFile = {
