@@ -6,11 +6,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import {
-  buildScopedStorageKey,
-  buildStorageKey,
-  normalizeStorageFolder,
-} from "./key";
+import { buildScopedStorageKey, buildStorageKey } from "./key";
 import { logger } from "@/src/lib/logger";
 
 const bucketName = process.env.S3_BUCKET?.trim() || "";
@@ -18,9 +14,7 @@ const region = process.env.S3_REGION?.trim() || "";
 const accessKeyId = process.env.S3_ACCESS_KEY?.trim() || "";
 const secretAccessKey = process.env.S3_SECRET_ACCESS_KEY?.trim() || "";
 const credentials =
-  accessKeyId && secretAccessKey
-    ? { accessKeyId, secretAccessKey }
-    : undefined;
+  accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;
 const cmsFolder = process.env.S3_CMS_FOLDER?.trim() || "cms-uploads";
 const clientFolder = process.env.S3_CLIENT_FOLDER?.trim() || "client-uploads";
 const clientUrl = process.env.NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL?.trim() || "";
@@ -249,6 +243,25 @@ export async function storageAdaptorGetDownloadUrl(key: string) {
     }),
     { expiresIn: 60 },
   );
+}
+
+export async function storageAdaptorGetFile(key: string) {
+  const metadata = await storageAdaptorGetFileMetadata(key);
+  const response = await s3Client.send(
+    new GetObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+    }),
+  );
+
+  if (!response.Body) {
+    throw new Error("Uploaded file has no content.");
+  }
+
+  return {
+    body: await response.Body.transformToByteArray(),
+    metadata,
+  };
 }
 
 export async function storageAdaptorDeleteFile(key: string) {

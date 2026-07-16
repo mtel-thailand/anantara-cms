@@ -47,6 +47,18 @@ export const buildStorageKey = (filename: string, folder?: "client") => {
   return buildScopedStorageKey(filename);
 };
 
+/**
+ * @example
+ * buildScopedStorageKey("Vehicle photo 01.jpg", [
+ *   "car-submissions",
+ *   "form-123",
+ *   "vehicles",
+ *   "submission-456",
+ *   "images",
+ * ]);
+ * // Returns:
+ * // "cms-uploads/car-submissions/form-123/vehicles/submission-456/images/<uuid>-Vehicle-photo-01.jpg"
+ */
 export function buildScopedStorageKey(
   filename: string,
   scope: readonly string[] = [],

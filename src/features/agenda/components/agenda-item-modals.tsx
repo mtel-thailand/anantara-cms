@@ -13,9 +13,8 @@ import { eventEmitter } from "@/src/lib/events";
 import { cn } from "@/src/lib/utils";
 import { Locale } from "@/src/types/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type SubmitErrorHandler } from "react-hook-form";
 import { toast } from "sonner";
 import { getAgendaSchema } from "@/src/features/agenda/agenda.schema";
 import {
@@ -66,12 +65,11 @@ function AgendaItemModalContent({
   editing: AgendaEventState | null;
 }) {
   const modal = useModal();
-  const t = useTranslations();
   const [currentLocale, setCurrentLocale] = useState<Locale>("en");
   const { control, handleSubmit, formState, watch, setValue } =
     useForm<AgendaEventFormType>({
       defaultValues: getDefaultValues(editing),
-      resolver: zodResolver(getAgendaSchema(t)),
+      resolver: zodResolver(getAgendaSchema()),
       shouldUnregister: false,
       mode: "onSubmit",
       reValidateMode: "onChange",
@@ -110,8 +108,19 @@ function AgendaItemModalContent({
     modal.close();
   }
 
+  const handleInvalid: SubmitErrorHandler<AgendaEventFormType> = (errors) => {
+    if (errors.name || errors.description) {
+      setCurrentLocale("en");
+      return;
+    }
+
+    if (errors.nameIt || errors.descriptionIt) {
+      setCurrentLocale("it");
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(submit)}>
+    <form onSubmit={handleSubmit(submit, handleInvalid)}>
       <div className="flex flex-col gap-5 overflow-y-auto px-6 pb-5">
         <div className="flex items-center justify-between gap-2">
           <Text>Editing language</Text>
@@ -129,7 +138,7 @@ function AgendaItemModalContent({
           control={control}
           name={currentFields.name}
           label="Title"
-          required
+          required={currentLocale === "en"}
           error={{
             hasError: Boolean(formState.errors[currentFields.name]),
             message: formState.errors[currentFields.name]?.message,
@@ -209,7 +218,7 @@ function AgendaItemModalContent({
           control={control}
           name={currentFields.description}
           label="Location"
-          required
+          required={currentLocale === "en"}
           error={{
             hasError: Boolean(formState.errors[currentFields.description]),
             message: formState.errors[currentFields.description]?.message,

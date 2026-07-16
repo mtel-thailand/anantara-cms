@@ -7,7 +7,7 @@ import { Input } from "@/src/components/ui/input";
 import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
 import { Link } from "@/src/i18n/navigation";
 import { cn } from "@/src/lib/utils";
-import { Search, SquarePen, X } from "lucide-react";
+import { Download, Search, SquarePen, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -22,15 +22,16 @@ import { PageHeader } from "@/src/components/page-header";
 import { formatDate } from "@/src/lib/date";
 import { Switch } from "@/src/components/ui/switch";
 import useAsync from "@/src/hooks/use-async";
-import { getCarSubmissions } from "@/src/features/cars/submission/api/submission.service";
+import {
+  getCarSubmissionClasses,
+  getCarSubmissions,
+  getCarSubmissionVehicle,
+} from "@/src/features/cars/submission/api/submission.service";
 import type { CarSubmissionListSortKey } from "@/src/features/cars/submission/api/submission.service";
 import { logger } from "@/src/lib/logger";
 import { SubmissionsTableSkeleton } from "./submissions-table-skeleton";
 import { SUBMISSION_STATUS_LABELS } from "@/src/features/cars/submission/submission-types";
-import {
-  isSubmissionVehicleImage,
-  submissionReference,
-} from "@/src/features/cars/submission/submission-types";
+import { isSubmissionVehicleImage } from "@/src/features/cars/submission/submission-types";
 import type {
   DbSubmissionStatus,
   SubmissionVehicleImage,
@@ -40,6 +41,7 @@ import Image from "next/image";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { Pagination } from "@/src/components/ui/pagination";
 import useConfig from "@/src/features/config/hooks/useConfig";
+import { downloadSubmissionForm } from "@/src/features/cars/submission/submission-download";
 
 const PAGE_SIZE = 10;
 
@@ -134,7 +136,6 @@ export function SubmissionsClient() {
   const [submissions, setSubmissions] = useState<
     SubmissionVehicleWithFormState[]
   >([]);
-
   const { configStore, switchFeatureFlagConfig } = useConfig();
   const featureFlagCarSubmission: boolean = configStore
     ? (configStore?.config.featureFlags?.carSubmission ?? false)
@@ -153,7 +154,6 @@ export function SubmissionsClient() {
   const [columnSorting, setColumnSorting] = useState<SortingState>([
     { desc: true, id: "updated" },
   ]);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -172,7 +172,6 @@ export function SubmissionsClient() {
         setSubmissions(result.data);
         setTotal(result.total);
         setCounts(result.counts);
-        console.log("result.counts", result.counts);
       } catch (error) {
         if (cancelled) return;
 
@@ -250,12 +249,12 @@ export function SubmissionsClient() {
       },
       {
         id: "reference",
-        accessorFn: submissionReference,
-        header: "Reference",
+        accessorFn: (submission) => submission.carId,
+        header: "Car ID",
         enableSorting: true,
         cell: ({ row }) => (
           <span className="font-mono text-xs text-muted-foreground">
-            {submissionReference(row.original)}
+            {row.original.carId}
           </span>
         ),
       },
@@ -315,11 +314,36 @@ export function SubmissionsClient() {
         header: "Action",
         enableSorting: false,
         cell: ({ row }) => (
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/app/cars/submissions/${row.original.id}`}>
-              <SquarePen className="size-3.5" /> Review
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/app/cars/submissions/${row.original.id}`}>
+                <SquarePen className="size-3.5" /> Review
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="text-muted-foreground hover:text-foreground"
+              aria-label={`Download PDF for ${submissionVehicleName(row.original)}`}
+              onClick={() =>
+                Promise.all([
+                  getCarSubmissionVehicle(row.original.id),
+                  getCarSubmissionClasses(),
+                ])
+                  .then(([car, classes]) =>
+                    downloadSubmissionForm(car, classes),
+                  )
+                  .catch((error) => {
+                    console.log("error", error);
+                    toast.error("Couldn’t prepare the download", {
+                      description: "Please try again.",
+                    });
+                  })
+              }
+            >
+              <Download className="size-4" />
+            </Button>
+          </div>
         ),
       },
     ],

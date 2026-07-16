@@ -281,24 +281,14 @@ export type Database = {
           access_token: string | null
           additional_photo_link: string | null
           address: string | null
-          body_style: string | null
-          chassis_no: string | null
-          coachbuilder: string | null
           created_at: string | null
           email: string
-          engine_no: string | null
-          exterior_colour: string | null
           first_name: string
           form_id: string
           id: string
-          interior_colour: string | null
-          make_of_vehicle: string
-          model: string
           name: string
           phone_number: string | null
           synced_at: string | null
-          vehicle_history: string | null
-          year_of_manufacture: string
           zip_code: string | null
         }
         Insert: {
@@ -307,24 +297,14 @@ export type Database = {
           access_token?: string | null
           additional_photo_link?: string | null
           address?: string | null
-          body_style?: string | null
-          chassis_no?: string | null
-          coachbuilder?: string | null
           created_at?: string | null
           email: string
-          engine_no?: string | null
-          exterior_colour?: string | null
           first_name: string
           form_id: string
           id?: string
-          interior_colour?: string | null
-          make_of_vehicle: string
-          model: string
           name: string
           phone_number?: string | null
           synced_at?: string | null
-          vehicle_history?: string | null
-          year_of_manufacture: string
           zip_code?: string | null
         }
         Update: {
@@ -333,24 +313,14 @@ export type Database = {
           access_token?: string | null
           additional_photo_link?: string | null
           address?: string | null
-          body_style?: string | null
-          chassis_no?: string | null
-          coachbuilder?: string | null
           created_at?: string | null
           email?: string
-          engine_no?: string | null
-          exterior_colour?: string | null
           first_name?: string
           form_id?: string
           id?: string
-          interior_colour?: string | null
-          make_of_vehicle?: string
-          model?: string
           name?: string
           phone_number?: string | null
           synced_at?: string | null
-          vehicle_history?: string | null
-          year_of_manufacture?: string
           zip_code?: string | null
         }
         Relationships: []
@@ -961,10 +931,10 @@ export type Database = {
         Args: {
           p_page?: number
           p_page_size?: number
-          p_query?: string
+          p_query?: string | null
           p_sort_desc?: boolean
           p_sort_key?: string
-          p_status?: Database["public"]["Enums"]["submission_status"]
+          p_status?: Database["public"]["Enums"]["submission_status"] | null
         }
         Returns: Json
       }

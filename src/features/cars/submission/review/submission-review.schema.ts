@@ -129,10 +129,10 @@ export const submissionReviewSchema = z
       });
     }
 
-    if (!data.history.en.trim() && !data.history.it.trim()) {
+    if (!data.history.en.trim()) {
       context.addIssue({
         code: "custom",
-        message: "Add the vehicle history in at least one language.",
+        message: "Add the vehicle history in English.",
         path: ["history", "en"],
       });
     }

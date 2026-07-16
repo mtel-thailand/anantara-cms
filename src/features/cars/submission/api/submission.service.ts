@@ -3,6 +3,7 @@ import { unwrap } from "@/src/lib/supabase/unwrap";
 import type {
   CarSubmission,
   DbSubmissionStatus,
+  SubmissionClass,
   SubmissionVehicleWithFormRow,
   SubmissionVehicleWithFormState,
 } from "@/src/features/cars/submission/submission-types";
@@ -86,10 +87,7 @@ async function uploadSubmissionFileKind(
   return Array.isArray(result.src) ? result.src : [result.src];
 }
 
-async function deleteUploadedFiles(
-  files: StorageFile[],
-  scope: StorageScope,
-) {
+async function deleteUploadedFiles(files: StorageFile[], scope: StorageScope) {
   await Promise.allSettled(
     files.map((file) =>
       fetch("/api/file", {
@@ -131,11 +129,7 @@ export async function uploadCarSubmissionFiles(
   } catch (error) {
     await deleteUploadedFiles(
       images,
-      submissionUploadScope(
-        reference.formId,
-        reference.submissionId,
-        "images",
-      ),
+      submissionUploadScope(reference.formId, reference.submissionId, "images"),
     );
     throw error;
   }
@@ -264,5 +258,16 @@ export async function getCarSubmissionVehicle(
     throw new Error("Car submission vehicle was not found.");
   }
 
-  return toCarSubmission(vehicle.car_submissions_form, vehicle /*car*/);
+  return toCarSubmission(vehicle.car_submissions_form, vehicle /*, car*/);
+}
+
+export async function getCarSubmissionClasses(): Promise<SubmissionClass[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("car_categories")
+    .select("id, name, seq")
+    .eq("enable", true)
+    .order("seq", { ascending: true });
+
+  return unwrap(data, error);
 }

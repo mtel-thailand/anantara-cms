@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import {
+  submissionFormPayload,
   toCarSubmission,
   vehiclePayload,
 } from "@/src/features/cars/submission/api/submission.serializer";
@@ -463,6 +464,17 @@ export async function saveCarSubmissionAction(
       );
     }
     mediaSaved = true;
+
+    const { data: form, error: formError } = await supabase
+      .from("car_submissions_form")
+      .update(submissionFormPayload(submission))
+      .eq("id", current.form.id)
+      .select("id")
+      .maybeSingle();
+    if (formError) throw formError;
+    if (!form) {
+      throw new Error("The submission form was not found.");
+    }
 
     const saved = await getCanonicalSubmission(supabase, id);
     const obsoleteKeys = removedKeys(current.submission, saved.submission);

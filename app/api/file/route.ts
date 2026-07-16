@@ -1,6 +1,7 @@
 import {
   storageAdaptorDeleteFile,
   storageAdaptorGetDownloadUrl,
+  storageAdaptorGetFile,
   storageAdaptorGetFileMetadata,
   storageAdaptorUploadFile,
 } from "@/src/lib/s3/client";
@@ -91,6 +92,7 @@ const getSchemas = {
   query: z
     .object({
       key: z.string().min(1, "S3 key is required.").max(1024),
+      response: z.enum(["redirect", "content"]).default("redirect"),
     })
     .strict(),
 } satisfies SchemaMap;
@@ -101,6 +103,21 @@ async function getRouteHandler(
   request: NextRequest,
   ctx: GetContextReturnType,
 ) {
+  if (ctx.query.response === "content") {
+    const file = await storageAdaptorGetFile(ctx.query.key);
+    const body = new ArrayBuffer(file.body.byteLength);
+    new Uint8Array(body).set(file.body);
+
+    return new NextResponse(body, {
+      headers: {
+        "Cache-Control": "private, no-store",
+        "Content-Disposition": "inline",
+        "Content-Length": String(file.metadata.size),
+        "Content-Type": file.metadata.contentType,
+      },
+    });
+  }
+
   const downloadUrl = await storageAdaptorGetDownloadUrl(ctx.query.key);
   return NextResponse.redirect(downloadUrl);
 }

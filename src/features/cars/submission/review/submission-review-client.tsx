@@ -27,7 +27,6 @@ import { logger } from "@/src/lib/logger";
 import {
   REVIEW_STATUSES,
   SUBMISSION_STATUS_LABELS,
-  submissionReference,
   submissionVehicleName,
   type CarSubmission,
   type SubmissionStatus,
@@ -280,6 +279,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
 
     modal.preventBackdropClose();
     modal.open({
+      headerClassName: "border-0 px-4 py-0 pt-4",
       header: (
         <div className="pr-8">
           <h2 className="font-heading text-xl">
@@ -322,7 +322,13 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
     });
   };
 
-  const handleInvalid: SubmitErrorHandler<SubmissionReviewFormValues> = () => {
+  const handleInvalid: SubmitErrorHandler<SubmissionReviewFormValues> = (
+    errors,
+  ) => {
+    if (errors.history?.en) {
+      setEditLocale("en");
+    }
+
     requestAnimationFrame(() => {
       const target = document.querySelector<HTMLElement>(
         '[aria-invalid="true"]',
@@ -348,7 +354,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
 
       <PageHeader
         title={submissionVehicleName(submission)}
-        description={`${submissionReference(submission)} · Submitted ${formatDate(
+        description={`${submission.carId} · Submitted ${formatDate(
           submission.submissionDate,
         )} · Last update ${formatDate(submission.lastUpdated)}`}
         viewport={["desktop", "mobile"]}
@@ -432,7 +438,10 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
                 <Button asChild variant="outline">
                   <Link href="/app/cars/submissions">Cancel</Link>
                 </Button>
-                <Button onClick={handleSubmit(requestSave, handleInvalid)}>
+                <Button
+                  disabled={!formState.isDirty}
+                  onClick={handleSubmit(requestSave, handleInvalid)}
+                >
                   Save changes
                 </Button>
               </div>

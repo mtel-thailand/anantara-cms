@@ -12,7 +12,6 @@ import type { Control, FieldErrors, UseFormClearErrors } from "react-hook-form";
 
 import { CarImageManager } from "./car-image-manager";
 import {
-  submissionReference,
   submissionVehicleName,
   type CarSubmission,
 } from "@/src/features/cars/submission/submission-types";
@@ -222,7 +221,7 @@ export function CarDetailsCard({
           />
           <Input
             label="Reference number"
-            value={submissionReference(submission)}
+            value={submission.carId}
             disabled
           />
         </fieldset>

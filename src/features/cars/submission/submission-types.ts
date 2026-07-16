@@ -107,6 +107,7 @@ export type InformationRequest = {
 
 export type CarSubmission = {
   id: string;
+  carId: string;
   formId: string;
   classId: string;
   year: number;
@@ -182,7 +183,10 @@ export type SubmissionFormRow =
   Database["public"]["Tables"]["car_submissions_form"]["Row"];
 export type SubmissionVehicleRow =
   Database["public"]["Tables"]["car_submission_vehicles"]["Row"];
-
+export type SubmissionClass = Pick<
+  Database["public"]["Tables"]["car_categories"]["Row"],
+  "id" | "name" | "seq"
+>;
 
 export type SubmissionCarRow = Pick<
   Database["public"]["Tables"]["cars"]["Row"],
@@ -237,15 +241,6 @@ export type CarSubmissionListItem = {
   yearOfManufacture: string;
   carSubmissionsForm: CarSubmissionFormRecord;
 };
-
-export function submissionReference(submission: Pick<CarSubmission, "id">) {
-  const digits = submission.id.replace(/\D/g, "") || "000";
-  return `AC-2026-${digits.padStart(3, "0")}`;
-}
-
-export function submissionOwnerName(submission: Pick<CarSubmission, "owner">) {
-  return `${submission.owner.firstName} ${submission.owner.lastName}`;
-}
 
 export function submissionVehicleName(
   submission: Pick<CarSubmission, "vehicle">,

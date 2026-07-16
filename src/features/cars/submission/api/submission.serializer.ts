@@ -247,6 +247,7 @@ export function toCarSubmissionListItem(
     vehicleHistoryIt: row.vehicle_history_it,
     yearOfManufacture: row.year_of_manufacture,
     carSubmissionsForm: toCarSubmissionFormRecord(row.car_submissions_form),
+    carId: row.car_id,
   };
 }
 
@@ -268,6 +269,7 @@ export function toCarSubmission(
 
   return {
     id: vehicle.id,
+    carId: vehicle.car_id,
     formId: form.id,
     classId: car?.category_id ? String(car.category_id) : "",
     year: numberFromText(vehicle.year_of_manufacture),
@@ -301,6 +303,19 @@ export function toCarSubmission(
     internalComments: text(vehicle.review_note),
     infoRequests: infoRequestsFromJson(vehicle.internal_comment),
   };
+}
+
+export function submissionFormPayload(
+  submission: Pick<CarSubmission, "owner">,
+) {
+  return {
+    address: submission.owner.address || null,
+    email: submission.owner.email,
+    first_name: submission.owner.firstName,
+    name: submission.owner.lastName,
+    phone_number: submission.owner.mobile || null,
+    zip_code: submission.owner.postcode || null,
+  } satisfies Database["public"]["Tables"]["car_submissions_form"]["Update"];
 }
 
 export function vehiclePayload(submission: CarSubmission) {
