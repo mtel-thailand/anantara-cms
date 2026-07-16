@@ -6,7 +6,7 @@ const MOCK_RECIPIENT = "suphasan.sae@mtel.co.th";
 
 export async function POST() {
   logger.info("POST", "MOCK RECIPIENT");
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.ENABLE_MOCK_EMAIL_ROUTE !== "true") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
