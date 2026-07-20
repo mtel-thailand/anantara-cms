@@ -1,5 +1,6 @@
 import { createClient } from "@/src/lib/supabase/client";
 import { unwrap } from "@/src/lib/supabase/unwrap";
+import { DEFAULT_EXCLUDED_SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission-types";
 import type {
   CarSubmission,
   DbSubmissionStatus,
@@ -37,12 +38,14 @@ export type CarSubmissionListParams = {
     descending: boolean;
   };
   status?: "all" | DbSubmissionStatus;
+  excludedStatuses?: DbSubmissionStatus[];
+  isArchived?: boolean;
 };
 
 export type CarSubmissionListResult = {
   data: SubmissionVehicleWithFormState[];
   total: number;
-  counts: Record<"all" | DbSubmissionStatus, number>;
+  counts: { all: number } & Partial<Record<DbSubmissionStatus, number>>;
 };
 
 function throwIfError(error: unknown) {
@@ -162,32 +165,38 @@ function rpcTotal(value: unknown) {
   return typeof value === "number" ? value : 0;
 }
 
-function rpcCounts(value: unknown): Record<"all" | DbSubmissionStatus, number> {
-  const defaults: Record<"all" | DbSubmissionStatus, number> = {
+const SUBMISSION_COUNT_KEYS = [
+  "pending",
+  "under_review",
+  "requested_info",
+  "info_received",
+  "waitlist",
+  "rejected",
+  "approved",
+  "finalized",
+  "archived",
+] satisfies DbSubmissionStatus[];
+
+function rpcCounts(
+  value: unknown,
+): { all: number } & Partial<Record<DbSubmissionStatus, number>> {
+  const counts: { all: number } & Partial<Record<DbSubmissionStatus, number>> = {
     all: 0,
-    pending: 0,
-    under_review: 0,
-    requested_info: 0,
-    info_received: 0,
-    waitlist: 0,
-    rejected: 0,
-    approved: 0,
-    finalized: 0,
-    archived: 0,
   };
 
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return defaults;
+    return counts;
   }
 
   const record = value as Record<string, unknown>;
+  counts.all = typeof record.all === "number" ? record.all : 0;
 
-  for (const key of Object.keys(defaults) as Array<keyof typeof defaults>) {
+  for (const key of SUBMISSION_COUNT_KEYS) {
     const count = record[key];
-    defaults[key] = typeof count === "number" ? count : 0;
+    if (typeof count === "number") counts[key] = count;
   }
 
-  return defaults;
+  return counts;
 }
 
 export async function getCarSubmissions({
@@ -196,16 +205,24 @@ export async function getCarSubmissions({
   query,
   sort,
   status = "all",
+  excludedStatuses = DEFAULT_EXCLUDED_SUBMISSION_STATUSES,
+  isArchived = false,
 }: CarSubmissionListParams): Promise<CarSubmissionListResult> {
   const supabase = createClient();
   const keyword = searchKeyword(query);
+  const effectiveExcludedStatuses =
+    status === "all"
+      ? excludedStatuses
+      : excludedStatuses.filter((excludedStatus) => excludedStatus !== status);
   const { data, error } = await supabase.rpc("get_car_submissions_list", {
     p_page: page,
     p_page_size: pageSize,
-    p_query: keyword,
-    p_status: status === "all" ? null : status,
+    p_query: keyword ?? undefined,
+    p_status: status === "all" ? undefined : status,
     p_sort_key: sort?.key ?? "updated",
     p_sort_desc: sort?.descending ?? true,
+    p_excluded_statuses: effectiveExcludedStatuses,
+    p_is_archived: isArchived,
   });
   const result = rpcResult(unwrap(data, error));
   const vehicles = rpcData(result.data);

@@ -45,11 +45,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     useState<ResolvedTheme>("light");
 
   useEffect(() => {
-    const storedTheme = window.localStorage.getItem("theme") as Theme | null;
-    const initialTheme =
-      storedTheme === "light" || storedTheme === "dark" || storedTheme === "system"
-        ? storedTheme
-        : "system";
+    // const storedTheme = window.localStorage.getItem("theme") as Theme | null;
+    const initialTheme = 'light'
+    // const initialTheme =
+    //   storedTheme === "light" || storedTheme === "dark" || storedTheme === "system"
+    //     ? storedTheme
+    //     : "system";
 
     setThemeState(initialTheme);
     setResolvedTheme(applyTheme(initialTheme));

@@ -23,6 +23,7 @@ import { formatDate } from "@/src/lib/date";
 import { Switch } from "@/src/components/ui/switch";
 import useAsync from "@/src/hooks/use-async";
 import {
+  type CarSubmissionListResult,
   getCarSubmissionClasses,
   getCarSubmissions,
   getCarSubmissionVehicle,
@@ -53,7 +54,6 @@ const FILTERS: { value: "all" | DbSubmissionStatus; label: string }[] = [
   { value: "info_received", label: "Info received" },
   { value: "waitlist", label: "Waitlist" },
   { value: "rejected", label: "Not selected" },
-  { value: "archived", label: "Archived" },
 ];
 
 function yearValue(submission: SubmissionVehicleWithFormState) {
@@ -108,16 +108,7 @@ function RenderImage(images: unknown) {
 function createEmptyCounts() {
   return {
     all: 0,
-    pending: 0,
-    under_review: 0,
-    requested_info: 0,
-    info_received: 0,
-    waitlist: 0,
-    rejected: 0,
-    approved: 0,
-    finalized: 0,
-    archived: 0,
-  } satisfies Record<"all" | DbSubmissionStatus, number>;
+  } satisfies CarSubmissionListResult["counts"];
 }
 
 function activeSort(columnSorting: SortingState) {
@@ -143,7 +134,7 @@ export function SubmissionsClient() {
 
   const [total, setTotal] = useState(0);
   const [counts, setCounts] =
-    useState<Record<"all" | DbSubmissionStatus, number>>(createEmptyCounts);
+    useState<CarSubmissionListResult["counts"]>(createEmptyCounts);
 
   const [query, setQuery] = useState("");
   const debounceQuery = useDebounce<string>(query);
@@ -165,10 +156,10 @@ export function SubmissionsClient() {
           query: debounceQuery,
           sort: activeSort(columnSorting),
           status,
+          isArchived: status === "archived",
         });
 
         if (cancelled) return;
-
         setSubmissions(result.data);
         setTotal(result.total);
         setCounts(result.counts);
@@ -462,7 +453,7 @@ export function SubmissionsClient() {
                         : "bg-muted text-muted-foreground",
                     )}
                   >
-                    {counts[filter.value]}
+                    {counts[filter.value] ?? 0}
                   </span>
                   {filter.label}
                 </button>
@@ -471,7 +462,7 @@ export function SubmissionsClient() {
           </div>
 
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="z-5 absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               aria-label="Search submissions"
               value={query}
@@ -480,7 +471,7 @@ export function SubmissionsClient() {
                 setPage(1);
               }}
               placeholder="Search name, car or reference"
-              className="bg-card pl-9"
+              className="bg-card pl-9 truncate"
             />
           </div>
         </div>

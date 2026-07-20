@@ -163,12 +163,14 @@ export type Database = {
       }
       car_submission_vehicles: {
         Row: {
+          additional_photo_link: string | null
           archived_at: string | null
           body_style: string | null
           car_id: string
           chassis_no: string | null
           coachbuilder: string | null
           created_at: string
+          deleted_at: string | null
           engine_no: string | null
           exterior_colour: string | null
           id: string
@@ -190,12 +192,14 @@ export type Database = {
           year_of_manufacture: string
         }
         Insert: {
+          additional_photo_link?: string | null
           archived_at?: string | null
           body_style?: string | null
           car_id: string
           chassis_no?: string | null
           coachbuilder?: string | null
           created_at?: string
+          deleted_at?: string | null
           engine_no?: string | null
           exterior_colour?: string | null
           id?: string
@@ -217,12 +221,14 @@ export type Database = {
           year_of_manufacture: string
         }
         Update: {
+          additional_photo_link?: string | null
           archived_at?: string | null
           body_style?: string | null
           car_id?: string
           chassis_no?: string | null
           coachbuilder?: string | null
           created_at?: string
+          deleted_at?: string | null
           engine_no?: string | null
           exterior_colour?: string | null
           id?: string
@@ -279,9 +285,9 @@ export type Database = {
           accept_news: boolean | null
           accept_terms: boolean
           access_token: string | null
-          additional_photo_link: string | null
           address: string | null
           created_at: string | null
+          deleted_at: string | null
           email: string
           first_name: string
           form_id: string
@@ -295,9 +301,9 @@ export type Database = {
           accept_news?: boolean | null
           accept_terms?: boolean
           access_token?: string | null
-          additional_photo_link?: string | null
           address?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           email: string
           first_name: string
           form_id: string
@@ -311,9 +317,9 @@ export type Database = {
           accept_news?: boolean | null
           accept_terms?: boolean
           access_token?: string | null
-          additional_photo_link?: string | null
           address?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           email?: string
           first_name?: string
           form_id?: string
@@ -926,21 +932,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      append_my_submission_vehicles: {
+        Args: { p_access_token: string; p_vehicles: Json }
+        Returns: Json
+      }
+      check_active_car_submission: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       gen_ref: { Args: { length: number; prefix: string }; Returns: string }
       get_car_submissions_list: {
         Args: {
+          p_excluded_statuses?: Database["public"]["Enums"]["submission_status"][]
+          p_is_archived?: boolean
           p_page?: number
           p_page_size?: number
-          p_query?: string | null
+          p_query?: string
           p_sort_desc?: boolean
           p_sort_key?: string
-          p_status?: Database["public"]["Enums"]["submission_status"] | null
+          p_status?: Database["public"]["Enums"]["submission_status"]
         }
         Returns: Json
+      }
+      get_my_submission: { Args: { p_access_token: string }; Returns: Json }
+      get_my_submission_edit_vehicle: {
+        Args: { p_access_token: string; p_car_id: string }
+        Returns: Json
+      }
+      refresh_car_submission_deleted_at: {
+        Args: { p_submission_id: string }
+        Returns: undefined
       }
       submit_car_application: {
         Args: { p_submission: Json; p_vehicles: Json }
         Returns: string
+      }
+      update_my_submission_vehicle: {
+        Args: { p_access_token: string; p_car_id: string; p_vehicle: Json }
+        Returns: Json
       }
     }
     Enums: {

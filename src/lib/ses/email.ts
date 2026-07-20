@@ -30,6 +30,7 @@ export type EmailTemplateParams = {
   [EmailTemplate.SubmissionStatus]: {
     recipientName: string;
     accessToken: string;
+    carId: string;
     status: SubmissionEmailStatus;
     note: string;
     vehicle: {
@@ -191,13 +192,23 @@ const EMAIL_TEMPLATES = {
   [EmailTemplate.SubmissionStatus]: {
     file: "submission-status.html",
     subject: ({ status }) => STATUS_CONTENT[status].subject,
-    resolveParams: ({ accessToken, note, recipientName, status, vehicle }) => {
+    resolveParams: ({
+      accessToken = "",
+      carId,
+      note,
+      recipientName,
+      status,
+      vehicle,
+    }) => {
       const content = STATUS_CONTENT[status];
       const submissionUrl =
         status === "not_selected"
           ? createClientUrl("/en/contact/")
           : createClientUrl("/en/my-submission", {
               token: accessToken,
+              ...(status === "requested_info"
+                ? { action: "edit", car: carId }
+                : {}),
             });
 
       return {

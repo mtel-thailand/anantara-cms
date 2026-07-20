@@ -4,6 +4,12 @@ import { Database, Json } from "@/src/types/database.types";
 export type DbSubmissionStatus =
   Database["public"]["Enums"]["submission_status"];
 
+export const DEFAULT_EXCLUDED_SUBMISSION_STATUSES = [
+  "archived",
+  "finalized",
+  "approved",
+] satisfies DbSubmissionStatus[];
+
 export const SUBMISSION_STATUSES = [
   "pending",
   "under_review",
@@ -204,9 +210,9 @@ export type CarSubmissionFormRecord = {
   acceptNews: boolean | null;
   acceptTerms: boolean;
   accessToken: string | null;
-  additionalPhotoLink: string | null;
   address: string | null;
   createdAt: string | null;
+  deletedAt: string | null;
   email: string;
   firstName: string;
   formId: string;

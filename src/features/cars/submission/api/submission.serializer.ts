@@ -204,9 +204,9 @@ function toCarSubmissionFormRecord(
     acceptNews: form.accept_news,
     acceptTerms: form.accept_terms,
     accessToken: form.access_token,
-    additionalPhotoLink: form.additional_photo_link,
     address: form.address,
     createdAt: form.created_at,
+    deletedAt: form.deleted_at,
     email: form.email,
     firstName: form.first_name,
     formId: form.form_id,
@@ -222,6 +222,7 @@ export function toCarSubmissionListItem(
   row: SubmissionVehicleWithFormRow,
 ): SubmissionVehicleWithFormState {
   return {
+    additionalPhotoLink: row.additional_photo_link,
     images: row.images,
     vehicleDocuments: row.vehicle_documents,
     seen: !!row.seen,
@@ -230,6 +231,7 @@ export function toCarSubmissionListItem(
     chassisNo: row.chassis_no,
     coachbuilder: row.coachbuilder,
     createdAt: row.created_at,
+    deletedAt: row.deleted_at,
     engineNo: row.engine_no,
     exteriorColour: row.exterior_colour,
     id: row.id,
@@ -258,11 +260,11 @@ export function toCarSubmission(
 ): CarSubmission {
   const documents = documentsFromJson(vehicle.vehicle_documents);
 
-  if (form.additional_photo_link) {
+  if (vehicle.additional_photo_link) {
     documents.push({
       id: `${vehicle.id}-additional-photo-link`,
       name: "Additional photo link",
-      url: form.additional_photo_link,
+      url: vehicle.additional_photo_link,
       additionalPhotoLink: true,
     });
   }
@@ -320,11 +322,15 @@ export function submissionFormPayload(
 
 export function vehiclePayload(submission: CarSubmission) {
   const images = submission.images.map(storedImage) satisfies Json[];
+  const additionalPhotoLink = submission.documents.find(
+    (document) => document.additionalPhotoLink,
+  );
   const documents = submission.documents
     .filter((document) => !document.additionalPhotoLink)
     .map(storedDocument) satisfies Json[];
 
   return {
+    additional_photo_link: additionalPhotoLink?.url || null,
     body_style: submission.vehicle.bodyStyle || null,
     chassis_no: submission.vehicle.chassisNumber || null,
     coachbuilder: submission.vehicle.coachbuilder || null,

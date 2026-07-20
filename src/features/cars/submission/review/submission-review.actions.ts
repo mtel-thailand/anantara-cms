@@ -307,16 +307,16 @@ async function sendStatusEmail(
   submission: CarSubmission,
   status: SubmissionEmailStatus,
   note: string,
+  accessToken: string,
 ) {
-  if (!form.access_token)
-    throw new Error("Submission access token is missing.");
   const imageUrl = submission.images[0]?.url;
   if (!imageUrl) throw new Error("Submission image is missing.");
 
   await sendEmail(form.email, {
     template: EmailTemplate.SubmissionStatus,
     params: {
-      accessToken: form.access_token,
+      accessToken,
+      carId: submission.carId,
       recipientName: `${form.first_name} ${form.name}`.trim(),
       status,
       note,
@@ -329,6 +329,37 @@ async function sendStatusEmail(
       },
     },
   });
+}
+
+async function ensureAccessToken(
+  supabase: ServerSupabaseClient,
+  form: SubmissionFormRow,
+) {
+  if (form.access_token) return form.access_token;
+
+  const generatedToken = crypto.randomUUID();
+  const { data: updatedForm, error: updateError } = await supabase
+    .from("car_submissions_form")
+    .update({ access_token: generatedToken })
+    .eq("id", form.id)
+    .is("access_token", null)
+    .select("access_token")
+    .maybeSingle();
+  if (updateError) throw updateError;
+  if (updatedForm?.access_token) return updatedForm.access_token;
+
+  // Another request may have populated the token first.
+  const { data: currentForm, error: selectError } = await supabase
+    .from("car_submissions_form")
+    .select("access_token")
+    .eq("id", form.id)
+    .single();
+  if (selectError) throw selectError;
+  if (!currentForm.access_token) {
+    throw new Error("Submission access token could not be created.");
+  }
+
+  return currentForm.access_token;
 }
 
 export async function saveCarSubmissionAction(
@@ -489,6 +520,7 @@ export async function saveCarSubmissionAction(
 
     if (emailAttempted) {
       try {
+        const accessToken = await ensureAccessToken(supabase, saved.form);
         await sendStatusEmail(
           saved.form,
           saved.submission,
@@ -496,6 +528,7 @@ export async function saveCarSubmissionAction(
           values.newInfoMessage.trim() ||
             saved.submission.infoRequests.at(-1)?.message ||
             "",
+          accessToken,
         );
         emailSent = true;
       } catch (emailError) {

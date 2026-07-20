@@ -1,4 +1,7 @@
 {
   "js.preferences.importModuleSpecifier": "non-relative",
-  "ts.preferences.importModuleSpecifier": "non-relative"
+  "ts.preferences.importModuleSpecifier": "non-relative",
+  "files.associations": {
+    "*.html": "html"
+  }
 }
