@@ -6,10 +6,21 @@ import Handlebars from "handlebars";
 
 export enum EmailTemplate {
   SubmissionConfirm = "submission-confirm",
+  SubmissionRecovery = "submission-recovery",
 }
 
 export type EmailTemplateParams = {
   [EmailTemplate.SubmissionConfirm]: {
+    recipientName: string;
+    accessToken: string;
+    vehicles: Array<{
+      name: string;
+      year: string;
+      bodyStyle: string;
+      imageUrl: string;
+    }>;
+  };
+  [EmailTemplate.SubmissionRecovery]: {
     recipientName: string;
     accessToken: string;
     vehicles: Array<{
@@ -31,6 +42,9 @@ type EmailTemplateOptions<Template extends EmailTemplateName> = {
 type EmailTemplateDefinition<Params> = {
   file: string;
   subject: string;
+  title: string;
+  body: string;
+  showRecipientName: boolean;
   resolveParams: (params: Params) => Record<string, unknown>;
 };
 
@@ -61,6 +75,23 @@ const EMAIL_TEMPLATES = {
   [EmailTemplate.SubmissionConfirm]: {
     file: "submission-confirm.html",
     subject: "We've received your Concorso Roma submission",
+    title: "Submission Confirmed",
+    body: "Your registration for the Anantara Concorso Roma has been received.",
+    showRecipientName: true,
+    resolveParams: ({ recipientName, accessToken, vehicles }) => ({
+      recipientName,
+      vehicles,
+      submissionUrl: createClientUrl("/en/my-submission", {
+        token: accessToken,
+      }),
+    }),
+  },
+  [EmailTemplate.SubmissionRecovery]: {
+    file: "submission-confirm.html",
+    subject: "Your Submission Link",
+    title: "Your Submission Link",
+    body: "As requested, here's your personal link to access and track your Anantara Concorso Roma submission.",
+    showRecipientName: false,
     resolveParams: ({ recipientName, accessToken, vehicles }) => ({
       recipientName,
       vehicles,
@@ -87,7 +118,12 @@ export async function renderEmailTemplate<Template extends EmailTemplateName>(
   const templateParams = definition.resolveParams(options.params);
   const render = Handlebars.compile(source, { strict: true });
 
-  return render(templateParams);
+  return render({
+    ...templateParams,
+    title: definition.title,
+    body: definition.body,
+    showRecipientName: definition.showRecipientName,
+  });
 }
 
 export async function sendEmail<Template extends EmailTemplateName>(

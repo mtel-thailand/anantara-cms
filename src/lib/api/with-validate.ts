@@ -43,7 +43,7 @@ export function withValidate<
         logger.warn("VALIDATION", "schema validation failed", {
           method: req.method,
           path: url.pathname,
-          issues: error.issues,
+          issueCount: error.issues.length,
         });
 
         return NextResponse.json(
