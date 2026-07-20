@@ -3,6 +3,9 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  experimental: {
+    proxyClientMaxBodySize: "100mb",
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();
