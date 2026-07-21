@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Submission Confirmed – Anantara Concorso Roma</title>
+    <title>{{title}} – Anantara Concorso Roma</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=EB+Garamond:wght@600&display=swap");
       body,
@@ -105,7 +105,7 @@
                           text-align: center;
                         "
                       >
-                        Submission Confirmed
+                        {{title}}
                       </p>
                     </td>
                   </tr>
@@ -125,9 +125,8 @@
                           text-align: center;
                         "
                       >
-                        Thank you, <strong>{{recipientName}}</strong>. Your
-                        registration for the Anantara Concorso Roma has been
-                        received.
+                        {{#if showRecipientName}}Thank you,
+                        <strong>{{recipientName}}</strong>. {{/if}}{{body}}
                       </p>
                     </td>
                   </tr>
