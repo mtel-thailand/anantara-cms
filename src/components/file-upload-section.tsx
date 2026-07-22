@@ -143,9 +143,13 @@ export default function FileUploadSection({
   }
 
   return (
-    <section data-review-field="documents" tabIndex={-1}>
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <h3 className="text-xs font-medium text-muted-foreground">
+    <section
+      className="min-w-0 w-full"
+      data-review-field="documents"
+      tabIndex={-1}
+    >
+      <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
+        <h3 className="min-w-0 truncate text-xs font-medium text-muted-foreground">
           {label}
           {required ? (
             <span className="text-destructive" aria-hidden="true">
@@ -181,17 +185,17 @@ export default function FileUploadSection({
       </div>
 
       {remoteFiles.length || files.length ? (
-        <ul className="flex flex-col gap-1.5">
+        <ul className="flex min-w-0 flex-col gap-1.5">
           {remoteFiles.map((file) => (
             <li
               key={file.id}
-              className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm"
+              className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md border bg-card px-3 py-2 text-sm"
             >
               <FileText className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">
                 {file.displayName}
               </span>
-              <div className="ml-auto flex items-center gap-0.5">
+              <div className="ml-auto flex shrink-0 items-center gap-0.5">
                 <Button
                   type="button"
                   variant="ghost"
@@ -238,11 +242,11 @@ export default function FileUploadSection({
           {files.map((file, index) => (
             <li
               key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-              className="flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-sm"
+              className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md border bg-card px-3 py-2 text-sm"
             >
               <FileText className="size-4 shrink-0 text-muted-foreground" />
               <span className="min-w-0 flex-1 truncate">{file.name}</span>
-              <div className="ml-auto flex items-center gap-0.5">
+              <div className="ml-auto flex shrink-0 items-center gap-0.5">
                 <Button
                   type="button"
                   variant="ghost"
@@ -290,7 +294,7 @@ export default function FileUploadSection({
         <p
           aria-invalid={Boolean(displayError) || undefined}
           className={cn(
-            "rounded-md border border-dashed px-3 py-2 text-xs",
+            "min-w-0 break-words rounded-md border border-dashed px-3 py-2 text-xs",
             displayError
               ? "border-destructive text-destructive ring-3 ring-destructive/20"
               : "text-muted-foreground",
@@ -301,7 +305,10 @@ export default function FileUploadSection({
       )}
 
       {displayError ? (
-        <p aria-invalid="true" className="mt-1.5 text-sm text-destructive">
+        <p
+          aria-invalid="true"
+          className="mt-1.5 min-w-0 break-words text-sm text-destructive"
+        >
           {displayError}
         </p>
       ) : null}

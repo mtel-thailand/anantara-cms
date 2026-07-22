@@ -38,7 +38,7 @@ import {
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
 import { cn } from "@/src/lib/utils";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 
 const genericMemo: <T>(component: T) => T = memo;
 
@@ -152,6 +152,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
                     <div
                       className={cn(
                         "inline-flex items-center gap-1 font-medium text-muted-foreground transition-colors",
+                        header.column.getCanSort() ? "hover:text-foreground cursor-pointer" : "text-foreground",
                         {
                           "hover:text-foreground cursor-pointer":
                             header.column.getCanSort(),
@@ -171,13 +172,15 @@ const DraggableTableComponent = <TData extends { id: string }>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                      {{
-                        asc: <ArrowUp className={cn("size-3.5")} />,
-                        desc: <ArrowDown className={cn("size-3.5")} />,
-                      }[header.column.getIsSorted() as string] ?? null}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      {header.column.getCanSort() &&
+                        (header.column.getIsSorted() === "desc" ? (
+                          <ArrowDown className="size-3.5" />
+                        ) : header.column.getIsSorted() === "asc" ? (
+                          <ArrowUp className="size-3.5" />
+                        ) : <ChevronsUpDown className="size-3.5" />)}
                     </div>
                   </th>
                 ))}

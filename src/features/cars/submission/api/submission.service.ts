@@ -38,8 +38,10 @@ export type CarSubmissionListParams = {
     descending: boolean;
   };
   status?: "all" | DbSubmissionStatus;
+  statuses?: DbSubmissionStatus[];
   excludedStatuses?: DbSubmissionStatus[];
-  isArchived?: boolean;
+  hasDeletedAt?: boolean;
+  hasArchivedAt?: boolean;
 };
 
 export type CarSubmissionListResult = {
@@ -205,24 +207,28 @@ export async function getCarSubmissions({
   query,
   sort,
   status = "all",
+  statuses,
   excludedStatuses = DEFAULT_EXCLUDED_SUBMISSION_STATUSES,
-  isArchived = false,
+  hasDeletedAt = false,
+  hasArchivedAt = false,
 }: CarSubmissionListParams): Promise<CarSubmissionListResult> {
   const supabase = createClient();
   const keyword = searchKeyword(query);
-  const effectiveExcludedStatuses =
-    status === "all"
-      ? excludedStatuses
-      : excludedStatuses.filter((excludedStatus) => excludedStatus !== status);
+  const requestedStatuses =
+    statuses ?? (status === "all" ? [] : [status]);
+  const effectiveExcludedStatuses = excludedStatuses.filter(
+    (excludedStatus) => !requestedStatuses.includes(excludedStatus),
+  );
   const { data, error } = await supabase.rpc("get_car_submissions_list", {
     p_page: page,
     p_page_size: pageSize,
     p_query: keyword ?? undefined,
-    p_status: status === "all" ? undefined : status,
+    p_statuses: requestedStatuses.length ? requestedStatuses : undefined,
     p_sort_key: sort?.key ?? "updated",
     p_sort_desc: sort?.descending ?? true,
     p_excluded_statuses: effectiveExcludedStatuses,
-    p_is_archived: isArchived,
+    p_has_deleted_at: hasDeletedAt,
+    p_has_archived_at: hasArchivedAt,
   });
   const result = rpcResult(unwrap(data, error));
   const vehicles = rpcData(result.data);

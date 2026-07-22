@@ -9,6 +9,15 @@ UI primitives.
 Keep route files thin. Business behavior belongs in `src/features`, shared UI
 belongs in `src/components`, and infrastructure belongs in `src/lib`.
 
+## Agent Rule Compliance
+
+- Before starting any task, read this entire `AGENTS.md` and any more-specific
+  `AGENTS.md` files that apply to the files in scope.
+- Re-check the applicable rules before editing and again before completing the
+  task. Do not rely on remembered instructions from an earlier task or session.
+- When a requested implementation conflicts with these rules, identify the
+  conflict explicitly before proceeding.
+
 ## Commands
 
 Use Yarn because this repository commits `yarn.lock`.
@@ -81,6 +90,16 @@ Rules:
 - Do not put Supabase queries, large forms, or business mutations in `page.tsx`.
 - Keep feature-only components inside the feature. Promote code to
   `src/components` or `src/lib` only after it is genuinely shared.
+- Keep every product-specific artifact under `src/features/<feature>`, including
+  components, hooks, services, schemas, types, helpers, constants, commands,
+  reducers, and feature-owned state. Outside `src/features`, add only route
+  composition or code that is genuinely reused by multiple features.
+- Do not place feature-specific code in shared directories such as
+  `src/components`, `src/hooks`, `src/lib`, `src/stores`, `src/constants`, or
+  `src/types`.
+- Create product-area components under
+  `src/features/<feature>/components`. Do not place feature-specific components
+  in `src/components`, including `src/components/form`.
 - Keep domain types separate from form types when their names or nullability
   differ.
 - Use temporary IDs prefixed with `temp-` for unpublished records.
@@ -177,8 +196,18 @@ API rules:
 ## Forms And Validation
 
 - Use React Hook Form with `zodResolver` and a feature-owned Zod schema.
-- Use controlled adapters from `src/components/form` before creating another
-  field wrapper.
+- Follow the form architecture demonstrated by the agenda feature, especially
+  `src/features/agenda/components/agenda-item-modals.tsx`: keep `useForm` in the
+  feature screen, modal, or form orchestrator; use a feature-owned schema and
+  typed form values; and pass typed form controls to child components.
+- Before using a raw input with React Hook Form, reuse a controlled adapter from
+  `src/components/form`.
+- Shared components that connect UI primitives to React Hook Form must live in
+  `src/components/form` and encapsulate `Controller`. Feature components must
+  consume those adapters instead of declaring their own `Controller` wrappers.
+- Add a new adapter to `src/components/form` only when no existing adapter can
+  cover the UI primitive. Keep product-specific labels, validation, and business
+  behavior in the owning feature.
 - Infer or explicitly type form values; do not use `any` for translators,
   controls, schemas, or submit data.
 - Prefer `mode: "onSubmit"` and `reValidateMode: "onChange"` unless the flow
@@ -290,6 +319,9 @@ The event business timezone is `Europe/Rome`, defined by `DEFAULT_TZ`.
 - Reuse `src/components/ui` primitives and Lucide icons.
 - Reuse `Text`, `Button`, `PageHeader`, `Card`, `Skeleton`, tooltip, and table
   components before adding local equivalents.
+- Search the existing shared and feature components before creating a new
+  component. Extend or compose an existing component when it already covers the
+  required behavior.
 - Feature loading states should resemble the final layout; use a table skeleton
   for agenda loading rather than a lone spinner.
 - Use Sonner toasts for user-visible mutation results.
@@ -307,6 +339,10 @@ The event business timezone is `Europe/Rome`, defined by `DEFAULT_TZ`.
 - Use the `@/` alias for project-root imports.
 - Prefer named domain types and typed payload helpers over inline casts.
 - Use `import type` for type-only imports where practical.
+- Remove unused imports, types, interfaces, functions, components, constants,
+  variables, parameters, and exports as part of every completed change. Do not
+  leave dead code, commented-out implementations, or speculative helpers for
+  possible future use.
 - Keep comments for non-obvious business rules, not line-by-line narration.
 - Do not leave debug `console.log` statements in completed work.
 - Preserve unrelated working-tree changes. This repository may be actively

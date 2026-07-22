@@ -4,8 +4,7 @@ import { PageHeader } from "@/src/components/page-header";
 import { useModal } from "@/src/components/providers/modal-provider";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
-import { Tabs } from "@/src/components/ui/tabs";
-import { Link } from "@/src/i18n/navigation";
+import { Link, useRouter } from "@/src/i18n/navigation";
 import { formatDate } from "@/src/lib/date";
 import type { Locale } from "@/src/types/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,8 +47,8 @@ import {
   saveCarSubmissionAction,
   type SubmissionUploads,
 } from "./submission-review.actions";
-
-type ReviewStep = "basic" | "owner" | "car-form";
+import NavigationButton from "@/src/components/navigation-button";
+import Text from "@/src/components/ui/text";
 
 function documentsForSave(values: SubmissionReviewFormValues) {
   return [
@@ -73,6 +72,7 @@ function pendingImageFiles(
 }
 
 export function SubmissionReviewClient({ carId }: { carId: string }) {
+  const router = useRouter();
   const modal = useModal();
   const { isLoading, execute } = useAsync(true);
   const [submission, setSubmission] = useState<CarSubmission | null>(null);
@@ -102,7 +102,6 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
   const pendingFilesRef = useRef(new Map<string, File>());
   const [editLocale, setEditLocale] = useState<Locale>("en");
   const [showMessageComposer, setShowMessageComposer] = useState(false);
-  const [reviewStep, setReviewStep] = useState<ReviewStep>("basic");
 
   // Mark seen submission
   useEffect(() => {
@@ -133,7 +132,6 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         pendingFilesRef.current.clear();
         setSubmission(null);
         reset(emptyReviewFormValues());
-        setReviewStep("basic");
       }
     })();
   }, [carId, execute, reset]);
@@ -230,9 +228,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       pendingValuesRef.current = null;
       pendingFilesRef.current.clear();
       setShowMessageComposer(false);
-      setReviewStep(
-        savedSubmission.status === "approved" ? reviewStep : "basic",
-      );
+
       modal.close();
 
       toast.success(
@@ -344,13 +340,52 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       }
     });
   };
+
+  const hancleConfirmCancel = () => {
+    if (formState.isDirty) {
+      modal.open({
+        className: "gap-1.5",
+        headerClassName: "border-0 px-4 py-0 pt-4",
+        header: (
+          <Text.FormTitle size="base" className="font-medium">
+            Discard your changes?
+          </Text.FormTitle>
+        ),
+        contentClassName: "px-4 gap-0",
+        content: (
+          <Text size="sm" color="muted-foreground">
+            You’ve edited this submission but haven’t saved yet. If you leave
+            now, these changes will be lost.
+          </Text>
+        ),
+        footer: (
+          <>
+            <Button variant="outline" onClick={() => modal.close()}>
+              Keep edition
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                router.push("/app/cars/submissions");
+                modal.close();
+              }}
+            >
+              Discard changes
+            </Button>
+          </>
+        ),
+      });
+    } else {
+      router.push("/app/cars/submissions");
+    }
+  };
+
   return (
     <>
-      <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link href="/app/cars/submissions">
-          <ChevronLeft className="size-4" /> Back to submissions
-        </Link>
-      </Button>
+      <NavigationButton
+        text="Back to submissions"
+        onClick={hancleConfirmCancel}
+      />
 
       <PageHeader
         title={submissionVehicleName(submission)}
@@ -361,110 +396,67 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         titleAccessory={<SubmissionStatusBadge status={liveStatus} />}
       />
 
-      <Tabs
-        aria-label="Submission review steps"
-        value={reviewStep}
-        setValue={setReviewStep}
-        tabs={[
-          {
-            value: "basic",
-            label: "Basic information",
-          },
-          {
-            value: "owner",
-            label: "Owner registration",
-            disabled: true,
-          },
-          {
-            value: "car-form",
-            label: "Car entry form & certificate",
-            disabled: true,
-          },
-        ]}
-      />
+      <div className="flex flex-col gap-6">
+        <ReviewDecisionCard
+          clearErrors={clearErrors}
+          control={control}
+          draft={draft}
+          errors={formState.errors}
+          liveStatus={liveStatus}
+          setShowMessageComposer={setShowMessageComposer}
+          setValue={setValue}
+          showMessageComposer={showMessageComposer}
+          statusChanged={statusChanged}
+          statusOptions={statusOptions}
+          willSaveStatus={willSaveStatus}
+        />
 
-      <section role="tabpanel" className="pt-6">
-        {reviewStep === "basic" && (
-          <>
-            <div className="flex flex-col gap-6">
-              <ReviewDecisionCard
-                clearErrors={clearErrors}
-                control={control}
-                draft={draft}
-                errors={formState.errors}
-                liveStatus={liveStatus}
-                setShowMessageComposer={setShowMessageComposer}
-                setValue={setValue}
-                showMessageComposer={showMessageComposer}
-                statusChanged={statusChanged}
-                statusOptions={statusOptions}
-                willSaveStatus={willSaveStatus}
-              />
+        <InternalCommentsCard control={control} isArchived={isArchived} />
 
-              <InternalCommentsCard control={control} isArchived={isArchived} />
+        <CarDetailsCard
+          clearErrors={clearErrors}
+          control={control}
+          draft={draft}
+          editLocale={editLocale}
+          errors={formState.errors}
+          isArchived={isArchived}
+          onImageFilesAdded={(files) => {
+            files.forEach(({ file, id }) => {
+              pendingFilesRef.current.set(id, file);
+            });
+          }}
+          onImagesChange={(images) => {
+            const imageIds = new Set(images.map((image) => image.id));
+            pendingFilesRef.current.forEach((_, id) => {
+              if (id.startsWith("temp-image-") && !imageIds.has(id)) {
+                pendingFilesRef.current.delete(id);
+              }
+            });
+            clearErrors("images");
+            setValue("images", images, {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+          }}
+          setEditLocale={setEditLocale}
+          submission={submission}
+        />
+      </div>
 
-              <CarDetailsCard
-                clearErrors={clearErrors}
-                control={control}
-                draft={draft}
-                editLocale={editLocale}
-                errors={formState.errors}
-                isArchived={isArchived}
-                onImageFilesAdded={(files) => {
-                  files.forEach(({ file, id }) => {
-                    pendingFilesRef.current.set(id, file);
-                  });
-                }}
-                onImagesChange={(images) => {
-                  const imageIds = new Set(images.map((image) => image.id));
-                  pendingFilesRef.current.forEach((_, id) => {
-                    if (id.startsWith("temp-image-") && !imageIds.has(id)) {
-                      pendingFilesRef.current.delete(id);
-                    }
-                  });
-                  clearErrors("images");
-                  setValue("images", images, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  });
-                }}
-                setEditLocale={setEditLocale}
-                submission={submission}
-              />
-            </div>
-
-            <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur">
-              <div className="flex flex-wrap items-center justify-end gap-2 py-4">
-                <Button asChild variant="outline">
-                  <Link href="/app/cars/submissions">Cancel</Link>
-                </Button>
-                <Button
-                  disabled={!formState.isDirty}
-                  onClick={handleSubmit(requestSave, handleInvalid)}
-                >
-                  Save changes
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {reviewStep === "owner" ? (
-          <LockedReviewPanel
-            backHref="/app/cars/submissions"
-            title="Owner registration"
-            description={`No owner registration record is available for ${draft.owner.firstName} ${draft.owner.lastName}.`}
-          />
-        ) : null}
-
-        {reviewStep === "car-form" ? (
-          <LockedReviewPanel
-            backHref="/app/cars/submissions"
-            title="Car entry form"
-            description="No car entry form record is available for this submission."
-          />
-        ) : null}
-      </section>
+      <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur">
+        <div className="flex flex-wrap items-center justify-end gap-2 py-4">
+          <Button variant="outline" onClick={hancleConfirmCancel}>
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            disabled={!formState.isDirty}
+            onClick={handleSubmit(requestSave, handleInvalid)}
+          >
+            Save changes
+          </Button>
+        </div>
+      </div>
     </>
   );
 }

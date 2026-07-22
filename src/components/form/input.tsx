@@ -21,18 +21,30 @@ export default function ControlledInput<T extends FieldValues>({
     <Controller
       name={name}
       control={control}
-      render={({ field }) => (
-        <Input
-          {...field}
-          {...props}
-          onChange={(event: ChangeEvent<HTMLInputElement>) => {
-            field.onChange(
-              props.type === "number" ? event.target.valueAsNumber : event,
-            );
-            onValueChange?.();
-          }}
-        />
-      )}
+      render={({ field }) => {
+        const value =
+          typeof field.value === "number" && Number.isNaN(field.value)
+            ? ""
+            : field.value;
+
+        return (
+          <Input
+            {...field}
+            {...props}
+            value={value}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => {
+              field.onChange(
+                props.type === "number"
+                  ? event.target.value === ""
+                    ? ""
+                    : event.target.valueAsNumber
+                  : event,
+              );
+              onValueChange?.();
+            }}
+          />
+        );
+      }}
     />
   );
 }

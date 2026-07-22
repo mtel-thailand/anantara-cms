@@ -145,6 +145,7 @@ export function SubmissionsClient() {
   const [columnSorting, setColumnSorting] = useState<SortingState>([
     { desc: true, id: "updated" },
   ]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -156,7 +157,7 @@ export function SubmissionsClient() {
           query: debounceQuery,
           sort: activeSort(columnSorting),
           status,
-          isArchived: status === "archived",
+          hasArchivedAt: status === "archived",
         });
 
         if (cancelled) return;
@@ -284,7 +285,7 @@ export function SubmissionsClient() {
         id: "status",
         accessorFn: (submission) => SUBMISSION_STATUS_LABELS[submission.status],
         header: "Status",
-        enableSorting: true,
+        enableSorting: false,
         cell: ({ row }) => (
           <SubmissionStatusBadge status={row.original.status} />
         ),
