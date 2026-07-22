@@ -10,7 +10,7 @@ import { withValidate } from "@/src/lib/api/with-validate";
 import { withApiLogger } from "@/src/lib/api/with-api-logger";
 import { logger } from "@/src/lib/logger";
 
-const MAX_FILES = 2;
+const MAX_FILES = 10;
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 const ACCEPTED_FILE_TYPES = [

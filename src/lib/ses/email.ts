@@ -7,6 +7,7 @@ import Handlebars from "handlebars";
 export enum EmailTemplate {
   SubmissionConfirm = "submission-confirm",
   SubmissionStatus = "submission-status",
+  SubmissionRecovery = "submission-recovery",
 }
 
 export type SubmissionEmailStatus =
@@ -41,6 +42,16 @@ export type EmailTemplateParams = {
       imageUrl: string;
     };
   };
+  [EmailTemplate.SubmissionRecovery]: {
+    recipientName: string;
+    accessToken: string;
+    vehicles: Array<{
+      name: string;
+      year: string;
+      bodyStyle: string;
+      imageUrl: string;
+    }>;
+  };
 };
 
 export type EmailTemplateName = keyof EmailTemplateParams;
@@ -53,6 +64,9 @@ type EmailTemplateOptions<Template extends EmailTemplateName> = {
 type EmailTemplateDefinition<Params> = {
   file: string;
   subject: string | ((params: Params) => string);
+  title?: string;
+  body?: string;
+  showRecipientName?: boolean;
   resolveParams: (params: Params) => Record<string, unknown>;
 };
 
@@ -181,6 +195,23 @@ const EMAIL_TEMPLATES = {
   [EmailTemplate.SubmissionConfirm]: {
     file: "submission-confirm.html",
     subject: "We've received your Concorso Roma submission",
+    title: "Submission Confirmed",
+    body: "Your registration for the Anantara Concorso Roma has been received.",
+    showRecipientName: true,
+    resolveParams: ({ recipientName, accessToken, vehicles }) => ({
+      recipientName,
+      vehicles,
+      submissionUrl: createClientUrl("/en/my-submission", {
+        token: accessToken,
+      }),
+    }),
+  },
+  [EmailTemplate.SubmissionRecovery]: {
+    file: "submission-confirm.html",
+    subject: "Your Submission Link",
+    title: "Your Submission Link",
+    body: "As requested, here's your personal link to access and track your Anantara Concorso Roma submission.",
+    showRecipientName: false,
     resolveParams: ({ recipientName, accessToken, vehicles }) => ({
       recipientName,
       vehicles,
@@ -205,11 +236,11 @@ const EMAIL_TEMPLATES = {
         status === "not_selected"
           ? createClientUrl("/en/contact/")
           : createClientUrl("/en/my-submission", {
-              token: accessToken,
-              ...(status === "requested_info"
-                ? { action: "edit", car: carId }
-                : {}),
-            });
+            token: accessToken,
+            ...(status === "requested_info"
+              ? { action: "edit", car: carId }
+              : {}),
+          });
 
       return {
         ...content,
@@ -239,7 +270,12 @@ async function renderEmailTemplate<Template extends EmailTemplateName>(
   const templateParams = definition.resolveParams(options.params);
   const render = Handlebars.compile(source, { strict: true });
 
-  return render(templateParams);
+  return render({
+    title: definition.title,
+    body: definition.body,
+    showRecipientName: definition.showRecipientName,
+    ...templateParams,
+  });
 }
 
 export async function sendEmail<Template extends EmailTemplateName>(
@@ -252,10 +288,10 @@ export async function sendEmail<Template extends EmailTemplateName>(
     const subject =
       typeof subjectDefinition === "function"
         ? (
-            subjectDefinition as (
-              params: EmailTemplateParams[Template],
-            ) => string
-          )(options.params)
+          subjectDefinition as (
+            params: EmailTemplateParams[Template],
+          ) => string
+        )(options.params)
         : subjectDefinition;
     logger.info("SES", `Sending email to: ${receiver}`);
     await sendSesEmail({ receiver, subject, html });
