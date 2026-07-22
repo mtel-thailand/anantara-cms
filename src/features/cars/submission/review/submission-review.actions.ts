@@ -482,9 +482,13 @@ export async function saveCarSubmissionAction(
       await deleteKeys(obsoleteKeys, "removed from submission");
     }
 
+    const reviewNoteChanged =
+      finalStatus === "requested_info" &&
+      JSON.stringify(submission.infoRequests) !==
+        JSON.stringify(current.submission.infoRequests);
     const emailAttempted =
-      finalStatus !== current.submission.status &&
-      EMAIL_STATUSES.has(finalStatus as SubmissionEmailStatus);
+      EMAIL_STATUSES.has(finalStatus as SubmissionEmailStatus) &&
+      (finalStatus !== current.submission.status || reviewNoteChanged);
     let emailSent = false;
 
     if (emailAttempted) {
