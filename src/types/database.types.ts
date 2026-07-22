@@ -179,7 +179,7 @@ export type Database = {
           internal_comment: string | null
           make_of_vehicle: string
           model: string
-          review_note: Json | null
+          review_note: Json
           reviewed_at: string | null
           seen: boolean | null
           sequence: number
@@ -208,7 +208,7 @@ export type Database = {
           internal_comment?: string | null
           make_of_vehicle: string
           model: string
-          review_note?: Json | null
+          review_note?: Json
           reviewed_at?: string | null
           seen?: boolean | null
           sequence: number
@@ -237,7 +237,7 @@ export type Database = {
           internal_comment?: string | null
           make_of_vehicle?: string
           model?: string
-          review_note?: Json | null
+          review_note?: Json
           reviewed_at?: string | null
           seen?: boolean | null
           sequence?: number
