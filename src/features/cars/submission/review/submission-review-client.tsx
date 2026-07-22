@@ -8,7 +8,7 @@ import { Link, useRouter } from "@/src/i18n/navigation";
 import { formatDate } from "@/src/lib/date";
 import type { Locale } from "@/src/types/locale";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Download } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useForm,
@@ -21,6 +21,7 @@ import {
   getCarSubmissionVehicle,
   uploadCarSubmissionFiles,
   markSeenCarSubmissionVehicle,
+  getCarSubmissionClasses,
 } from "@/src/features/cars/submission/api/submission.service";
 import { logger } from "@/src/lib/logger";
 import {
@@ -47,6 +48,7 @@ import { saveCarSubmissionAction } from "./submission-review.actions";
 import type { SubmissionUploads } from "./submission-review.types";
 import NavigationButton from "@/src/components/navigation-button";
 import Text from "@/src/components/ui/text";
+import { downloadSubmissionForm } from "../submission-download";
 
 function documentsForSave(values: SubmissionReviewFormValues) {
   return [
@@ -73,6 +75,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
   const router = useRouter();
   const modal = useModal();
   const { isLoading, execute } = useAsync(true);
+  const { isLoading: isDownloading, execute: executeDownload } = useAsync();
   const [submission, setSubmission] = useState<CarSubmission | null>(null);
 
   const form = useForm<SubmissionReviewFormValues>({
@@ -183,6 +186,22 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       ? "info_received"
       : currentDraft.status;
   const statusChanged = willSaveStatus !== liveStatus;
+
+  async function handleDownloadSubmissionForm() {
+    executeDownload<[string], void>(async (id) => {
+      await Promise.all([
+        getCarSubmissionVehicle(id),
+        getCarSubmissionClasses(),
+      ])
+        .then(([car, classes]) => downloadSubmissionForm(car, classes))
+        .catch((error) => {
+          console.log("error", error);
+          toast.error("Couldn’t prepare the download", {
+            description: "Please try again.",
+          });
+        });
+    }, carId);
+  }
 
   async function commitSave() {
     if (!submission) return;
@@ -392,7 +411,18 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         )} · Last update ${formatDate(submission.lastUpdated)}`}
         viewport={["desktop", "mobile"]}
         titleAccessory={<SubmissionStatusBadge status={liveStatus} />}
-      />
+      >
+        <Button
+          variant="outline"
+          loading={isDownloading}
+          loadingClassName="text-foreground"
+          title="Download form submission"
+          onClick={handleDownloadSubmissionForm}
+        >
+          {!isDownloading && <Download className="size-4" />}
+          Download PDF
+        </Button>
+      </PageHeader>
 
       <div className="flex flex-col gap-6">
         <ReviewDecisionCard
