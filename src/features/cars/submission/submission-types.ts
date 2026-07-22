@@ -233,10 +233,10 @@ export type CarSubmissionListItem = {
   exteriorColour: string | null;
   id: string;
   interiorColour: string | null;
-  internalComment: Json | null;
+  internalComment: string | null;
   makeOfVehicle: string;
   model: string;
-  reviewNote: string | null;
+  reviewNote: Json | null;
   reviewedAt: string | null;
   sequence: number;
   status: SubmissionStatus;

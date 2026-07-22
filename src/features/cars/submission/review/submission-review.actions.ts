@@ -331,37 +331,6 @@ async function sendStatusEmail(
   });
 }
 
-async function ensureAccessToken(
-  supabase: ServerSupabaseClient,
-  form: SubmissionFormRow,
-) {
-  if (form.access_token) return form.access_token;
-
-  const generatedToken = crypto.randomUUID();
-  const { data: updatedForm, error: updateError } = await supabase
-    .from("car_submissions_form")
-    .update({ access_token: generatedToken })
-    .eq("id", form.id)
-    .is("access_token", null)
-    .select("access_token")
-    .maybeSingle();
-  if (updateError) throw updateError;
-  if (updatedForm?.access_token) return updatedForm.access_token;
-
-  // Another request may have populated the token first.
-  const { data: currentForm, error: selectError } = await supabase
-    .from("car_submissions_form")
-    .select("access_token")
-    .eq("id", form.id)
-    .single();
-  if (selectError) throw selectError;
-  if (!currentForm.access_token) {
-    throw new Error("Submission access token could not be created.");
-  }
-
-  return currentForm.access_token;
-}
-
 export async function saveCarSubmissionAction(
   submissionId: string,
   payload: unknown,
@@ -520,7 +489,7 @@ export async function saveCarSubmissionAction(
 
     if (emailAttempted) {
       try {
-        const accessToken = await ensureAccessToken(supabase, saved.form);
+        const accessToken = saved.form.access_token ?? "";
         await sendStatusEmail(
           saved.form,
           saved.submission,

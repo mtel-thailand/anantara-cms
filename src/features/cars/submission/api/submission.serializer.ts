@@ -302,8 +302,8 @@ export function toCarSubmission(
     submissionDate: vehicle.created_at,
     lastUpdated: vehicle.updated_at,
     seen: Boolean(vehicle.seen),
-    internalComments: text(vehicle.review_note),
-    infoRequests: infoRequestsFromJson(vehicle.internal_comment),
+    internalComments: text(vehicle.internal_comment),
+    infoRequests: infoRequestsFromJson(vehicle.review_note),
   };
 }
 
@@ -336,11 +336,11 @@ export function vehiclePayload(submission: CarSubmission) {
     coachbuilder: submission.vehicle.coachbuilder || null,
     engine_no: submission.vehicle.engineNumber || null,
     exterior_colour: submission.vehicle.exteriorColour || null,
-    internal_comment: submission.infoRequests as unknown as Json,
+    internal_comment: submission.internalComments || null,
     images,
     make_of_vehicle: submission.vehicle.make,
     model: submission.vehicle.model,
-    review_note: submission.internalComments || null,
+    review_note: submission.infoRequests as unknown as Json,
     reviewed_at: new Date().toISOString(),
     status: statusToDb[submission.status],
     updated_at: new Date().toISOString(),

@@ -1,22 +1,3 @@
-drop function if exists public.get_car_submissions_list(
-  integer,
-  integer,
-  text,
-  public.submission_status,
-  text,
-  boolean
-);
-
-drop function if exists public.get_car_submissions_list(
-  integer,
-  integer,
-  text,
-  public.submission_status,
-  text,
-  boolean,
-  public.submission_status[]
-);
-
 create or replace function public.get_car_submissions_list(
   p_page integer default 1,
   p_page_size integer default 10,
@@ -71,10 +52,10 @@ begin
       v.id,
       v.images,
       v.interior_colour,
-      v.internal_comment,
+      v.internal_comment::text as internal_comment,
       v.make_of_vehicle,
       v.model,
-      v.review_note,
+      v.review_note::jsonb as review_note,
       v.reviewed_at,
       v.seen,
       v.sequence,

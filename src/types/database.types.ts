@@ -176,10 +176,10 @@ export type Database = {
           id: string
           images: Json
           interior_colour: string | null
-          internal_comment: Json | null
+          internal_comment: string | null
           make_of_vehicle: string
           model: string
-          review_note: string | null
+          review_note: Json | null
           reviewed_at: string | null
           seen: boolean | null
           sequence: number
@@ -205,10 +205,10 @@ export type Database = {
           id?: string
           images?: Json
           interior_colour?: string | null
-          internal_comment?: Json | null
+          internal_comment?: string | null
           make_of_vehicle: string
           model: string
-          review_note?: string | null
+          review_note?: Json | null
           reviewed_at?: string | null
           seen?: boolean | null
           sequence: number
@@ -234,10 +234,10 @@ export type Database = {
           id?: string
           images?: Json
           interior_colour?: string | null
-          internal_comment?: Json | null
+          internal_comment?: string | null
           make_of_vehicle?: string
           model?: string
-          review_note?: string | null
+          review_note?: Json | null
           reviewed_at?: string | null
           seen?: boolean | null
           sequence?: number
