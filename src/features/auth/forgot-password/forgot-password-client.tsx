@@ -9,16 +9,17 @@ import { useState, type ComponentPropsWithoutRef } from "react";
 import Image from "next/image";
 import Text from "@/src/components/ui/text";
 import LogoBlack from "@/public/images/logo-black.png";
-import { ForgotPasswordFormType } from "./types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import ControlledInput from "@/src/components/form/input";
 import useAsync from "@/src/hooks/use-async";
 import { ArrowLeft, Mail } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { getForgotPasswordSchema } from "./forgot.schema";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordFormValues,
+} from "./forgot-password.schema";
 
-const defaultValues: ForgotPasswordFormType = {
+const defaultValues: ForgotPasswordFormValues = {
   email: "",
 };
 
@@ -26,12 +27,10 @@ export function ForgotPasswordClient({
   className,
   ...props
 }: ComponentPropsWithoutRef<"div">) {
-  const t = useTranslations();
-  const forgetPasswordSchema = getForgotPasswordSchema(t);
-
-  const { control, handleSubmit, formState } = useForm<ForgotPasswordFormType>({
+  const { control, handleSubmit, formState } =
+    useForm<ForgotPasswordFormValues>({
     defaultValues,
-    resolver: zodResolver(forgetPasswordSchema),
+    resolver: zodResolver(forgotPasswordSchema),
     shouldUnregister: true,
     mode: "onSubmit",
     reValidateMode: "onChange",
@@ -41,7 +40,7 @@ export function ForgotPasswordClient({
   const [success, setSuccess] = useState(false);
   const { isLoading, execute } = useAsync(false);
 
-  const onSubmit = async (data: ForgotPasswordFormType) => {
+  const onSubmit = async (data: ForgotPasswordFormValues) => {
     return await execute<[string], void>(async (email) => {
       const supabase = createClient();
       setError(null);
@@ -75,7 +74,7 @@ export function ForgotPasswordClient({
       <div className="flex flex-col gap-2 mt-2">
         <Text.FormTitle className="text-center">Forgot Password</Text.FormTitle>
         <Text className="text-center" size="sm" color="muted-foreground">
-          Enter your email address and we'll send you a reset link.
+          Enter your email address and we&apos;ll send you a reset link.
         </Text>
       </div>
       <div className="w-full max-w-md mt-8">
@@ -97,7 +96,7 @@ export function ForgotPasswordClient({
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-2">
-                    <ControlledInput<ForgotPasswordFormType>
+                    <ControlledInput<ForgotPasswordFormValues>
                       id="email"
                       name="email"
                       label="Email"

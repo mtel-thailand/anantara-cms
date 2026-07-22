@@ -1,7 +1,7 @@
 import type {
   CarSubmission,
   SubmissionStatus,
-} from "@/src/features/cars/submission/submission-types";
+} from "@/src/features/cars/submission/submission.types";
 import type { SubmissionReviewFormValues } from "./submission-review.schema";
 
 export function emptyReviewFormValues(): SubmissionReviewFormValues {
@@ -104,4 +104,3 @@ export function submissionFromFormValues(
     infoRequests,
   };
 }
-

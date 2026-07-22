@@ -34,7 +34,7 @@ import {
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { SubmissionImage } from "@/src/features/cars/submission/submission-types";
+import type { SubmissionImage } from "@/src/features/cars/submission/submission.types";
 import { normalizedFileName } from "@/src/lib/string";
 
 const MIN_IMAGES = 4;

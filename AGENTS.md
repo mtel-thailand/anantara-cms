@@ -75,14 +75,19 @@ feature as the fullest current example:
 ```text
 src/features/<feature>/
   <feature>-client.tsx      Main client-side screen/orchestrator
-  <feature>.service.ts      Supabase or remote data access
+  <feature>.actions.ts      Public Next.js server actions
   <feature>.schema.ts       Zod schemas
-  types.ts                  Feature domain and form types
+  <feature>.types.ts        Feature domain and result types
+  <feature>.helpers.ts      Pure feature transformations
   components/               Feature-only UI
   hooks/                    Feature-only hooks
+  api/                      Shared feature data access and serializers
   <feature>.commands.ts     Typed commands when a command bus is useful
   <feature>.reducer.ts      Pure local state transitions
 ```
+
+This is a menu of allowed responsibilities, not a requirement to create every
+file or directory. Add a file only when it has a real current responsibility.
 
 Rules:
 
@@ -103,6 +108,138 @@ Rules:
 - Keep domain types separate from form types when their names or nullability
   differ.
 - Use temporary IDs prefixed with `temp-` for unpublished records.
+
+### Canonical Feature Layout
+
+Use this layout for a feature that has multiple workflows:
+
+```text
+src/features/<feature>/
+  <feature>-client.tsx
+  <feature>.types.ts
+  <feature>.constants.ts
+  components/
+  hooks/
+  api/
+    <feature>.service.ts
+    <feature>.serializer.ts
+  <workflow>/
+    <workflow>-client.tsx
+    <workflow>.actions.ts
+    <workflow>.schema.ts
+    <workflow>.types.ts
+    <workflow>.payload.ts
+    <workflow>.persistence.ts
+    <workflow>.notifications.ts
+    <workflow>.media.ts
+    <workflow>.helpers.ts
+    components/
+    hooks/
+```
+
+Layout rules:
+
+- Keep the primary entry component and primary feature files at the root of
+  their owning feature or workflow.
+- Create a nested workflow folder when an area has its own screen, form,
+  business lifecycle, or server mutation flow. Examples include `list/`,
+  `review/`, and `editor/`.
+- Create `components/`, `hooks/`, `api/`, or `state/` only when the category is
+  meaningful. Do not create a directory for a single trivial forwarding file.
+- Components shared by workflows of the same product feature belong in the
+  nearest common feature `components/` folder. Components used by one workflow
+  stay in that workflow's `components/` folder.
+- A child workflow may import from its parent feature's shared modules. Sibling
+  workflows must not deep-import each other's private modules; move genuinely
+  shared behavior to their nearest common parent.
+- Do not add barrel `index.ts` files merely to shorten imports. Import the
+  owning file directly so dependencies remain visible and tree shaking remains
+  predictable.
+
+### Feature File Responsibilities
+
+- `<feature>-client.tsx`: owns browser state, React hooks, form orchestration,
+  modal orchestration, and composition. It must not contain substantial database
+  queries, payload serialization, or storage implementation.
+- `<feature>.actions.ts`: exposes thin async server-action entry points. An
+  action authenticates, validates, and orchestrates named feature functions; it
+  must not become the home for large media, persistence, or notification
+  implementations.
+- `<feature>.service.ts`: performs Supabase or remote API access for the browser
+  or shared feature data layer. It must not render UI, show toasts, or own React
+  state.
+- `<feature>.persistence.ts`: owns server-only database queries, transactional
+  RPC calls, optimistic concurrency, and canonical reloads used by an action.
+- `<feature>.serializer.ts`: maps database/API records to domain models and maps
+  domain models to persistence payloads. Keep mapping pure and free of network
+  calls.
+- `<feature>.schema.ts`: owns Zod schemas and schema-inferred input/form types.
+  It must not perform network calls or persistence.
+- `<feature>.types.ts`: owns named domain, command, result, and cross-module
+  feature types. Do not duplicate generated database types or move form types
+  out of their schema without a concrete reason.
+- `<feature>.payload.ts`: parses untrusted action/API payloads and applies
+  request-level business validation. It must return typed canonical input.
+- `<feature>.media.ts`: owns feature-specific upload validation, media mapping,
+  reconciliation, and cleanup. Generic S3 infrastructure remains in `src/lib`.
+- `<feature>.notifications.ts`: owns notification eligibility, template
+  parameters, delivery, and feature-level notification logging.
+- `<feature>.helpers.ts`: contains small pure transformations only. Do not use it
+  as a dumping ground for unrelated behavior.
+- `<feature>.constants.ts`: contains static feature configuration only. Values
+  derived from runtime state belong near the code that derives them.
+- `<feature>.commands.ts` and `<feature>.reducer.ts`: contain typed commands and
+  pure deterministic transitions. Keep network, storage, toast, and modal side
+  effects outside reducers.
+
+### Feature Dependency Direction
+
+Keep dependencies moving in this direction:
+
+```text
+route
+  -> feature client
+    -> feature components and hooks
+    -> server actions or client services
+      -> payload / persistence / media / notifications
+        -> serializer and feature types
+          -> shared infrastructure
+```
+
+Dependency rules:
+
+- Lower layers must not import feature clients, React components, route files,
+  or UI state.
+- Feature components may import their feature's schemas, types, constants, and
+  pure helpers plus shared UI/form primitives. They must not directly import S3,
+  SES, server Supabase clients, or persistence modules.
+- Client services may use the browser Supabase client. Persistence modules and
+  server actions use the per-request server client.
+- Modules importing server credentials, `next/headers`, S3 server adapters, or
+  SES must remain server-only and must never be runtime-imported by a client
+  component. Put client-consumed types in a separate type-only module.
+- Avoid circular dependencies. If two modules require each other, move their
+  shared contract or pure transformation into a lower-level types/helper module.
+- Do not create a generic abstraction until at least two real callers have the
+  same stable behavior. Prefer a clearly named feature function over a flexible
+  helper with flags and callbacks.
+- An orchestrator should read as a sequence of business operations. When a block
+  mixes multiple external boundaries or requires its own error/cleanup policy,
+  extract it into a named feature module.
+
+### Naming Rules
+
+- Use lowercase kebab-case filenames.
+- Prefix primary files with their owning feature or workflow, such as
+  `submission-review.actions.ts` rather than `actions.ts`.
+- Name React components by product meaning, such as
+  `review-decision-card.tsx`, not `card.tsx` or `section.tsx`.
+- Name hooks `use-<behavior>.ts` and export a matching `useBehavior` function.
+- Use plural nouns only for modules that genuinely manage collections.
+- Avoid ambiguous filenames such as `utils.ts`, `common.ts`, `misc.ts`,
+  `data.ts`, and `manager.ts`. Name the responsibility explicitly.
+- Use one responsibility suffix consistently. Do not mix persistence queries
+  into `.helpers.ts` or UI composition into `.service.ts`.
 
 ## Server And Client Boundaries
 
@@ -129,7 +266,10 @@ Use the existing clients:
 
 Placement rules:
 
-- Put feature-specific queries in `src/features/<feature>/<feature>.service.ts`.
+- Put workflow-local queries in
+  `src/features/<feature>/<workflow>/<workflow>.service.ts`. Put data access
+  shared by multiple workflows in
+  `src/features/<feature>/api/<feature>.service.ts`.
 - Put only cross-feature Supabase helpers in `src/lib/supabase`.
 - UI components call service functions; they should not assemble substantial
   database queries themselves.

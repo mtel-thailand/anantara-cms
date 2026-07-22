@@ -1,5 +1,5 @@
-import { CamelCasedPropertiesDeep, Override } from "@/src/types/common";
-import { Database } from "@/src/types/database.types";
+import type { CamelCasedPropertiesDeep, Override } from "@/src/types/common";
+import type { Database } from "@/src/types/database.types";
 
 export type ConfigRow = Database["public"]["Tables"]["config"]["Row"];
 

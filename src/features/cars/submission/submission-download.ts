@@ -10,7 +10,7 @@ import {
   type CarSubmission,
   type SubmissionClass,
   type SubmissionDocument,
-} from "./submission-types";
+} from "./submission.types";
 
 const LOGO_URL = "/images/logo-black.png";
 let logoCache: PdfImage | null | undefined;

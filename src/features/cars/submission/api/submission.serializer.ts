@@ -12,7 +12,7 @@ import type {
   SubmissionVehicleRow,
   SubmissionVehicleWithFormRow,
   SubmissionVehicleWithFormState,
-} from "@/src/features/cars/submission/submission-types";
+} from "@/src/features/cars/submission/submission.types";
 
 const statusFromDb: Record<DbSubmissionStatus, SubmissionStatus> = {
   pending: "pending",

@@ -944,13 +944,14 @@ export type Database = {
       get_car_submissions_list: {
         Args: {
           p_excluded_statuses?: Database["public"]["Enums"]["submission_status"][]
-          p_is_archived?: boolean
+          p_has_archived_at?: boolean
+          p_has_deleted_at?: boolean
           p_page?: number
           p_page_size?: number
           p_query?: string
           p_sort_desc?: boolean
           p_sort_key?: string
-          p_status?: Database["public"]["Enums"]["submission_status"]
+          p_statuses?: Database["public"]["Enums"]["submission_status"][]
         }
         Returns: Json
       }
@@ -962,6 +963,16 @@ export type Database = {
       refresh_car_submission_deleted_at: {
         Args: { p_submission_id: string }
         Returns: undefined
+      }
+      save_car_submission_review: {
+        Args: {
+          p_expected_updated_at: string
+          p_form: Json
+          p_form_id: string
+          p_submission_id: string
+          p_vehicle: Json
+        }
+        Returns: Json
       }
       submit_car_application: {
         Args: { p_submission: Json; p_vehicles: Json }

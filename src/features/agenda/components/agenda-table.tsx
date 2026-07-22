@@ -19,7 +19,7 @@ import { AgendaIconGlyph } from "@/src/features/agenda/components/agenda-icon";
 import {
   agendaEventLanguageStatus,
   hasAgendaLanguageGap,
-} from "@/src/features/agenda/helper";
+} from "@/src/features/agenda/agenda.helpers";
 
 type EventTableType = {
   id: string;

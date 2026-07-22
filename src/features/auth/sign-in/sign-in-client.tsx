@@ -8,7 +8,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ComponentPropsWithoutRef } from "react";
 import { useForm } from "react-hook-form";
-import { SignInFormType } from "./types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import ControlledInput from "@/src/components/form/input";
 import Image from "next/image";
@@ -16,10 +15,12 @@ import LogoBlack from "@/public/images/logo-black.png";
 import Text from "@/src/components/ui/text";
 import { Eye, EyeOff } from "lucide-react";
 import useAsync from "@/src/hooks/use-async";
-import { getSignInSchema } from "./sign-in.schema";
-import { useTranslations } from "next-intl";
+import {
+  signInSchema,
+  type SignInFormValues,
+} from "./sign-in.schema";
 
-const defaultValues: SignInFormType = {
+const defaultValues: SignInFormValues = {
   email: "",
   password: "",
 };
@@ -28,9 +29,7 @@ export function SignInClient({
   className,
   ...props
 }: ComponentPropsWithoutRef<"div">) {
-  const t = useTranslations();
-  const signInSchema = getSignInSchema(t);
-  const { control, handleSubmit, formState } = useForm<SignInFormType>({
+  const { control, handleSubmit, formState } = useForm<SignInFormValues>({
     defaultValues,
     resolver: zodResolver(signInSchema),
     shouldUnregister: true,
@@ -43,7 +42,7 @@ export function SignInClient({
   const router = useRouter();
   const { isLoading, execute } = useAsync(false);
 
-  const onSubmit = async (data: SignInFormType) => {
+  const onSubmit = async (data: SignInFormValues) => {
     return await execute<[string, string], void>(
       async (email, password) => {
         const supabase = createClient();
@@ -98,7 +97,7 @@ export function SignInClient({
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-5">
               <div className="grid gap-2">
-                <ControlledInput<SignInFormType>
+                <ControlledInput<SignInFormValues>
                   id="email"
                   name="email"
                   label="Email"
@@ -121,7 +120,7 @@ export function SignInClient({
                     Forgot password?
                   </Link>
                 </div>
-                <ControlledInput<SignInFormType>
+                <ControlledInput<SignInFormValues>
                   id="password"
                   name="password"
                   label="Password"
@@ -142,9 +141,7 @@ export function SignInClient({
                   }}
                 />
               </div>
-              {/* {formState.errors && (
-                <p className="text-sm text-red-500">{error}</p>
-              )} */}
+              {error ? <p className="text-sm text-red-500">{error}</p> : null}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>

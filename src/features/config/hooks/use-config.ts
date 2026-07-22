@@ -1,7 +1,13 @@
-import { getAppConfig } from "@/src/features/config/config.service";
-import { AppConfig, ConfigStateRow } from "@/src/features/config/config.type";
+import {
+  getAppConfig,
+  switchFeatureFlag,
+} from "@/src/features/config/api/config.service";
+import type {
+  AppConfig,
+  ConfigStateRow,
+} from "@/src/features/config/config.types";
+import { logger } from "@/src/lib/logger";
 import { useEffect, useState } from "react";
-import { switchFeatureFlag } from "@/src/features/config/config.service";
 
 export default function useConfig() {
   const [configStore, setConfigStore] = useState<ConfigStateRow | null>(null);
@@ -12,7 +18,9 @@ export default function useConfig() {
         const config = await getAppConfig();
         setConfigStore(config);
       } catch (error) {
-        console.log("get config error", error);
+        logger.error("config", "Failed to load application config", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     })();
   }, []);

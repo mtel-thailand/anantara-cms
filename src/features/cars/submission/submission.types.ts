@@ -1,5 +1,5 @@
-import { CamelCasedPropertiesDeep } from "@/src/types/common";
-import { Database, Json } from "@/src/types/database.types";
+import type { CamelCasedPropertiesDeep } from "@/src/types/common";
+import type { Database, Json } from "@/src/types/database.types";
 
 export type DbSubmissionStatus =
   Database["public"]["Enums"]["submission_status"];

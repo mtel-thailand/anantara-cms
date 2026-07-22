@@ -1,4 +1,4 @@
-import { AgendaEventState } from "@/src/features/agenda/agenda.types";
+import type { AgendaEventState } from "@/src/features/agenda/agenda.types";
 
 export function agendaEventLanguageStatus(event: AgendaEventState) {
   return {

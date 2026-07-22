@@ -29,24 +29,22 @@ import {
   submissionVehicleName,
   type CarSubmission,
   type SubmissionStatus,
-} from "@/src/features/cars/submission/submission-types";
-import { SubmissionStatusBadge } from "../components/submission-ui";
+} from "@/src/features/cars/submission/submission.types";
+import { SubmissionStatusBadge } from "../components/submission-status-badge";
 import {
   emptyReviewFormValues,
   reviewFormValuesFromSubmission,
-} from "./helpers";
+} from "./submission-review.helpers";
 
 import {
   submissionReviewSchema,
   type SubmissionReviewFormValues,
 } from "./submission-review.schema";
-import { CarDetailsCard } from "@/src/features/cars/submission/components/review/car-detail";
-import { InternalCommentsCard } from "@/src/features/cars/submission/components/review/internal-comment";
-import { ReviewDecisionCard } from "@/src/features/cars/submission/components/review/review-decision-card";
-import {
-  saveCarSubmissionAction,
-  type SubmissionUploads,
-} from "./submission-review.actions";
+import { CarDetailsCard } from "@/src/features/cars/submission/review/components/car-details-card";
+import { InternalCommentsCard } from "@/src/features/cars/submission/review/components/internal-comments-card";
+import { ReviewDecisionCard } from "@/src/features/cars/submission/review/components/review-decision-card";
+import { saveCarSubmissionAction } from "./submission-review.actions";
+import type { SubmissionUploads } from "./submission-review.types";
 import NavigationButton from "@/src/components/navigation-button";
 import Text from "@/src/components/ui/text";
 

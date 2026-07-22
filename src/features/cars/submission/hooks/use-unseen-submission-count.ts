@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { logger } from "@/src/lib/logger";
 import { createClient } from "@/src/lib/supabase/client";
-import { DEFAULT_EXCLUDED_SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission-types";
+import { DEFAULT_EXCLUDED_SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission.types";
 
 const SUBMISSION_VEHICLES_TABLE = "car_submission_vehicles";
 

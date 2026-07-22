@@ -16,7 +16,7 @@ import type {
   SortingState,
 } from "@tanstack/react-table";
 
-import { SubmissionStatusBadge } from "../components/submission-ui";
+import { SubmissionStatusBadge } from "../components/submission-status-badge";
 import { useModal } from "@/src/components/providers/modal-provider";
 import { PageHeader } from "@/src/components/page-header";
 import { formatDate } from "@/src/lib/date";
@@ -30,18 +30,18 @@ import {
 } from "@/src/features/cars/submission/api/submission.service";
 import type { CarSubmissionListSortKey } from "@/src/features/cars/submission/api/submission.service";
 import { logger } from "@/src/lib/logger";
-import { SubmissionsTableSkeleton } from "./submissions-table-skeleton";
-import { SUBMISSION_STATUS_LABELS } from "@/src/features/cars/submission/submission-types";
-import { isSubmissionVehicleImage } from "@/src/features/cars/submission/submission-types";
+import { SubmissionsTableSkeleton } from "./components/submission-list-skeleton";
+import { SUBMISSION_STATUS_LABELS } from "@/src/features/cars/submission/submission.types";
+import { isSubmissionVehicleImage } from "@/src/features/cars/submission/submission.types";
 import type {
   DbSubmissionStatus,
   SubmissionVehicleImage,
   SubmissionVehicleWithFormState,
-} from "@/src/features/cars/submission/submission-types";
+} from "@/src/features/cars/submission/submission.types";
 import Image from "next/image";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { Pagination } from "@/src/components/ui/pagination";
-import useConfig from "@/src/features/config/hooks/useConfig";
+import useConfig from "@/src/features/config/hooks/use-config";
 import { downloadSubmissionForm } from "@/src/features/cars/submission/submission-download";
 
 const PAGE_SIZE = 10;

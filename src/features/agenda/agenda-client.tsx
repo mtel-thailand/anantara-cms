@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { sortAgendas } from "./agenda.reducer";
 
 import { logger } from "@/src/lib/logger";
-import { hasAgendaLanguageGap } from "@/src/features/agenda/helper";
+import { hasAgendaLanguageGap } from "@/src/features/agenda/agenda.helpers";
 import useAgendaCommands from "@/src/features/agenda/hooks/use-agenda-commands";
 
 const AGENDA_STORAGE_KEY = "agenda";

@@ -14,8 +14,8 @@ import { CarImageManager } from "./car-image-manager";
 import {
   submissionVehicleName,
   type CarSubmission,
-} from "@/src/features/cars/submission/submission-types";
-import type { SubmissionReviewFormValues } from "../../review/submission-review.schema";
+} from "@/src/features/cars/submission/submission.types";
+import type { SubmissionReviewFormValues } from "../submission-review.schema";
 
 function FieldDivider() {
   return <div className="h-px bg-border" />;

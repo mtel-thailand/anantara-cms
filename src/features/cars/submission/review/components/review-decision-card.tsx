@@ -6,12 +6,12 @@ import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
 import { Textarea } from "@/src/components/ui/textarea";
-import { SubmissionStatusBadge } from "@/src/features/cars/submission/components/submission-ui";
-import { SubmissionReviewFormValues } from "@/src/features/cars/submission/review/submission-review.schema";
+import { SubmissionStatusBadge } from "@/src/features/cars/submission/components/submission-status-badge";
+import type { SubmissionReviewFormValues } from "@/src/features/cars/submission/review/submission-review.schema";
 import {
   SUBMISSION_STATUS_LABELS,
   type SubmissionStatus,
-} from "@/src/features/cars/submission/submission-types";
+} from "@/src/features/cars/submission/submission.types";
 import { formatDate } from "@/src/lib/date";
 import { Plus } from "lucide-react";
 import type {

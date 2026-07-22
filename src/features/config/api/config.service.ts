@@ -1,6 +1,6 @@
 import { createClient } from "@/src/lib/supabase/client";
 import { unwrap } from "@/src/lib/supabase/unwrap";
-import { AppConfig, ConfigRow, ConfigStateRow } from "./config.type";
+import type { AppConfig, ConfigRow, ConfigStateRow } from "../config.types";
 import type { Json } from "@/src/types/database.types";
 
 function toConfigStateRow(row: ConfigRow): ConfigStateRow {

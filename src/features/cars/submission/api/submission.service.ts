@@ -1,13 +1,13 @@
 import { createClient } from "@/src/lib/supabase/client";
 import { unwrap } from "@/src/lib/supabase/unwrap";
-import { DEFAULT_EXCLUDED_SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission-types";
+import { DEFAULT_EXCLUDED_SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission.types";
 import type {
   CarSubmission,
   DbSubmissionStatus,
   SubmissionClass,
   SubmissionVehicleWithFormRow,
   SubmissionVehicleWithFormState,
-} from "@/src/features/cars/submission/submission-types";
+} from "@/src/features/cars/submission/submission.types";
 import {
   toCarSubmission,
   toCarSubmissionListItem,

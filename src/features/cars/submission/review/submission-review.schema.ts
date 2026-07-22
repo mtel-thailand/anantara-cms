@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission-types";
+import { SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission.types";
 import { normalizedFileName } from "@/src/lib/string";
 
 const optionalString = z.string();
