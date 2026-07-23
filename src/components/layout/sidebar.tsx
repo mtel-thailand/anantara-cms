@@ -134,14 +134,13 @@ function NavItemButton({
 
   if (item.action === "logout") {
     return (
-      <Button
-        type="button"
+      <div
         onClick={handleOpenLogoutModal}
         className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100 hover:text-neutral-950"
       >
         <Icon className="size-4 shrink-0" />
         <span className="truncate">{t(item.titleKey)}</span>
-      </Button>
+      </div>
     );
   }
 

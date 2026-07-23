@@ -36,6 +36,7 @@ export function emptyReviewFormValues(): SubmissionReviewFormValues {
     internalComments: "",
     infoRequests: [],
     newInfoMessage: "",
+    newInfoMessageRequired: false,
   };
 }
 
@@ -69,6 +70,7 @@ export function reviewFormValuesFromSubmission(
     internalComments: draft.internalComments,
     infoRequests: draft.infoRequests,
     newInfoMessage: "",
+    newInfoMessageRequired: submission.status === "requested_info",
   };
 }
 

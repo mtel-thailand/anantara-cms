@@ -98,6 +98,7 @@ export const submissionReviewSchema = z
       }),
     ),
     newInfoMessage: optionalString,
+    newInfoMessageRequired: z.boolean(),
   })
   .superRefine((data, context) => {
     const documentNames = new Set(
@@ -147,7 +148,7 @@ export const submissionReviewSchema = z
 
     if (
       data.status === "requested_info" &&
-      !data.infoRequests.length &&
+      data.newInfoMessageRequired &&
       !data.newInfoMessage.trim()
     ) {
       context.addIssue({

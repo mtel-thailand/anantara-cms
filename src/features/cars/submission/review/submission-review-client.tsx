@@ -102,7 +102,6 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
   const pendingValuesRef = useRef<SubmissionReviewFormValues | null>(null);
   const pendingFilesRef = useRef(new Map<string, File>());
   const [editLocale, setEditLocale] = useState<Locale>("en");
-  const [showMessageComposer, setShowMessageComposer] = useState(false);
 
   // Mark seen submission
   useEffect(() => {
@@ -250,7 +249,6 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       reset(reviewFormValuesFromSubmission(savedSubmission));
       pendingValuesRef.current = null;
       pendingFilesRef.current.clear();
-      setShowMessageComposer(false);
 
       modal.close();
 
@@ -437,9 +435,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
           draft={draft}
           errors={formState.errors}
           liveStatus={liveStatus}
-          setShowMessageComposer={setShowMessageComposer}
           setValue={setValue}
-          showMessageComposer={showMessageComposer}
           statusChanged={statusChanged}
           statusOptions={statusOptions}
           willSaveStatus={willSaveStatus}

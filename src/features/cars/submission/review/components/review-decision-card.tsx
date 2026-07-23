@@ -33,22 +33,21 @@ export function ReviewDecisionCard({
   draft,
   errors,
   liveStatus,
-  setShowMessageComposer,
   setValue,
-  showMessageComposer,
   statusChanged,
   statusOptions,
   willSaveStatus,
 }: ReviewFormControlProps & {
   draft: SubmissionReviewFormValues;
   liveStatus: SubmissionStatus;
-  setShowMessageComposer: (show: boolean) => void;
   setValue: UseFormSetValue<SubmissionReviewFormValues>;
-  showMessageComposer: boolean;
   statusChanged: boolean;
   statusOptions: Array<{ label: string; value: string }>;
   willSaveStatus: SubmissionStatus;
 }) {
+  const shouldShowMessageComposer =
+    liveStatus !== "info_received" || draft.newInfoMessageRequired;
+
   return (
     <Card className="flex flex-col gap-4 p-5 shadow-none">
       <div className="flex flex-col gap-0.5">
@@ -80,7 +79,15 @@ export function ReviewDecisionCard({
                     shouldDirty: true,
                     shouldValidate: false,
                   });
-                  setShowMessageComposer(false);
+                  setValue("newInfoMessageRequired", false, {
+                    shouldDirty: false,
+                    shouldValidate: false,
+                  });
+                } else if (liveStatus !== "info_received") {
+                  setValue("newInfoMessageRequired", true, {
+                    shouldDirty: false,
+                    shouldValidate: false,
+                  });
                 }
               }}
             />
@@ -126,13 +133,17 @@ export function ReviewDecisionCard({
               </div>
             ))}
 
-            {!draft.infoRequests.length || showMessageComposer ? (
+            {shouldShowMessageComposer ? (
               <ControlledTextarea<SubmissionReviewFormValues>
                 control={control}
                 name="newInfoMessage"
+                rules={{
+                  required: true
+                }}
                 label={draft.infoRequests.length ? "New message" : undefined}
                 data-review-field="infoRequest"
                 aria-invalid={Boolean(errors.newInfoMessage)}
+                required
                 error={{
                   hasError: Boolean(errors.newInfoMessage),
                   message: errors.newInfoMessage?.message,
@@ -148,7 +159,12 @@ export function ReviewDecisionCard({
                 variant="outline"
                 size="sm"
                 className="w-fit"
-                onClick={() => setShowMessageComposer(true)}
+                onClick={() => {
+                  setValue("newInfoMessageRequired", true, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                }}
               >
                 <Plus className="size-4" /> Request more info
               </Button>
