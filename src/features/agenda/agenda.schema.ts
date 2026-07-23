@@ -1,31 +1,39 @@
 "use client";
 
-import { Translator } from "@/src/types/translation";
 import z from "zod";
 
-function getAgendaSchema(t: Translator) {
-  const message = t("main.main");
+function getAgendaSchema() {
   const addAgendaItemSchema = z
     .object({
-      name: z.string(),
+      name: z.string().trim().min(1, "Enter a title in English."),
       nameIt: z.string(),
-      startedAt: z.string(message).nonempty(),
+      startedAt: z.string().min(1, "Set a start time."),
       endedAt: z.string(),
-      appIcon: z.string(message).nonempty(),
-      description: z.string(),
+      appIcon: z.string().min(1, "Select an icon."),
+      description: z.string().trim().min(1, "Enter a location in English."),
       descriptionIt: z.string(),
     })
     .superRefine((value, context) => {
-      if (!value.name.trim() && !value.nameIt.trim()) {
-        for (const path of ["name", "nameIt"] as const) {
-          context.addIssue({ code: "custom", path: [path], message });
-        }
+      const hasItalianContent = Boolean(
+        value.nameIt.trim() || value.descriptionIt.trim(),
+      );
+
+      if (hasItalianContent && !value.nameIt.trim()) {
+        context.addIssue({
+          code: "custom",
+          path: ["nameIt"],
+          message:
+            "Add the Italian title, or clear Italian from every field.",
+        });
       }
 
-      if (!value.description.trim() && !value.descriptionIt.trim()) {
-        for (const path of ["description", "descriptionIt"] as const) {
-          context.addIssue({ code: "custom", path: [path], message });
-        }
+      if (hasItalianContent && !value.descriptionIt.trim()) {
+        context.addIssue({
+          code: "custom",
+          path: ["descriptionIt"],
+          message:
+            "Add the Italian location, or clear Italian from every field.",
+        });
       }
 
       if (

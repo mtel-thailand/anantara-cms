@@ -7,8 +7,8 @@ import { Button } from "@/src/components/ui/button";
 import Text from "@/src/components/ui/text";
 import { CalendarPlus, Clock, Save, TriangleAlert, Undo2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getAgendas, saveAgendas } from "./agenda.service";
-import { AgendaState, hasAgendaLanguageGap } from "./types";
+import { getAgendas, saveAgendas } from "./api/agenda.service";
+import { AgendaState } from "./agenda.types";
 import useAsync from "@/src/hooks/use-async";
 import AgendaTable from "./components/agenda-table";
 import AgendaClientSkeleton from "./components/agenda-table-skeleton";
@@ -16,16 +16,17 @@ import { useAgendaActionModals } from "./components/agenda-action-modals";
 import { useAgendaDateModal } from "./components/agenda-date-modals";
 import { toISODate } from "@/src/lib/date";
 import { toast } from "sonner";
-import useAgendaCommands from "./hooks/use-agenda-commands";
 import { sortAgendas } from "./agenda.reducer";
+
+import { logger } from "@/src/lib/logger";
+import { hasAgendaLanguageGap } from "@/src/features/agenda/agenda.helpers";
+import useAgendaCommands from "@/src/features/agenda/hooks/use-agenda-commands";
 
 const AGENDA_STORAGE_KEY = "agenda";
 
 export default function AgendaClient() {
   const [agendas, setAgendas] = useState<AgendaState[]>([]);
-  const [publishedAgendas, setPublishedAgendas] = useState<AgendaState[]>(
-    [],
-  );
+  const [publishedAgendas, setPublishedAgendas] = useState<AgendaState[]>([]);
   const [storageReady, setStorageReady] = useState(false);
   const { isLoading, execute } = useAsync(true);
 
@@ -101,7 +102,7 @@ export default function AgendaClient() {
         setPublishedAgendas(sortedAgenda);
         setStorageReady(true);
       } catch (error: unknown) {
-        console.log("eiei", error);
+        logger.error("Fetch agenda error", String(error));
       }
     })();
   }, [execute]);

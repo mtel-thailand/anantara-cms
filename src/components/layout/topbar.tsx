@@ -13,7 +13,8 @@ const Topbar = () => {
           <button
             type="button"
             onClick={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              // setTheme(resolvedTheme === "dark" ? "light" : "dark")
+              setTheme('light')
             }
           >
             {resolvedTheme}

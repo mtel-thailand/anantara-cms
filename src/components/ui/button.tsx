@@ -51,6 +51,7 @@ export interface ButtonProps
   leftIcon?: LucideIcon;
   rightIcon?: LucideIcon;
   loading?: boolean;
+  loadingClassName?: string;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -65,6 +66,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       rightIcon,
       loading,
       disabled = false,
+      loadingClassName = "text-background",
       ...props
     },
     ref,
@@ -79,7 +81,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           disabled={loading || disabled}
           {...props}
         >
-          {loading && <Loader classname="text-background" />}
+          {loading && <Loader classname={loadingClassName} />}
           {LeftIcon && <LeftIcon data-icon="inline-start" />}
           <Slottable>{children}</Slottable>
           {RightIcon && <RightIcon data-icon="inline-end" />}

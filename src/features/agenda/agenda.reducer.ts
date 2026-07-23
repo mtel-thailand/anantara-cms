@@ -5,7 +5,7 @@ import {
   toISODate,
 } from "@/src/lib/date";
 import { AgendaCommand } from "./agenda.commands";
-import { AgendaEventState, AgendaEventInput, AgendaState } from "./types";
+import { AgendaEventState, AgendaEventInput, AgendaState } from "./agenda.types";
 
 function agendaDate(agenda: AgendaState) {
   return agenda.date ?? agenda.createdAt;

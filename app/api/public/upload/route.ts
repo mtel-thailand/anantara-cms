@@ -70,7 +70,9 @@ async function postRouteHandler(
     })),
   });
 
-  const uploadedFile = await storageAdaptorUploadFile(files, "client");
+  const uploadedFile = await storageAdaptorUploadFile(files, {
+    folder: "client",
+  });
 
   logger.success("FILE", "upload response ready", { uploadedFile });
 

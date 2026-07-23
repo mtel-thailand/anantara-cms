@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  type MouseEvent as ReactMouseEvent,
-} from "react";
+import { useEffect, useRef, type MouseEvent as ReactMouseEvent } from "react";
 import Image from "next/image";
 import AnantaraLogoBlack from "@/public/images/logo-black.png";
 import clsx from "clsx";
@@ -25,11 +21,21 @@ import {
 import useAsync from "@/src/hooks/use-async";
 import { useModal } from "@/src/components/providers/modal-provider";
 import Text from "@/src/components/ui/text";
+import { useUnseenSubmissionCount } from "@/src/features/cars/submission/hooks/use-unseen-submission-count";
 
-function NavChildItem({ child }: { child: NavChild }) {
+function CountBadge({ count }: { count: number }) {
+  return (
+    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-primary px-1 text-[11px] font-semibold tabular-nums text-primary-foreground">
+      {count}
+    </span>
+  );
+}
+
+function NavChildItem({ child, count }: { child: NavChild; count: number }) {
   const t = useTranslations("menu");
   const pathname = usePathname();
-  const isActive = pathname === child.href;
+  const isActive =
+    pathname === child.href || pathname.startsWith(`${child.href}/`);
   const Icon = child.icon;
 
   return (
@@ -39,25 +45,37 @@ function NavChildItem({ child }: { child: NavChild }) {
         className={clsx(
           "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors",
           isActive
-            ? "bg-black text-white"
-            : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950",
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground hover:bg-accent",
         )}
       >
         {Icon ? <Icon className="size-4 shrink-0" /> : null}
         <span className="truncate">{t(child.titleKey)}</span>
+        {count > 0 ? <CountBadge count={count} /> : null}
       </Link>
     </li>
   );
 }
 
-function NavItemButton({ item }: { item: NavItem }) {
+function NavItemButton({
+  item,
+  counts,
+}: {
+  item: NavItem;
+  counts: Record<string, number>;
+}) {
   const t = useTranslations("menu");
   const pathname = usePathname();
   const router = useRouter();
   const Icon = item.icon;
-  const isActive = item.href ? pathname === item.href : false;
+  const isActive = item.href
+    ? pathname === item.href || pathname.startsWith(`${item.href}/`)
+    : false;
   const hasActiveChild = item.children?.some(
-    (child) => child.href === pathname,
+    (child) => child.href === pathname || pathname.startsWith(`${child.href}/`),
+  );
+  const hasChildAlert = item.children?.some(
+    (child) => (counts[child.href] ?? 0) > 0,
   );
   const isExpanded = useSidebarStore(selectIsMenuExpanded(item.titleKey));
   const setMenuExpanded = useSidebarStore(selectSetMenuExpanded);
@@ -157,7 +175,15 @@ function NavItemButton({ item }: { item: NavItem }) {
         )}
       >
         <Icon className="size-4 shrink-0" />
-        <span className="flex-1 truncate">{t(item.titleKey)}</span>
+        <span className="flex flex-1 gap-1 truncate">
+          <span className="truncate">{t(item.titleKey)}</span>
+          {hasChildAlert ? (
+            <span
+              aria-label="Has new submissions"
+              className="size-1.5 rounded-full bg-primary"
+            />
+          ) : null}
+        </span>
         <ChevronDown
           strokeWidth={1.75}
           className={clsx(
@@ -177,7 +203,11 @@ function NavItemButton({ item }: { item: NavItem }) {
         <div className="overflow-hidden flex flex-col ml-4 border-l">
           <ul className="space-y-1 pl-2 pt-1">
             {item.children?.map((child) => (
-              <NavChildItem key={child.href} child={child} />
+              <NavChildItem
+                key={child.href}
+                child={child}
+                count={counts[child.href] ?? 0}
+              />
             ))}
           </ul>
         </div>
@@ -196,6 +226,11 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
 
   const sidebarWidth = useSidebarStore(selectWidth);
   const setSidebarWidth = useSidebarStore(selectSetSidebarWidth);
+  const unseenSubmissionCount = useUnseenSubmissionCount();
+
+  const navCounts: Record<string, number> = {
+    "/app/cars/submissions": unseenSubmissionCount,
+  };
 
   const startResize = (event: ReactMouseEvent<HTMLButtonElement>) => {
     dragStartXRef.current = event.clientX;
@@ -246,7 +281,11 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
         <aside className="w-full flex-1 overflow-y-auto px-3 pb-4">
           <nav className="space-y-1">
             {menu.map((item) => (
-              <NavItemButton key={item.titleKey} item={item} />
+              <NavItemButton
+                key={item.titleKey}
+                item={item}
+                counts={navCounts}
+              />
             ))}
           </nav>
         </aside>

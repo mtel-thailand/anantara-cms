@@ -106,7 +106,7 @@ export async function updateSession(request: NextRequest) {
   // If the user is already signed in, redirect them to the protected area.
   if (user && pathnameWithoutLocale.startsWith("/auth")) {
     const url = request.nextUrl.clone();
-    url.pathname = `/${locale}/app/agenda`;
+    url.pathname = `/${locale}/app`;
     const redirectResponse = NextResponse.redirect(url);
     return redirectResponse;
   }
