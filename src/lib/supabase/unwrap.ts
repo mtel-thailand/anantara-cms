@@ -33,12 +33,12 @@ function getErrorFields(error: unknown) {
 
 export function unwrap<T>(data: T | null, error: unknown): T {
   if (error) {
-    logger.error("SUPABASE", "Query returned an error", getErrorFields(error));
+    logger.warn("SUPABASE", "Query returned an error", getErrorFields(error));
     throw error;
   }
 
   if (data === null) {
-    logger.error("SUPABASE", "Query returned null data");
+    logger.warn("SUPABASE", "Query returned null data");
     throw new Error("Supabase returned null data.");
   }
 

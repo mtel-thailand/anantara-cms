@@ -182,9 +182,10 @@ const SUBMISSION_COUNT_KEYS = [
 function rpcCounts(
   value: unknown,
 ): { all: number } & Partial<Record<DbSubmissionStatus, number>> {
-  const counts: { all: number } & Partial<Record<DbSubmissionStatus, number>> = {
-    all: 0,
-  };
+  const counts: { all: number } & Partial<Record<DbSubmissionStatus, number>> =
+    {
+      all: 0,
+    };
 
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return counts;
@@ -214,8 +215,7 @@ export async function getCarSubmissions({
 }: CarSubmissionListParams): Promise<CarSubmissionListResult> {
   const supabase = createClient();
   const keyword = searchKeyword(query);
-  const requestedStatuses =
-    statuses ?? (status === "all" ? [] : [status]);
+  const requestedStatuses = statuses ?? (status === "all" ? [] : [status]);
   const effectiveExcludedStatuses = excludedStatuses.filter(
     (excludedStatus) => !requestedStatuses.includes(excludedStatus),
   );

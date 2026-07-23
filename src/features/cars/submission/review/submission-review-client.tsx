@@ -107,7 +107,13 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
   // Mark seen submission
   useEffect(() => {
     (async () => {
-      await markSeenCarSubmissionVehicle(carId);
+      try {
+        await markSeenCarSubmissionVehicle(carId);
+      } catch (error) {
+        logger.debug("[MARK-SEEN]", "Mark seen error", {
+          error: String(error),
+        });
+      }
     })();
   }, [carId]);
 
@@ -123,7 +129,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         reset(reviewFormValuesFromSubmission(nextSubmission));
         initialSubmissionRef.current = nextSubmission;
       } catch (fetchError) {
-        logger.error("CAR-SUBMISSIONS", "Failed to fetch submission", {
+        logger.debug("CAR-SUBMISSIONS", "Failed to fetch submission", {
           carId,
           error:
             fetchError instanceof Error
