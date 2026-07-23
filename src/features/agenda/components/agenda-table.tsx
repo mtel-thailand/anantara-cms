@@ -10,7 +10,7 @@ import { cn } from "@/src/lib/utils";
 import { useModal } from "@/src/components/providers/modal-provider";
 import { ColumnDef } from "@tanstack/react-table";
 import { Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { memo, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { AgendaEventState, AgendaState } from "@/src/features/agenda/agenda.types";
@@ -20,6 +20,7 @@ import {
   agendaEventLanguageStatus,
   hasAgendaLanguageGap,
 } from "@/src/features/agenda/agenda.helpers";
+import type { Locale } from "@/src/types/locale";
 
 type EventTableType = {
   id: string;
@@ -57,7 +58,9 @@ const AgendaTable = memo(function AgendaTable({
   onEditDate: (agenda: AgendaState) => void;
 }) {
   const modal = useModal();
-  const currentLocale = useLocale();
+  const currentLocale = useLocale() as Locale;
+  const t = useTranslations("agenda.table");
+  const commonT = useTranslations("common");
   const openAgendaItemModal = useAgendaItemModal(agenda.id);
 
   const sortedEvents = useMemo(() => {
@@ -117,20 +120,21 @@ const AgendaTable = memo(function AgendaTable({
       modal.open({
         header: (
           <Text.FormTitle size="base" className="font-medium">
-            Remove {localizedValue(event.name, event.nameIt)}?
+            {t("removeItemTitle", {
+              title: localizedValue(event.name, event.nameIt),
+            })}
           </Text.FormTitle>
         ),
         contentClassName: "px-4",
         content: (
           <Text size="sm" color="muted-foreground">
-            This item will be marked for removal. You can restore it before
-            publishing.
+            {t("removeItemDescription")}
           </Text>
         ),
         footer: (
           <>
             <Button variant="outline" onClick={closeModal}>
-              Cancel
+              {commonT("cancel")}
             </Button>
             <Button
               onClick={() => {
@@ -139,24 +143,24 @@ const AgendaTable = memo(function AgendaTable({
                   agendaId: agenda.id,
                   eventId: event.id,
                 });
-                toast.success("Agenda item marked for removal");
+                toast.success(t("itemMarkedForRemoval"));
                 closeModal();
               }}
             >
-              Remove
+              {commonT("remove")}
             </Button>
           </>
         ),
       });
     },
-    [agenda.id, closeModal, modal],
+    [agenda.id, closeModal, commonT, modal, t],
   );
 
   const columns = useMemo<ColumnDef<EventTableType, unknown>[]>(
     () => [
       {
         accessorKey: "time",
-        header: "Time",
+        header: t("time"),
         cell: ({ row }) => (
           <span className="whitespace-nowrap tabular-nums text-muted-foreground">
             {row.original.time}
@@ -165,7 +169,7 @@ const AgendaTable = memo(function AgendaTable({
       },
       {
         accessorKey: "icon",
-        header: "Icon",
+        header: t("icon"),
         cell: ({ row }) =>
           isAgendaIcon(row.original.icon) ? (
             <AgendaIconGlyph
@@ -178,7 +182,7 @@ const AgendaTable = memo(function AgendaTable({
       },
       {
         accessorKey: "title",
-        header: "Title",
+        header: t("title"),
         cell: ({ row }) => (
           <div className="flex flex-wrap items-center gap-2">
             <span
@@ -194,7 +198,7 @@ const AgendaTable = memo(function AgendaTable({
                 variant="outline"
                 className="border-destructive/30 bg-destructive/5 text-destructive"
               >
-                Will remove
+                {t("willRemove")}
               </Badge>
             )}
           </div>
@@ -202,14 +206,14 @@ const AgendaTable = memo(function AgendaTable({
       },
       {
         accessorKey: "location",
-        header: "Location",
+        header: t("location"),
         cell: ({ row }) => (
           <span className="text-muted-foreground">{row.original.location}</span>
         ),
       },
       {
         accessorKey: "languages",
-        header: "Languages",
+        header: t("languages"),
         cell: ({ row }) => (
           <div className="flex gap-1">
             {(["en", "it"] as const).map((locale) => (
@@ -252,10 +256,10 @@ const AgendaTable = memo(function AgendaTable({
                       agendaId: agenda.id,
                       eventId: event.id,
                     });
-                    toast.success("Agenda item restored");
+                    toast.success(t("itemRestored"));
                   }}
                 >
-                  <RotateCcw className="size-3.5" /> Restore
+                  <RotateCcw className="size-3.5" /> {commonT("restore")}
                 </Button>
               </div>
             );
@@ -268,14 +272,14 @@ const AgendaTable = memo(function AgendaTable({
                   variant="outline"
                   className="h-fit border-primary/30 bg-primary/5 text-primary"
                 >
-                  Draft
+                  {t("draft")}
                 </Badge>
               )}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                aria-label={`Edit ${row.original.title}`}
+                aria-label={t("editItem", { title: row.original.title })}
                 onClick={() => openAgendaItemModal(event)}
               >
                 <Pencil className="size-4" />
@@ -285,7 +289,7 @@ const AgendaTable = memo(function AgendaTable({
                 variant="ghost"
                 size="icon-sm"
                 className="text-muted-foreground hover:text-destructive"
-                aria-label={`Remove ${row.original.title}`}
+                aria-label={t("removeItem", { title: row.original.title })}
                 onClick={() => removeItem(event)}
               >
                 <Trash2 className="size-4" />
@@ -295,7 +299,14 @@ const AgendaTable = memo(function AgendaTable({
         },
       },
     ],
-    [agenda.id, agenda.removed, openAgendaItemModal, removeItem],
+    [
+      agenda.id,
+      agenda.removed,
+      commonT,
+      openAgendaItemModal,
+      removeItem,
+      t,
+    ],
   );
 
   const handleReorder = useCallback(() => {}, []);
@@ -313,21 +324,21 @@ const AgendaTable = memo(function AgendaTable({
       headerClassName: "border-b-0 px-4 !pb-0",
       header: (
         <Text.FormTitle size="base" className="font-medium">
-          Remove {formatLongDate(agenda.date)}?
+          {t("removeDateTitle", {
+            date: formatLongDate(agenda.date, currentLocale),
+          })}
         </Text.FormTitle>
       ),
       contentClassName: "px-4",
       content: (
         <Text size="sm" color="muted-foreground">
-          The date and all its agenda items will be marked for removal and
-          disappear from the website when you publish. You can restore it until
-          then.
+          {t("removeDateDescription")}
         </Text>
       ),
       footer: (
         <>
           <Button variant="outline" onClick={closeModal}>
-            Cancel
+            {commonT("cancel")}
           </Button>
           <Button
             onClick={() => {
@@ -335,18 +346,29 @@ const AgendaTable = memo(function AgendaTable({
                 type: "remove-date",
                 id: agenda.id,
               });
-              toast.success("Date marked for removal");
+              toast.success(t("dateMarkedForRemoval"));
               closeModal();
             }}
           >
-            Remove
+            {commonT("remove")}
           </Button>
         </>
       ),
     });
-  }, [agenda.date, agenda.id, closeModal, modal]);
+  }, [
+    agenda.date,
+    agenda.id,
+    closeModal,
+    commonT,
+    currentLocale,
+    modal,
+    t,
+  ]);
 
-  const dateLabel = formatLongDate(toISODate(agenda.date ?? agenda.createdAt));
+  const dateLabel = formatLongDate(
+    toISODate(agenda.date ?? agenda.createdAt),
+    currentLocale,
+  );
 
   return (
     <Card
@@ -366,19 +388,18 @@ const AgendaTable = memo(function AgendaTable({
           </Text.FormTitle>
           {agenda.removed ? (
             <Badge variant="outline" className="text-muted-foreground">
-              Will remove
+              {t("willRemove")}
             </Badge>
           ) : duplicate ? (
             <Badge
               variant="outline"
               className="border-destructive/30 bg-destructive/5 text-destructive"
             >
-              Duplicate date
+              {t("duplicateDate")}
             </Badge>
           ) : (
             <Text size="xs" color="muted-foreground">
-              {agenda.events.length}{" "}
-              {agenda.events.length === 1 ? "item" : "items"}
+              {t("itemCount", { count: agenda.events.length })}
             </Text>
           )}
         </div>
@@ -394,7 +415,7 @@ const AgendaTable = memo(function AgendaTable({
                 })
               }
             >
-              <RotateCcw className="size-3.5" /> Restore date
+              <RotateCcw className="size-3.5" /> {t("restoreDate")}
             </Button>
           ) : (
             <>
@@ -403,12 +424,12 @@ const AgendaTable = memo(function AgendaTable({
                 size="sm"
                 onClick={() => openAgendaItemModal()}
               >
-                <Plus className="size-3.5" /> Add agenda
+                <Plus className="size-3.5" /> {t("addAgenda")}
               </Button>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={`Edit date ${dateLabel}`}
+                aria-label={t("editDate", { date: dateLabel })}
                 onClick={handleEditDate}
               >
                 <Pencil className="size-4" />
@@ -417,7 +438,7 @@ const AgendaTable = memo(function AgendaTable({
                 variant="ghost"
                 size="icon-sm"
                 className="text-muted-foreground hover:text-destructive"
-                aria-label={`Remove ${dateLabel}`}
+                aria-label={t("removeDate", { date: dateLabel })}
                 onClick={handleRemoveDate}
               >
                 <Trash2 className="size-4" />
@@ -434,7 +455,7 @@ const AgendaTable = memo(function AgendaTable({
         getRowClassName={getRowClassName}
         emptyRow={
           <div className="flex h-20 items-center justify-center px-4 text-center text-sm text-muted-foreground">
-            No agenda items yet. Use “Add agenda” to add the first one.
+            {t("empty")}
           </div>
         }
       />

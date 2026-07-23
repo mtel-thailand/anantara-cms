@@ -4,7 +4,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "gen-type": "set -a && . .env.local && set +a && supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" > src/types/database.types.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1070.0",

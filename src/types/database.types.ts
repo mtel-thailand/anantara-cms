@@ -166,7 +166,6 @@ export type Database = {
           additional_photo_link: string | null
           archived_at: string | null
           body_style: string | null
-          car_id: string
           chassis_no: string | null
           coachbuilder: string | null
           created_at: string
@@ -189,13 +188,13 @@ export type Database = {
           vehicle_documents: Json
           vehicle_history_en: string | null
           vehicle_history_it: string | null
+          vehicle_ref: string
           year_of_manufacture: string
         }
         Insert: {
           additional_photo_link?: string | null
           archived_at?: string | null
           body_style?: string | null
-          car_id: string
           chassis_no?: string | null
           coachbuilder?: string | null
           created_at?: string
@@ -218,13 +217,13 @@ export type Database = {
           vehicle_documents?: Json
           vehicle_history_en?: string | null
           vehicle_history_it?: string | null
+          vehicle_ref: string
           year_of_manufacture: string
         }
         Update: {
           additional_photo_link?: string | null
           archived_at?: string | null
           body_style?: string | null
-          car_id?: string
           chassis_no?: string | null
           coachbuilder?: string | null
           created_at?: string
@@ -247,6 +246,7 @@ export type Database = {
           vehicle_documents?: Json
           vehicle_history_en?: string | null
           vehicle_history_it?: string | null
+          vehicle_ref?: string
           year_of_manufacture?: string
         }
         Relationships: [

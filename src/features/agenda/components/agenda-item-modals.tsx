@@ -23,6 +23,7 @@ import {
 } from "@/src/features/agenda/agenda.types";
 import { AgendaIconGlyph } from "@/src/features/agenda/components/agenda-icon";
 import { agendaEventToFormValues } from "@/src/features/agenda/api/agenda.serializer";
+import { useTranslations } from "next-intl";
 
 const EMPTY_VALUES: AgendaEventFormType = {
   name: "",
@@ -65,11 +66,14 @@ function AgendaItemModalContent({
   editing: AgendaEventState | null;
 }) {
   const modal = useModal();
+  const t = useTranslations("agenda.itemModal");
+  const validationT = useTranslations("agenda.validation");
+  const commonT = useTranslations("common");
   const [currentLocale, setCurrentLocale] = useState<Locale>("en");
   const { control, handleSubmit, formState, watch, setValue } =
     useForm<AgendaEventFormType>({
       defaultValues: getDefaultValues(editing),
-      resolver: zodResolver(getAgendaSchema()),
+      resolver: zodResolver(getAgendaSchema(validationT)),
       shouldUnregister: false,
       mode: "onSubmit",
       reValidateMode: "onChange",
@@ -102,8 +106,8 @@ function AgendaItemModalContent({
       });
     }
 
-    toast.success(editing ? "Agenda item updated" : "Agenda item added", {
-      description: "Remember to publish your changes.",
+    toast.success(editing ? t("updated") : t("added"), {
+      description: t("publishReminder"),
     });
     modal.close();
   }
@@ -123,7 +127,7 @@ function AgendaItemModalContent({
     <form onSubmit={handleSubmit(submit, handleInvalid)}>
       <div className="flex flex-col gap-5 overflow-y-auto px-6 pb-5">
         <div className="flex items-center justify-between gap-2">
-          <Text>Editing language</Text>
+          <Text>{t("editingLanguage")}</Text>
           <FormLanguageToggle
             value={currentLocale}
             onValueChange={setCurrentLocale}
@@ -137,7 +141,7 @@ function AgendaItemModalContent({
         <ControlledInput
           control={control}
           name={currentFields.name}
-          label="Title"
+          label={t("title")}
           required={currentLocale === "en"}
           error={{
             hasError: Boolean(formState.errors[currentFields.name]),
@@ -147,7 +151,7 @@ function AgendaItemModalContent({
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-2">
-            <Label>Start time</Label>
+            <Label>{t("startTime")}</Label>
             <ControlledTimePicker
               control={control}
               name="startedAt"
@@ -156,7 +160,7 @@ function AgendaItemModalContent({
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label>End time (optional)</Label>
+            <Label>{t("endTime")}</Label>
             <ControlledTimePicker
               control={control}
               name="endedAt"
@@ -172,12 +176,12 @@ function AgendaItemModalContent({
           </Text>
         ) : (
           <Text size="xs" color="muted-foreground" className="-mt-3">
-            Leave the end time blank for a single moment.
+            {t("endTimeHint")}
           </Text>
         )}
 
         <div className="flex flex-col gap-2">
-          <Label>Icon</Label>
+          <Label>{t("icon")}</Label>
           <div className="grid grid-cols-4 gap-2">
             {AGENDA_ICONS.map((value) => {
               const selected = selectedIcon === value;
@@ -209,7 +213,7 @@ function AgendaItemModalContent({
           </div>
           {formState.errors.appIcon ? (
             <Text size="sm" color="destructive">
-              Select an icon.
+              {validationT("icon")}
             </Text>
           ) : null}
         </div>
@@ -217,7 +221,7 @@ function AgendaItemModalContent({
         <ControlledInput
           control={control}
           name={currentFields.description}
-          label="Location"
+          label={t("location")}
           required={currentLocale === "en"}
           error={{
             hasError: Boolean(formState.errors[currentFields.description]),
@@ -227,9 +231,9 @@ function AgendaItemModalContent({
       </div>
       <div className="flex justify-end gap-2 border-t bg-muted/50 px-6 py-4">
         <Button type="button" variant="outline" onClick={modal.close}>
-          Cancel
+          {commonT("cancel")}
         </Button>
-        <Button type="submit">{editing ? "Save item" : "Add item"}</Button>
+        <Button type="submit">{editing ? t("save") : t("add")}</Button>
       </div>
     </form>
   );
@@ -237,6 +241,7 @@ function AgendaItemModalContent({
 
 export function useAgendaItemModal(agendaId: string) {
   const modal = useModal();
+  const t = useTranslations("agenda.itemModal");
 
   return useCallback(
     (editing: AgendaEventState | null = null) => {
@@ -247,10 +252,10 @@ export function useAgendaItemModal(agendaId: string) {
         header: (
           <div>
             <Text.FormTitle size="xl">
-              {editing ? "Edit agenda item" : "Add agenda item"}
+              {editing ? t("editTitle") : t("addTitle")}
             </Text.FormTitle>
             <Text size="sm" color="muted-foreground">
-              A scheduled entry shown under this date on the public agenda.
+              {t("description")}
             </Text>
           </div>
         ),
@@ -263,6 +268,6 @@ export function useAgendaItemModal(agendaId: string) {
         ),
       });
     },
-    [agendaId, modal],
+    [agendaId, modal, t],
   );
 }

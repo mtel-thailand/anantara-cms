@@ -3,6 +3,7 @@
 import { useModal } from "@/src/components/providers/modal-provider";
 import { Button } from "@/src/components/ui/button";
 import Text from "@/src/components/ui/text";
+import { useTranslations } from "next-intl";
 import { useCallback } from "react";
 
 type PublishModalOptions = {
@@ -13,6 +14,9 @@ type PublishModalOptions = {
 
 export function useAgendaActionModals() {
   const modal = useModal();
+  const t = useTranslations("agenda");
+  const actionT = useTranslations("agenda.actions");
+  const commonT = useTranslations("common");
 
   const openDiscardModal = useCallback(
     (onDiscard: () => void) => {
@@ -20,20 +24,18 @@ export function useAgendaActionModals() {
       modal.open({
         header: (
           <Text.FormTitle size="base" weight="medium">
-            Discard unpublished changes?
+            {actionT("discardTitle")}
           </Text.FormTitle>
         ),
         content: (
           <Text size="sm" color="muted-foreground">
-            This reverts this page to the last published version. Every edit,
-            addition, reorder, and pending removal made since then will be lost.
-            This cannot be undone.
+            {actionT("discardDescription")}
           </Text>
         ),
         footer: (
           <>
             <Button variant="outline" onClick={modal.close}>
-              Keep editing
+              {commonT("keepEditing")}
             </Button>
             <Button
               onClick={() => {
@@ -41,13 +43,13 @@ export function useAgendaActionModals() {
                 modal.close();
               }}
             >
-              Discard changes
+              {t("discardChanges")}
             </Button>
           </>
         ),
       });
     },
-    [modal],
+    [actionT, commonT, modal, t],
   );
 
   const openPublishModal = useCallback(
@@ -57,22 +59,24 @@ export function useAgendaActionModals() {
         header: (
           <Text.FormTitle size="base" weight="medium">
             {incompleteCount > 0
-              ? "Some content is missing a language"
-              : "Publish changes?"}
+              ? actionT("missingLanguageTitle")
+              : actionT("publishTitle")}
           </Text.FormTitle>
         ),
         contentClassName: "px-4",
         content: (
           <Text size="sm" color="muted-foreground">
             {incompleteCount > 0
-              ? `${incompleteCount} item has content in only one language (English or Italian). You can fix the missing translations first, or publish anyway and complete them later.`
-              : "This makes your changes live on the website."}
+              ? actionT("missingLanguageDescription", {
+                  count: incompleteCount,
+                })
+              : actionT("publishDescription")}
           </Text>
         ),
         footer: ({ loading, close, run }) => (
           <>
             <Button variant="outline" disabled={loading} onClick={close}>
-              Keep editing
+              {commonT("keepEditing")}
             </Button>
             {incompleteCount > 0 && (
               <Button
@@ -83,7 +87,7 @@ export function useAgendaActionModals() {
                   close();
                 }}
               >
-                Fix content
+                {actionT("fixContent")}
               </Button>
             )}
             <Button
@@ -94,13 +98,15 @@ export function useAgendaActionModals() {
                 })
               }
             >
-              {incompleteCount ? "Publish anyway" : "Publish changes"}
+              {incompleteCount
+                ? actionT("publishAnyway")
+                : t("publishChanges")}
             </Button>
           </>
         ),
       });
     },
-    [modal],
+    [actionT, commonT, modal, t],
   );
 
   return { openDiscardModal, openPublishModal };

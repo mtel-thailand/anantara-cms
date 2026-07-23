@@ -21,10 +21,12 @@ import { sortAgendas } from "./agenda.reducer";
 import { logger } from "@/src/lib/logger";
 import { hasAgendaLanguageGap } from "@/src/features/agenda/agenda.helpers";
 import useAgendaCommands from "@/src/features/agenda/hooks/use-agenda-commands";
+import { useTranslations } from "next-intl";
 
 const AGENDA_STORAGE_KEY = "agenda";
 
 export default function AgendaClient() {
+  const t = useTranslations("agenda");
   const [agendas, setAgendas] = useState<AgendaState[]>([]);
   const [publishedAgendas, setPublishedAgendas] = useState<AgendaState[]>([]);
   const [storageReady, setStorageReady] = useState(false);
@@ -128,7 +130,7 @@ export default function AgendaClient() {
     openDiscardModal(() => {
       setAgendas(publishedAgendas);
       setPrioritizeGaps(false);
-      toast.success("Changes discarded");
+      toast.success(t("changesDiscarded"));
     });
   }
 
@@ -157,14 +159,14 @@ export default function AgendaClient() {
       setAgendas(savedAgendas);
       setPublishedAgendas(savedAgendas);
       setPrioritizeGaps(false);
-      toast.success("Agenda published", {
-        description: "The schedule is now saved.",
+      toast.success(t("published"), {
+        description: t("publishedDescription"),
       });
       return true;
     } catch (error: unknown) {
       console.error("Failed to publish agenda", error);
-      toast.error("Could not publish agenda", {
-        description: "Your local changes are still available. Try again.",
+      toast.error(t("publishError"), {
+        description: t("publishErrorDescription"),
       });
       return false;
     }
@@ -172,9 +174,8 @@ export default function AgendaClient() {
 
   function handlePublish() {
     if (duplicateDates.size > 0) {
-      toast.error("Two tables share the same date", {
-        description:
-          "Change or remove one of the duplicated dates before publishing.",
+      toast.error(t("duplicateDates"), {
+        description: t("duplicateDatesDescription"),
       });
       return;
     }
@@ -199,8 +200,8 @@ export default function AgendaClient() {
   return (
     <>
       <PageHeader
-        title="Agenda"
-        description="Plan the event schedule. Each date is its own table; agenda items sort automatically by their start time."
+        title={t("title")}
+        description={t("description")}
         viewport={["desktop", "mobile"]}
         titleAccessory={
           agendaDirty ? (
@@ -208,20 +209,20 @@ export default function AgendaClient() {
               variant="outline"
               className="border-primary/30 bg-primary/5 text-primary"
             >
-              Unpublished changes
+              {t("unpublishedChanges")}
             </Badge>
           ) : null
         }
       >
         <Button variant="outline" onClick={handleAddDate}>
-          <CalendarPlus className="size-4" /> Add date
+          <CalendarPlus className="size-4" /> {t("addDate")}
         </Button>
         <Button
           variant="outline"
           onClick={handleDiscardChanges}
           disabled={!agendaDirty}
         >
-          <Undo2 className="size-4" /> Discard changes
+          <Undo2 className="size-4" /> {t("discardChanges")}
         </Button>
         <Button
           variant="outline"
@@ -229,18 +230,18 @@ export default function AgendaClient() {
           disabled={!agendaDirty || isLoading || duplicateDates.size > 0}
         >
           <Save className="size-4" />
-          Publish changes
+          {t("publishChanges")}
         </Button>
       </PageHeader>
       {prioritizeGaps ? (
         <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm">
-          <span>Showing items missing a translation first.</span>
+          <span>{t("translationPriority")}</span>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setPrioritizeGaps(false)}
           >
-            Back to time order
+            {t("backToTimeOrder")}
           </Button>
         </div>
       ) : null}
@@ -259,13 +260,12 @@ export default function AgendaClient() {
           <div className="flex size-12 items-center justify-center rounded-full bg-muted">
             <Clock className="size-5 text-muted-foreground" strokeWidth={1.5} />
           </div>
-          <Text.FormTitle size="lg">No dates yet</Text.FormTitle>
+          <Text.FormTitle size="lg">{t("noDates")}</Text.FormTitle>
           <Text size="sm" color="muted-foreground" className="max-w-md">
-            Add a date to start building the schedule. Each date gets its own
-            table of agenda items.
+            {t("noDatesDescription")}
           </Text>
           <Button onClick={handleAddDate}>
-            <CalendarPlus className="size-4" /> Add date
+            <CalendarPlus className="size-4" /> {t("addDate")}
           </Button>
         </Card>
       ) : !isLoading ? (

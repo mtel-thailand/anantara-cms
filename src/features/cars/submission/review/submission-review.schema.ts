@@ -2,49 +2,53 @@ import { z } from "zod";
 
 import { SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission.types";
 import { normalizedFileName } from "@/src/lib/string";
+import type { Translator } from "@/src/types/translation";
 
 const optionalString = z.string();
 const currentYear = new Date().getFullYear();
-const yearError = "Enter a valid 4-digit year of manufacture.";
 const maxDocumentBytes = 10 * 1024 * 1024;
 const documentTypes = new Set([
   "application/pdf",
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
-const documentFileSchema = z
+function getDocumentFileSchema(t: Translator) {
+  return z
   .custom<File>(
     (value) => typeof File !== "undefined" && value instanceof File,
-    "Choose a valid document.",
+    t("documentInvalid"),
   )
   .refine(
     (file) => documentTypes.has(file.type) || /\.(pdf|docx?)$/i.test(file.name),
-    "Documents must be PDF, DOC, or DOCX files.",
+    t("documentType"),
   )
   .refine(
     (file) => file.size <= maxDocumentBytes,
-    "Documents must be no larger than 10MB each.",
+    t("documentSize"),
   );
+}
 
-export const submissionReviewSchema = z
+export function getSubmissionReviewSchema(t: Translator) {
+  const yearError = t("year");
+  return z
   .object({
     classId: optionalString,
     status: z.enum(SUBMISSION_STATUSES),
     owner: z.object({
-      lastName: z.string().trim().min(1, "Enter the owner's name."),
-      firstName: z.string().trim().min(1, "Enter the owner's first name(s)."),
+      lastName: z.string().trim().min(1, t("ownerName")),
+      firstName: z.string().trim().min(1, t("ownerFirstName")),
       email: z
         .string()
         .trim()
-        .min(1, "Enter the owner's email.")
-        .email("Enter a valid email address."),
+        .min(1, t("ownerEmail"))
+        .email(t("validEmail")),
       mobile: optionalString,
       address: optionalString,
       postcode: optionalString,
     }),
     vehicle: z.object({
-      make: z.string().trim().min(1, "Enter the make / marque."),
-      model: z.string().trim().min(1, "Enter the model."),
+      make: z.string().trim().min(1, t("make")),
+      model: z.string().trim().min(1, t("model")),
       bodyStyle: optionalString,
       coachbuilder: optionalString,
       exteriorColour: optionalString,
@@ -73,8 +77,8 @@ export const submissionReviewSchema = z
         additionalPhotoLink: z.boolean().optional(),
       }),
     ),
-    documentFiles: z.array(documentFileSchema).max(10, {
-      message: "You can upload at most 10 documents.",
+    documentFiles: z.array(getDocumentFileSchema(t)).max(10, {
+      message: t("documentLimit"),
     }),
     images: z
       .array(
@@ -88,7 +92,7 @@ export const submissionReviewSchema = z
           seq: z.number().optional(),
         }),
       )
-      .max(10, "A car can have at most 10 images."),
+      .max(10, t("imageLimit")),
     internalComments: optionalString,
     infoRequests: z.array(
       z.object({
@@ -111,7 +115,7 @@ export const submissionReviewSchema = z
       if (documentNames.has(name)) {
         context.addIssue({
           code: "custom",
-          message: `A file named "${file.name}" has already been added.`,
+          message: t("duplicateDocument", { name: file.name }),
           path: ["documentFiles", index],
         });
         return;
@@ -125,7 +129,7 @@ export const submissionReviewSchema = z
     if (!data.images.length) {
       context.addIssue({
         code: "custom",
-        message: "Add at least one image.",
+        message: t("imageRequired"),
         path: ["images"],
       });
     }
@@ -133,7 +137,7 @@ export const submissionReviewSchema = z
     if (!data.history.en.trim()) {
       context.addIssue({
         code: "custom",
-        message: "Add the vehicle history in English.",
+        message: t("englishHistory"),
         path: ["history", "en"],
       });
     }
@@ -141,7 +145,7 @@ export const submissionReviewSchema = z
     if (!data.documents.length && !data.documentFiles.length) {
       context.addIssue({
         code: "custom",
-        message: "Add at least one supporting document.",
+        message: t("documentRequired"),
         path: ["documentFiles"],
       });
     }
@@ -153,10 +157,13 @@ export const submissionReviewSchema = z
     ) {
       context.addIssue({
         code: "custom",
-        message: "Write a message telling the owner what's needed.",
+        message: t("messageRequired"),
         path: ["newInfoMessage"],
       });
     }
   });
+}
 
-export type SubmissionReviewFormValues = z.infer<typeof submissionReviewSchema>;
+export type SubmissionReviewFormValues = z.infer<
+  ReturnType<typeof getSubmissionReviewSchema>
+>;

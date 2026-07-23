@@ -249,7 +249,7 @@ export function toCarSubmissionListItem(
     vehicleHistoryIt: row.vehicle_history_it,
     yearOfManufacture: row.year_of_manufacture,
     carSubmissionsForm: toCarSubmissionFormRecord(row.car_submissions_form),
-    carId: row.car_id,
+    vehicleRef: row.vehicle_ref,
   };
 }
 
@@ -271,7 +271,7 @@ export function toCarSubmission(
 
   return {
     id: vehicle.id,
-    carId: vehicle.car_id,
+    vehicleRef: vehicle.vehicle_ref,
     formId: form.id,
     classId: car?.category_id ? String(car.category_id) : "",
     year: numberFromText(vehicle.year_of_manufacture),

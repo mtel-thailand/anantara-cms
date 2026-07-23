@@ -5,6 +5,7 @@ import { normalizedFileName } from "@/src/lib/string";
 import { cn } from "@/src/lib/utils";
 import { Download, Eye, FileText, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export type FileUploadSectionProps = {
   accept?: string;
@@ -76,12 +77,12 @@ function openRemoteFile(
 
 export default function FileUploadSection({
   accept = ".pdf,.doc,.docx",
-  buttonText = "Add document",
+  buttonText,
   disabled = false,
-  emptyText = "No documents selected.",
+  emptyText,
   enabledRemove = true,
   error,
-  label = "Supporting documents",
+  label,
   multiple = true,
   name,
   onBlur,
@@ -90,6 +91,10 @@ export default function FileUploadSection({
   required = false,
   value,
 }: FileUploadSectionProps) {
+  const t = useTranslations("common");
+  const resolvedButtonText = buttonText ?? t("addDocument");
+  const resolvedEmptyText = emptyText ?? t("noDocumentsSelected");
+  const resolvedLabel = label ?? t("supportingDocuments");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [internalFiles, setInternalFiles] = useState<File[]>([]);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
@@ -150,7 +155,7 @@ export default function FileUploadSection({
     >
       <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
         <h3 className="min-w-0 truncate text-xs font-medium text-muted-foreground">
-          {label}
+          {resolvedLabel}
           {required ? (
             <span className="text-destructive" aria-hidden="true">
               {" "}
@@ -166,7 +171,7 @@ export default function FileUploadSection({
           disabled={disabled}
           onClick={() => fileInputRef.current?.click()}
         >
-          <Upload className="size-4" /> {buttonText}
+          <Upload className="size-4" /> {resolvedButtonText}
         </Button>
         <input
           ref={fileInputRef}
@@ -300,7 +305,7 @@ export default function FileUploadSection({
               : "text-muted-foreground",
           )}
         >
-          {emptyText}
+          {resolvedEmptyText}
         </p>
       )}
 

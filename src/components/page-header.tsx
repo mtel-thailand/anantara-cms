@@ -1,17 +1,19 @@
 import { cn } from "@/src/lib/utils";
 import { GenericTooltip } from "./ui/tooltip";
 import { Monitor, Smartphone } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 type Viewport = "desktop" | "mobile";
 
 function ViewportBadges({ viewport }: { viewport: Viewport[] }) {
+  const t = useTranslations("pageHeader");
   const ViewPortMeta: Record<
     Viewport,
     { icon: typeof Monitor; label: string }
   > = {
-    desktop: { icon: Monitor, label: "Manages website content" },
-    mobile: { icon: Smartphone, label: "Manages app content" },
+    desktop: { icon: Monitor, label: t("websiteContent") },
+    mobile: { icon: Smartphone, label: t("appContent") },
   };
 
   return (

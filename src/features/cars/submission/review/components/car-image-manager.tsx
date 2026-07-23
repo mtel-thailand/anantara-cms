@@ -32,6 +32,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { SubmissionImage } from "@/src/features/cars/submission/submission.types";
@@ -51,6 +52,7 @@ function ImagePreview({
   name: string;
   initialIndex: number;
 }) {
+  const t = useTranslations("cars.submission.review.imageManager");
   const [previewIndex, setPreviewIndex] = useState(initialIndex);
   const imageCount = images.length;
 
@@ -81,7 +83,7 @@ function ImagePreview({
       <div className="relative flex h-[calc(100vh-7rem)] min-h-[240px] w-full items-center justify-center overflow-auto rounded-lg bg-muted">
         <Image
           src={previewImage.url}
-          alt={`Image ${previewIndex + 1} of ${name}`}
+          alt={t("imageAlt", { index: previewIndex + 1, name })}
           fill
           unoptimized={previewImage.url.startsWith("blob:")}
           sizes="min(1024px, 100vw)"
@@ -89,7 +91,7 @@ function ImagePreview({
         />
         {previewIndex === 0 ? (
           <Badge className="absolute left-2.5 top-2.5 shadow-sm">
-            Main image
+            {t("mainImage")}
           </Badge>
         ) : null}
         {imageCount > 1 ? (
@@ -97,7 +99,7 @@ function ImagePreview({
             <button
               type="button"
               onClick={() => stepPreview(-1)}
-              aria-label="Previous image"
+              aria-label={t("previousImage")}
               className="absolute left-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
             >
               <ChevronLeft className="size-5" />
@@ -105,7 +107,7 @@ function ImagePreview({
             <button
               type="button"
               onClick={() => stepPreview(1)}
-              aria-label="Next image"
+              aria-label={t("nextImage")}
               className="absolute right-2 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80"
             >
               <ChevronRight className="size-5" />
@@ -135,6 +137,8 @@ function GalleryImage({
   onRemove: () => void;
   disabled?: boolean;
 }) {
+  const t = useTranslations("cars.submission.review.imageManager");
+  const commonT = useTranslations("common");
   const {
     attributes,
     listeners,
@@ -155,7 +159,7 @@ function GalleryImage({
     >
       <button
         type="button"
-        aria-label={`Drag to reorder supporting image of ${name}`}
+        aria-label={t("reorderImage", { name })}
         className={cn(
           "absolute inset-0 touch-none",
           disabled
@@ -168,7 +172,7 @@ function GalleryImage({
       >
         <Image
           src={image.url}
-          alt={`Supporting image of ${name}`}
+          alt={t("supportingImageAlt", { name })}
           fill
           unoptimized={image.url.startsWith("blob:")}
           sizes="140px"
@@ -184,7 +188,7 @@ function GalleryImage({
             type="button"
             variant="secondary"
             size="icon-xs"
-            aria-label="Image actions"
+            aria-label={t("imageActions")}
             className="absolute right-1 top-1 opacity-100 shadow-sm sm:opacity-0 sm:group-hover:opacity-100 sm:data-[state=open]:opacity-100"
           >
             <MoreHorizontal className="size-3.5" />
@@ -193,7 +197,7 @@ function GalleryImage({
         options={[
           {
             icon: <Expand className="size-4" />,
-            label: "Preview",
+            label: t("preview"),
             onSelect: () => window.setTimeout(onPreview, 0),
             value: "preview",
           },
@@ -201,14 +205,14 @@ function GalleryImage({
             ? [
                 {
                   icon: <Star className="size-4" />,
-                  label: "Set as main image",
+                  label: t("setAsMain"),
                   onSelect: onSetMain,
                   value: "set-main",
                 },
                 {
                   className: "text-destructive focus:text-destructive",
                   icon: <Trash2 className="size-4" />,
-                  label: "Remove",
+                  label: commonT("remove"),
                   onSelect: onRemove,
                   value: "remove",
                 },
@@ -240,6 +244,7 @@ export function CarImageManager({
   disabled?: boolean;
 }) {
   const modal = useModal();
+  const t = useTranslations("cars.submission.review.imageManager");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -252,7 +257,7 @@ export function CarImageManager({
     modal.open({
       className:
         "max-h-[calc(100vh-2rem)] gap-0 overflow-y-auto bg-popover p-2 sm:max-w-5xl",
-      header: <h2 className="sr-only">{name} image preview</h2>,
+      header: <h2 className="sr-only">{t("previewTitle", { name })}</h2>,
       headerClassName: "sr-only",
       content: (
         <ImagePreview
@@ -292,8 +297,8 @@ export function CarImageManager({
     if (!promoted) return;
 
     onChange([promoted, ...images.filter((image) => image.id !== imageId)]);
-    toast.success("Main image updated", {
-      description: "Save the submission to keep this order.",
+    toast.success(t("mainUpdated"), {
+      description: t("saveOrder"),
     });
   }
 
@@ -304,7 +309,7 @@ export function CarImageManager({
     if (removed?.url.startsWith("blob:")) URL.revokeObjectURL(removed.url);
 
     onChange(images.filter((image) => image.id !== imageId));
-    toast.success("Image removed");
+    toast.success(t("removed"));
   }
 
   function addFiles(files: FileList | null) {
@@ -324,7 +329,7 @@ export function CarImageManager({
 
     for (const file of Array.from(files)) {
       if (imageCount + added.length >= MAX_IMAGES) {
-        toast.error(`A car can have at most ${MAX_IMAGES} images.`);
+        toast.error(t("maximumImages", { count: MAX_IMAGES }));
         break;
       }
 
@@ -354,19 +359,19 @@ export function CarImageManager({
     if (added.length) {
       onFilesAdded?.(addedFiles);
       onChange([...images, ...added]);
-      toast.success(added.length === 1 ? "Image added" : "Images added", {
-        description: `${added.length} preview${added.length === 1 ? "" : "s"} added to the draft.`,
+      toast.success(t("added", { count: added.length }), {
+        description: t("addedDescription", { count: added.length }),
       });
     }
 
     if (rejected) {
-      toast.error(`${rejected} file(s) skipped`, {
-        description: "Use JPG or PNG files up to 10MB each.",
+      toast.error(t("filesSkipped", { count: rejected }), {
+        description: t("fileRequirements"),
       });
     }
 
     if (duplicate) {
-      toast.error(`${duplicate} duplicate file(s) skipped`);
+      toast.error(t("duplicatesSkipped", { count: duplicate }));
     }
   }
 
@@ -375,10 +380,11 @@ export function CarImageManager({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold">
-            Images{required ? <span className="text-destructive"> *</span> : null}
+            {t("images")}
+            {required ? <span className="text-destructive"> *</span> : null}
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            The first image is the cover. Supporting images can be reordered.
+            {t("description")}
           </p>
         </div>
         <Button
@@ -388,7 +394,7 @@ export function CarImageManager({
           disabled={disabled || imageCount >= MAX_IMAGES}
           onClick={() => fileInputRef.current?.click()}
         >
-          <ImagePlus className="size-4" /> Add image
+          <ImagePlus className="size-4" /> {t("addImage")}
         </Button>
         <input
           ref={fileInputRef}
@@ -414,12 +420,12 @@ export function CarImageManager({
           <button
             type="button"
             onClick={() => openPreview(0)}
-            aria-label={`Preview main image of ${name}`}
+            aria-label={t("previewMain", { name })}
             className="absolute inset-0 cursor-zoom-in"
           >
             <Image
               src={mainImage.url}
-              alt={`Main image of ${name}`}
+              alt={t("mainImageAlt", { name })}
               fill
               unoptimized={mainImage.url.startsWith("blob:")}
               sizes={compact ? "576px" : "800px"}
@@ -427,10 +433,10 @@ export function CarImageManager({
             />
           </button>
           <Badge className="pointer-events-none absolute left-2.5 top-2.5 shadow-sm">
-            Main image
+            {t("mainImage")}
           </Badge>
           <span className="pointer-events-none absolute bottom-2.5 right-2.5 inline-flex items-center gap-1 rounded-md bg-black/60 px-2 py-1 text-xs text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
-            <Expand className="size-3.5" /> Preview
+            <Expand className="size-3.5" /> {t("preview")}
           </span>
         </div>
       ) : (
@@ -443,15 +449,14 @@ export function CarImageManager({
               "border-destructive text-destructive ring-2 ring-destructive/20",
           )}
         >
-          No images yet
+          {t("noImages")}
         </div>
       )}
 
       {supportingImages.length ? (
         <>
           <p className="text-xs text-muted-foreground">
-            Drag supporting images to reorder, or use the menu to preview,
-            promote, or remove.
+            {t("reorderDescription")}
           </p>
           <DndContext
             id={`car-images-${name}`}
@@ -499,8 +504,11 @@ export function CarImageManager({
         ) : (
           <TriangleAlert className="size-3.5" />
         )}
-        {imageCount} of {MIN_IMAGES}-{MAX_IMAGES} images. JPG or PNG, maximum
-        10MB each.
+        {t("requirements", {
+          count: imageCount,
+          maximum: MAX_IMAGES,
+          minimum: MIN_IMAGES,
+        })}
       </div>
 
     </div>

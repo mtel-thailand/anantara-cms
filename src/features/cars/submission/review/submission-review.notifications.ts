@@ -35,7 +35,7 @@ async function sendStatusEmail(
     template: EmailTemplate.SubmissionStatus,
     params: {
       accessToken,
-      carId: submission.carId,
+      carId: submission.vehicleRef,
       recipientName: `${form.first_name} ${form.name}`.trim(),
       status,
       note,

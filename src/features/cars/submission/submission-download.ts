@@ -43,7 +43,7 @@ function ownerName(submission: CarSubmission) {
 
 function submissionBaseName(submission: CarSubmission) {
   return safeName(
-    `${submission.carId} ${submissionName(submission) || "car"} — Basic information`,
+    `${submission.vehicleRef} ${submissionName(submission) || "car"} — Basic information`,
   );
 }
 
@@ -198,7 +198,7 @@ async function renderBasicInformation(
     { label: "Chassis no.", value: submission.vehicle.chassisNumber },
     { label: "Engine no.", value: submission.vehicle.engineNumber },
     { label: "Submission date", value: formatDate(submission.submissionDate) },
-    { label: "Car ID", value: submission.carId },
+    { label: "Vehicle reference", value: submission.vehicleRef },
   ]);
   pdf.gap();
 

@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { SubmissionStatus } from "@/src/features/cars/submission/submission.types";
 import { StorageFileSchema } from "@/src/schema/storage-file.schema";
 import {
-  submissionReviewSchema,
+  getSubmissionReviewSchema,
   type SubmissionReviewFormValues,
 } from "./submission-review.schema";
 
@@ -22,9 +22,12 @@ const savePayloadSchema = z
   })
   .strict();
 
-export function parseSubmissionReviewPayload(payload: unknown) {
+export function parseSubmissionReviewPayload(
+  payload: unknown,
+  t: import("@/src/types/translation").Translator,
+) {
   const parsed = savePayloadSchema.parse(payload);
-  const values = submissionReviewSchema.parse(parsed.values);
+  const values = getSubmissionReviewSchema(t).parse(parsed.values);
 
   if (values.status === "archived") {
     throw new Error("Archived submissions cannot be changed from this action.");

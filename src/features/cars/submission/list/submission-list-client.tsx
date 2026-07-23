@@ -43,17 +43,19 @@ import { useDebounce } from "@/src/hooks/use-debounce";
 import { Pagination } from "@/src/components/ui/pagination";
 import useConfig from "@/src/features/config/hooks/use-config";
 import { downloadSubmissionForm } from "@/src/features/cars/submission/submission-download";
+import type { Locale } from "@/src/types/locale";
+import { useLocale, useTranslations } from "next-intl";
 
 const PAGE_SIZE = 10;
 
-const FILTERS: { value: "all" | DbSubmissionStatus; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "under_review", label: "Under review" },
-  { value: "requested_info", label: "Request info" },
-  { value: "info_received", label: "Info received" },
-  { value: "waitlist", label: "Waitlist" },
-  { value: "rejected", label: "Not selected" },
+const FILTERS: Array<"all" | DbSubmissionStatus> = [
+  "all",
+  "pending",
+  "under_review",
+  "requested_info",
+  "info_received",
+  "waitlist",
+  "rejected",
 ];
 
 function yearValue(submission: SubmissionVehicleWithFormState) {
@@ -122,6 +124,9 @@ function activeSort(columnSorting: SortingState) {
 }
 
 export function SubmissionsClient() {
+  const locale = useLocale() as Locale;
+  const t = useTranslations("cars.submission.list");
+  const commonT = useTranslations("common");
   const modal = useModal();
   const { isLoading, execute } = useAsync(true);
   const [submissions, setSubmissions] = useState<
@@ -170,14 +175,14 @@ export function SubmissionsClient() {
         logger.error("CAR-SUBMISSIONS", "Failed to fetch submissions", {
           error: error instanceof Error ? error.message : String(error),
         });
-        toast.error("Could not load car submissions");
+        toast.error(t("loadError"));
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [columnSorting, execute, page, debounceQuery, status]);
+  }, [columnSorting, execute, page, debounceQuery, status, t]);
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -202,7 +207,7 @@ export function SubmissionsClient() {
     () => [
       {
         id: "image",
-        header: "Image",
+        header: t("image"),
         enableSorting: false,
         cell: ({ row }) => {
           const submission = row.original;
@@ -210,7 +215,7 @@ export function SubmissionsClient() {
           return (
             <Link
               href={`/app/cars/submissions/${submission.id}`}
-              aria-label={`Review ${submissionVehicleName(submission)}`}
+              aria-label={`${t("review")} ${submissionVehicleName(submission)}`}
               className="block w-fit rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {RenderImage(submission.images as SubmissionVehicleImage[]) ?? (
@@ -223,7 +228,7 @@ export function SubmissionsClient() {
       {
         id: "owner",
         accessorFn: submissionOwnerName,
-        header: "Owner",
+        header: t("owner"),
         enableSorting: true,
         cell: ({ row }) => (
           <div className="flex items-center gap-2 whitespace-nowrap">
@@ -233,7 +238,7 @@ export function SubmissionsClient() {
             {!isNewSubmission(row.original) ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
                 <span className="size-1.5 rounded-full bg-primary" />
-                New
+                {t("new")}
               </span>
             ) : null}
           </div>
@@ -241,19 +246,19 @@ export function SubmissionsClient() {
       },
       {
         id: "reference",
-        accessorFn: (submission) => submission.carId,
-        header: "Car ID",
+        accessorFn: (submission) => submission.vehicleRef,
+        header: t("vehicleRef"),
         enableSorting: true,
         cell: ({ row }) => (
           <span className="font-mono text-xs text-muted-foreground">
-            {row.original.carId}
+            {row.original.vehicleRef}
           </span>
         ),
       },
       {
         id: "vehicle",
         accessorFn: submissionVehicleName,
-        header: "Vehicle",
+        header: t("vehicle"),
         enableSorting: true,
         cell: ({ row }) => (
           <span className="font-medium">
@@ -264,7 +269,7 @@ export function SubmissionsClient() {
       {
         id: "year",
         accessorFn: yearValue,
-        header: "Year",
+        header: t("year"),
         enableSorting: true,
         cell: ({ row }) => (
           <span className="tabular-nums">{row.original.yearOfManufacture}</span>
@@ -273,18 +278,19 @@ export function SubmissionsClient() {
       {
         id: "submitted",
         accessorFn: (submission) => submission.createdAt,
-        header: "Submitted",
+        header: t("submitted"),
         enableSorting: true,
         cell: ({ row }) => (
           <span className="whitespace-nowrap text-muted-foreground">
-            {formatDate(row.original.createdAt)}
+            {formatDate(row.original.createdAt, locale)}
           </span>
         ),
       },
       {
         id: "status",
-        accessorFn: (submission) => SUBMISSION_STATUS_LABELS[submission.status],
-        header: "Status",
+        accessorFn: (submission) =>
+          SUBMISSION_STATUS_LABELS[submission.status],
+        header: t("status"),
         enableSorting: false,
         cell: ({ row }) => (
           <SubmissionStatusBadge status={row.original.status} />
@@ -293,30 +299,32 @@ export function SubmissionsClient() {
       {
         id: "updated",
         accessorFn: (submission) => submission.updatedAt,
-        header: "Last update",
+        header: t("lastUpdate"),
         enableSorting: true,
         cell: ({ row }) => (
           <span className="whitespace-nowrap text-muted-foreground">
-            {formatDate(row.original.updatedAt)}
+            {formatDate(row.original.updatedAt, locale)}
           </span>
         ),
       },
       {
         id: "actions",
-        header: "Action",
+        header: t("action"),
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <Button asChild variant="outline" size="sm">
               <Link href={`/app/cars/submissions/${row.original.id}`}>
-                <SquarePen className="size-3.5" /> Review
+                <SquarePen className="size-3.5" /> {t("review")}
               </Link>
             </Button>
             <Button
               variant="ghost"
               size="icon-sm"
               className="text-muted-foreground hover:text-foreground"
-              aria-label={`Download PDF for ${submissionVehicleName(row.original)}`}
+              aria-label={t("downloadAria", {
+                vehicle: submissionVehicleName(row.original),
+              })}
               onClick={() =>
                 Promise.all([
                   getCarSubmissionVehicle(row.original.id),
@@ -325,10 +333,9 @@ export function SubmissionsClient() {
                   .then(([car, classes]) =>
                     downloadSubmissionForm(car, classes),
                   )
-                  .catch((error) => {
-                    console.log("error", error);
-                    toast.error("Couldn’t prepare the download", {
-                      description: "Please try again.",
+                  .catch(() => {
+                    toast.error(t("downloadError"), {
+                      description: t("tryAgain"),
                     });
                   })
               }
@@ -339,14 +346,14 @@ export function SubmissionsClient() {
         ),
       },
     ],
-    [],
+    [locale, t],
   );
 
   const handleReorder = useCallback(() => {}, []);
 
   async function handleToggleSubmission(open: boolean) {
     await switchFeatureFlagConfig("carSubmission", open);
-    toast.success(open ? "Car submissions opened" : "Car submissions closed");
+    toast.success(open ? t("openSuccess") : t("closeSuccess"));
     close();
   }
 
@@ -358,19 +365,19 @@ export function SubmissionsClient() {
       header: (
         <div className="pr-8">
           <h2 className="font-heading text-xl">
-            {nextOpen ? "Open car submissions?" : "Close car submissions?"}
+            {nextOpen ? t("openTitle") : t("closeTitle")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {nextOpen
-              ? "The public submission form will become available immediately."
-              : "The public form will be replaced with a submissions-closed message."}
+              ? t("openDescription")
+              : t("closeDescription")}
           </p>
         </div>
       ),
       footer: ({ loading, close, run }) => (
         <>
           <Button variant="outline" onClick={modal.close}>
-            Cancel
+            {commonT("cancel")}
           </Button>
           <Button
             loading={loading}
@@ -379,7 +386,7 @@ export function SubmissionsClient() {
               close();
             }}
           >
-            {nextOpen ? "Open submissions" : "Close submissions"}
+            {nextOpen ? t("openAction") : t("closeAction")}
           </Button>
         </>
       ),
@@ -389,8 +396,8 @@ export function SubmissionsClient() {
   return (
     <>
       <PageHeader
-        title="Car Submissions"
-        description="Review incoming car submissions and move each one through the selection workflow. Review changes take effect when saved."
+        title={t("title")}
+        description={t("description")}
         viewport={["desktop", "mobile"]}
         titleAccessory={
           featureFlagCarSubmission ? (
@@ -398,11 +405,11 @@ export function SubmissionsClient() {
               variant="outline"
               className="border-emerald-200 bg-emerald-50 text-emerald-700"
             >
-              Form open
+              {t("formOpen")}
             </Badge>
           ) : (
             <Badge variant="outline" className="bg-muted text-muted-foreground">
-              Submissions closed
+              {t("formClosed")}
             </Badge>
           )
         }
@@ -411,11 +418,11 @@ export function SubmissionsClient() {
       <div className="flex min-w-0 flex-col gap-6">
         <Card className="flex w-full min-w-0 flex-row items-center justify-between gap-5 p-5 shadow-none">
           <div className="min-w-0">
-            <p className="text-sm font-semibold">Accept new submissions</p>
+            <p className="text-sm font-semibold">{t("acceptNew")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               {featureFlagCarSubmission
-                ? "The public submission form is live and accepting cars."
-                : "The form is hidden and the website displays a closed message."}
+                ? t("accepting")
+                : t("notAccepting")}
             </p>
           </div>
           <Switch
@@ -427,15 +434,15 @@ export function SubmissionsClient() {
         <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
           <div className="flex w-full min-w-0 items-center gap-5 overflow-scroll border-b lg:w-auto">
             {FILTERS.map((filter) => {
-              const active = status === filter.value;
+              const active = status === filter;
               return (
                 <button
-                  key={filter.value}
+                  key={filter}
                   type="button"
                   aria-pressed={active}
                   onClick={() => {
                     if (!active) {
-                      setStatus(filter.value);
+                      setStatus(filter);
                       setPage(1);
                     }
                   }}
@@ -454,9 +461,11 @@ export function SubmissionsClient() {
                         : "bg-muted text-muted-foreground",
                     )}
                   >
-                    {counts[filter.value] ?? 0}
+                    {counts[filter] ?? 0}
                   </span>
-                  {filter.label}
+                  {filter === "all"
+                    ? t("all")
+                    : SUBMISSION_STATUS_LABELS[filter]}
                 </button>
               );
             })}
@@ -465,13 +474,13 @@ export function SubmissionsClient() {
           <div className="relative w-full sm:w-72">
             <Search className="z-5 absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Search submissions"
+              aria-label={t("searchAria")}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
                 setPage(1);
               }}
-              placeholder="Search name, car or reference"
+              placeholder={t("search")}
               className="bg-card pl-9 truncate"
             />
           </div>
@@ -488,7 +497,7 @@ export function SubmissionsClient() {
               setPage(1);
             }}
           >
-            <X className="size-3.5" /> Clear filters
+            <X className="size-3.5" /> {t("clearFilters")}
           </Button>
         ) : null}
 
@@ -510,7 +519,7 @@ export function SubmissionsClient() {
               enabledRowSorting={false}
               emptyRow={
                 <div className="flex h-32 items-center justify-center px-4 text-center text-sm text-muted-foreground">
-                  No submissions match the current filters.
+                  {t("empty")}
                 </div>
               }
             />

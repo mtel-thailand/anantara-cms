@@ -12,6 +12,9 @@ import {
   toISODate,
 } from "@/src/lib/date";
 import { eventEmitter } from "@/src/lib/events";
+import type { Locale } from "@/src/types/locale";
+import { enGB, it } from "date-fns/locale";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -25,6 +28,9 @@ function DateModalContent({
   editing: EditingDate;
 }) {
   const modal = useModal();
+  const currentLocale = useLocale() as Locale;
+  const t = useTranslations("agenda.dateModal");
+  const commonT = useTranslations("common");
   const [selected, setSelected] = useState<Date | undefined>(() =>
     editing?.date ? dayjs(editing.date).toDate() : undefined,
   );
@@ -39,7 +45,9 @@ function DateModalContent({
     const iso = toISODate(selected);
 
     if (hasDuplicateDate(used, iso)) {
-      toast.error(`${formatLongDate(iso)} already exists`);
+      toast.error(
+        t("alreadyExists", { date: formatLongDate(iso, currentLocale) }),
+      );
       return;
     }
 
@@ -50,14 +58,17 @@ function DateModalContent({
           id: editing.id,
           date: iso,
         });
-        toast.success(`Date changed to ${formatLongDate(iso)}`, {
-          description: "Remember to publish your changes.",
-        });
+        toast.success(
+          t("changed", { date: formatLongDate(iso, currentLocale) }),
+          {
+            description: t("publishReminder"),
+          },
+        );
       }
     } else {
       eventEmitter.emit("agenda:command", { type: "add-date", date: iso });
-      toast.success(`${formatLongDate(iso)} added`, {
-        description: "Remember to publish your changes.",
+      toast.success(t("added", { date: formatLongDate(iso, currentLocale) }), {
+        description: t("publishReminder"),
       });
     }
 
@@ -73,14 +84,15 @@ function DateModalContent({
           onSelect={setSelected}
           disabled={(date) => hasDuplicateDate(used, date)}
           defaultMonth={selected}
+          locale={currentLocale === "it" ? it : enGB}
         />
       </div>
       <div className="flex justify-end gap-2 border-t bg-muted/50 px-4 py-4">
         <Button variant="outline" onClick={modal.close}>
-          Cancel
+          {commonT("cancel")}
         </Button>
         <Button onClick={submit} disabled={!selected}>
-          {editing ? "Save date" : "Add date"}
+          {editing ? t("save") : t("addTitle")}
         </Button>
       </div>
     </>
@@ -89,6 +101,7 @@ function DateModalContent({
 
 export function useAgendaDateModal(usedDates: string[]) {
   const modal = useModal();
+  const t = useTranslations("agenda.dateModal");
 
   return useCallback(
     (editing: EditingDate = null) => {
@@ -98,12 +111,12 @@ export function useAgendaDateModal(usedDates: string[]) {
         header: (
           <>
             <Text.FormTitle size="xl">
-              {editing ? "Edit date" : "Add date"}
+              {editing ? t("editTitle") : t("addTitle")}
             </Text.FormTitle>
             <Text size="sm" color="muted-foreground">
               {editing
-                ? "Pick a new day for this table. Dates already in the agenda are disabled — each date can be used once."
-                : "Pick a day to add to the schedule. Dates already in the agenda are disabled — each date can be added once."}
+                ? t("editDescription")
+                : t("addDescription")}
             </Text>
           </>
         ),
@@ -116,6 +129,6 @@ export function useAgendaDateModal(usedDates: string[]) {
         ),
       });
     },
-    [modal, usedDates],
+    [modal, t, usedDates],
   );
 }

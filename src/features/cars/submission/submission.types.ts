@@ -113,7 +113,7 @@ export type InformationRequest = {
 
 export type CarSubmission = {
   id: string;
-  carId: string;
+  vehicleRef: string;
   formId: string;
   classId: string;
   year: number;

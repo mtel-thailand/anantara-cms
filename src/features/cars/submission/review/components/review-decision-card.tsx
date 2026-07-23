@@ -14,6 +14,7 @@ import {
 } from "@/src/features/cars/submission/submission.types";
 import { formatDate } from "@/src/lib/date";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type {
   Control,
   FieldErrors,
@@ -45,23 +46,23 @@ export function ReviewDecisionCard({
   statusOptions: Array<{ label: string; value: string }>;
   willSaveStatus: SubmissionStatus;
 }) {
+  const t = useTranslations("cars.submission.review");
   const shouldShowMessageComposer =
     liveStatus !== "info_received" || draft.newInfoMessageRequired;
 
   return (
     <Card className="flex flex-col gap-4 p-5 shadow-none">
       <div className="flex flex-col gap-0.5">
-        <h2 className="text-sm font-semibold">Review decision</h2>
+        <h2 className="text-sm font-semibold">{t("decision")}</h2>
         <p className="text-xs text-muted-foreground">
-          Change the status to move this submission through the workflow.
-          Changes save immediately.
+          {t("decisionDescription")}
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex flex-col gap-4">
           {liveStatus === "archived" ? (
             <Input
-              label="Status"
+              label={t("statusLabel")}
               value={SUBMISSION_STATUS_LABELS[liveStatus]}
               disabled
               className="disabled:cursor-default disabled:opacity-100"
@@ -95,9 +96,9 @@ export function ReviewDecisionCard({
 
           {statusChanged ? (
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
-              <span className="text-muted-foreground">Status</span>
+              <span className="text-muted-foreground">{t("statusLabel")}</span>
               <SubmissionStatusBadge status={liveStatus} />
-              <span className="text-muted-foreground">on save</span>
+              <span className="text-muted-foreground">{t("statusOnSave")}</span>
               <SubmissionStatusBadge status={willSaveStatus} />
             </div>
           ) : null}
@@ -108,14 +109,13 @@ export function ReviewDecisionCard({
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-0.5">
             <h3 className="text-sm font-semibold">
-              Messages to the owner
+              {t("messages")}
               {!draft.infoRequests.length ? (
                 <span className="text-destructive"> *</span>
               ) : null}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Each message is emailed to the owner with a link to their
-              pre-filled form.
+              {t("messagesDescription")}
             </p>
           </div>
           <div className="flex flex-col gap-3">
@@ -128,7 +128,7 @@ export function ReviewDecisionCard({
                   className="resize-none bg-muted/40 disabled:cursor-default disabled:opacity-100"
                 />
                 <span className="text-xs text-muted-foreground">
-                  Sent {formatDate(request.sentDate)}
+                  {t("sent", { date: formatDate(request.sentDate) })}
                 </span>
               </div>
             ))}
@@ -140,7 +140,7 @@ export function ReviewDecisionCard({
                 rules={{
                   required: true
                 }}
-                label={draft.infoRequests.length ? "New message" : undefined}
+                label={draft.infoRequests.length ? t("newMessage") : undefined}
                 data-review-field="infoRequest"
                 aria-invalid={Boolean(errors.newInfoMessage)}
                 required
@@ -149,7 +149,7 @@ export function ReviewDecisionCard({
                   message: errors.newInfoMessage?.message,
                 }}
                 rows={4}
-                placeholder="Explain what's missing or needs clarifying — e.g. “Please upload a clear front-view photo showing the number plate and attach the restoration records.”"
+                placeholder={t("messagePlaceholder")}
                 onValueChange={() => {
                   clearErrors("newInfoMessage");
                 }}
@@ -166,7 +166,7 @@ export function ReviewDecisionCard({
                   });
                 }}
               >
-                <Plus className="size-4" /> Request more info
+                <Plus className="size-4" /> {t("requestMoreInfo")}
               </Button>
             )}
           </div>

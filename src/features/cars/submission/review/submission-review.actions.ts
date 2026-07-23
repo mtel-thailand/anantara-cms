@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { getTranslations } from "next-intl/server";
 
 import type {
   CarSubmission,
@@ -34,8 +35,9 @@ export async function saveCarSubmissionAction(
   submission: CarSubmission;
 }> {
   const id = z.string().trim().min(1).parse(submissionId);
+  const validationT = await getTranslations("cars.submission.validation");
   const { expectedUpdatedAt, formId, uploads, values } =
-    parseSubmissionReviewPayload(payload);
+    parseSubmissionReviewPayload(payload, validationT);
   const supabase = await createClient();
   const {
     data: { user },

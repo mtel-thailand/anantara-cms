@@ -38,9 +38,10 @@ import {
 } from "./submission-review.helpers";
 
 import {
-  submissionReviewSchema,
+  getSubmissionReviewSchema,
   type SubmissionReviewFormValues,
 } from "./submission-review.schema";
+import { useLocale, useTranslations } from "next-intl";
 import { CarDetailsCard } from "@/src/features/cars/submission/review/components/car-details-card";
 import { InternalCommentsCard } from "@/src/features/cars/submission/review/components/internal-comments-card";
 import { ReviewDecisionCard } from "@/src/features/cars/submission/review/components/review-decision-card";
@@ -72,6 +73,10 @@ function pendingImageFiles(
 }
 
 export function SubmissionReviewClient({ carId }: { carId: string }) {
+  const locale = useLocale() as Locale;
+  const validationT = useTranslations("cars.submission.validation");
+  const t = useTranslations("cars.submission.review");
+  const commonT = useTranslations("common");
   const router = useRouter();
   const modal = useModal();
   const { isLoading, execute } = useAsync(true);
@@ -80,7 +85,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
 
   const form = useForm<SubmissionReviewFormValues>({
     defaultValues: emptyReviewFormValues(),
-    resolver: zodResolver(submissionReviewSchema),
+    resolver: zodResolver(getSubmissionReviewSchema(validationT)),
     shouldUnregister: false,
     mode: "onSubmit",
     reValidateMode: "onChange",
@@ -156,11 +161,11 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       <>
         <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
           <Link href="/app/cars/submissions">
-            <ChevronLeft className="size-4" /> Back to submissions
+            <ChevronLeft className="size-4" /> {t("back")}
           </Link>
         </Button>
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
-          Loading submission...
+          {t("loading")}
         </Card>
       </>
     );
@@ -171,11 +176,11 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       <>
         <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
           <Link href="/app/cars/submissions">
-            <ChevronLeft className="size-4" /> Back to submissions
+            <ChevronLeft className="size-4" /> {t("back")}
           </Link>
         </Button>
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
-          This submission could not be found.
+          {t("notFound")}
         </Card>
       </>
     );
@@ -199,10 +204,9 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         getCarSubmissionClasses(),
       ])
         .then(([car, classes]) => downloadSubmissionForm(car, classes))
-        .catch((error) => {
-          console.log("error", error);
-          toast.error("Couldn’t prepare the download", {
-            description: "Please try again.",
+        .catch(() => {
+          toast.error(t("downloadError"), {
+            description: t("tryAgain"),
           });
         });
     }, carId);
@@ -254,21 +258,23 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
 
       toast.success(
         finalStatus === liveStatus
-          ? "Submission saved"
-          : `Status changed to ${SUBMISSION_STATUS_LABELS[finalStatus]}`,
+          ? t("saved")
+          : t("statusChanged", {
+              status: SUBMISSION_STATUS_LABELS[finalStatus],
+            }),
         {
           description:
             finalStatus === "approved"
-              ? "The car has moved out of the submissions queue."
+              ? t("movedOutOfQueue")
               : message
-                ? "The request has been added to the owner message log."
-                : "Submission data has been updated.",
+                ? t("requestAdded")
+                : t("dataUpdated"),
         },
       );
 
       if (emailAttempted && !emailSent) {
-        toast.warning("Submission saved, but email was not sent", {
-          description: "The status is updated. Please retry the notification.",
+        toast.warning(t("savedEmailFailed"), {
+          description: t("retryNotification"),
         });
       }
     } catch (saveError) {
@@ -277,12 +283,12 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         error:
           saveError instanceof Error ? saveError.message : String(saveError),
       });
-      toast.error("Could not save submission", {
+      toast.error(t("saveError"), {
         description:
           saveError instanceof Error &&
           saveError.message.includes("changed by another reviewer")
             ? saveError.message
-            : "Your changes are still on screen. Try again.",
+            : t("saveErrorDescription"),
       });
     }
   }
@@ -301,20 +307,20 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         <div className="pr-8">
           <h2 className="font-heading text-xl">
             {warnLanguage
-              ? "Vehicle history has one language"
-              : "Save changes?"}
+              ? t("oneLanguageTitle")
+              : t("saveTitle")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {warnLanguage
-              ? "You can complete the missing translation before approval, or save it and return later."
-              : "Your changes to this submission will be saved and take effect right away."}
+              ? t("oneLanguageDescription")
+              : t("saveDescription")}
           </p>
         </div>
       ),
       footer: ({ loading, run }) => (
         <>
           <Button variant="outline" onClick={modal.close}>
-            Cancel
+            {commonT("cancel")}
           </Button>
           {warnLanguage ? (
             <Button
@@ -325,14 +331,14 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
                 modal.close();
               }}
             >
-              Fix content
+              {t("fixContent")}
             </Button>
           ) : null}
           <Button
             loading={loading}
             onClick={() => void run(async () => commitSave())}
           >
-            {warnLanguage ? "Save anyway" : "Save changes"}
+            {warnLanguage ? t("saveAnyway") : commonT("saveChanges")}
           </Button>
         </>
       ),
@@ -369,20 +375,19 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         headerClassName: "border-0 px-4 py-0 pt-4",
         header: (
           <Text.FormTitle size="base" className="font-medium">
-            Discard your changes?
+            {t("discardTitle")}
           </Text.FormTitle>
         ),
         contentClassName: "px-4 gap-0",
         content: (
           <Text size="sm" color="muted-foreground">
-            You’ve edited this submission but haven’t saved yet. If you leave
-            now, these changes will be lost.
+            {t("discardDescription")}
           </Text>
         ),
         footer: (
           <>
             <Button variant="outline" onClick={() => modal.close()}>
-              Keep edition
+              {commonT("keepEditing")}
             </Button>
             <Button
               variant="destructive"
@@ -391,7 +396,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
                 modal.close();
               }}
             >
-              Discard changes
+              {t("discardChanges")}
             </Button>
           </>
         ),
@@ -404,15 +409,19 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
   return (
     <>
       <NavigationButton
-        text="Back to submissions"
+        text={t("back")}
         onClick={hancleConfirmCancel}
       />
 
       <PageHeader
         title={submissionVehicleName(submission)}
-        description={`${submission.carId} · Submitted ${formatDate(
-          submission.submissionDate,
-        )} · Last update ${formatDate(submission.lastUpdated)}`}
+        description={`${submission.vehicleRef} · ${commonT(
+          "submittedLastUpdate",
+          {
+            submitted: formatDate(submission.submissionDate, locale),
+            updated: formatDate(submission.lastUpdated, locale),
+          },
+        )}`}
         viewport={["desktop", "mobile"]}
         titleAccessory={<SubmissionStatusBadge status={liveStatus} />}
       >
@@ -420,11 +429,11 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
           variant="outline"
           loading={isDownloading}
           loadingClassName="text-foreground"
-          title="Download form submission"
+          title={t("downloadTitle")}
           onClick={handleDownloadSubmissionForm}
         >
           {!isDownloading && <Download className="size-4" />}
-          Download PDF
+          {commonT("downloadPdf")}
         </Button>
       </PageHeader>
 
@@ -476,14 +485,14 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur">
         <div className="flex flex-wrap items-center justify-end gap-2 py-4">
           <Button variant="outline" onClick={hancleConfirmCancel}>
-            Cancel
+            {commonT("cancel")}
           </Button>
           <Button
             variant="default"
             disabled={!formState.isDirty}
             onClick={handleSubmit(requestSave, handleInvalid)}
           >
-            Save changes
+            {commonT("saveChanges")}
           </Button>
         </div>
       </div>
@@ -500,6 +509,8 @@ export function LockedReviewPanel({
   description: string;
   title: string;
 }) {
+  const t = useTranslations("cars.submission.review");
+
   return (
     <Card className="flex min-h-48 flex-col items-start justify-center gap-3 p-5 shadow-none">
       <div>
@@ -509,7 +520,7 @@ export function LockedReviewPanel({
         </p>
       </div>
       <Button asChild variant="outline" size="sm">
-        <Link href={backHref}>Back to submissions</Link>
+        <Link href={backHref}>{t("back")}</Link>
       </Button>
     </Card>
   );

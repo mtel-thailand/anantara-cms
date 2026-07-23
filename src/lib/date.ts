@@ -1,4 +1,5 @@
 import { DEFAULT_TZ } from "@/src/constants/timezone";
+import type { Locale } from "@/src/types/locale";
 import dayjs from "./dayjs";
 
 type DateInput = Date | string | null | undefined;
@@ -45,13 +46,33 @@ export function toISODate(value: RequiredDateInput): string {
   return date.isValid() ? date.format(ISO_DATE_FORMAT) : "";
 }
 
-export function formatDate(value: DateInput): string {
-  return formatDateValue(value, "D MMM YYYY");
+export function formatDate(value: DateInput, locale: Locale = "en"): string {
+  const date = parseRomeDate(value);
+  if (!date) return EMPTY_DISPLAY;
+
+  return new Intl.DateTimeFormat(locale === "it" ? "it-IT" : "en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: DEFAULT_TZ,
+  }).format(date.toDate());
 }
 
-/** Full weekday + date, e.g. "Friday, 22 May 2026". */
-export function formatLongDate(value: DateInput): string {
-  return formatDateValue(value, "dddd, D MMMM YYYY");
+/** Full weekday + date in the interface locale, e.g. "Friday, 22 May 2026". */
+export function formatLongDate(
+  value: DateInput,
+  locale: Locale = "en",
+): string {
+  const date = parseRomeDate(value);
+  if (!date) return EMPTY_DISPLAY;
+
+  return new Intl.DateTimeFormat(locale === "it" ? "it-IT" : "en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: DEFAULT_TZ,
+  }).format(date.toDate());
 }
 
 /** Editorial date format for Press entries, e.g. "08 April 2026". */

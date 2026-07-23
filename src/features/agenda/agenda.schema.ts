@@ -1,16 +1,17 @@
 "use client";
 
 import z from "zod";
+import type { Translator } from "@/src/types/translation";
 
-function getAgendaSchema() {
+function getAgendaSchema(t: Translator) {
   const addAgendaItemSchema = z
     .object({
-      name: z.string().trim().min(1, "Enter a title in English."),
+      name: z.string().trim().min(1, t("englishTitle")),
       nameIt: z.string(),
-      startedAt: z.string().min(1, "Set a start time."),
+      startedAt: z.string().min(1, t("startTime")),
       endedAt: z.string(),
-      appIcon: z.string().min(1, "Select an icon."),
-      description: z.string().trim().min(1, "Enter a location in English."),
+      appIcon: z.string().min(1, t("icon")),
+      description: z.string().trim().min(1, t("englishLocation")),
       descriptionIt: z.string(),
     })
     .superRefine((value, context) => {
@@ -22,8 +23,7 @@ function getAgendaSchema() {
         context.addIssue({
           code: "custom",
           path: ["nameIt"],
-          message:
-            "Add the Italian title, or clear Italian from every field.",
+          message: t("italianTitle"),
         });
       }
 
@@ -31,8 +31,7 @@ function getAgendaSchema() {
         context.addIssue({
           code: "custom",
           path: ["descriptionIt"],
-          message:
-            "Add the Italian location, or clear Italian from every field.",
+          message: t("italianLocation"),
         });
       }
 
@@ -44,7 +43,7 @@ function getAgendaSchema() {
         context.addIssue({
           code: "custom",
           path: ["endedAt"],
-          message: "End time cannot be earlier than start time.",
+          message: t("endBeforeStart"),
         });
       }
     });

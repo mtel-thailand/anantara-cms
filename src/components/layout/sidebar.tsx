@@ -65,6 +65,7 @@ function NavItemButton({
   counts: Record<string, number>;
 }) {
   const t = useTranslations("menu");
+  const commonT = useTranslations("common");
   const pathname = usePathname();
   const router = useRouter();
   const Icon = item.icon;
@@ -106,24 +107,24 @@ function NavItemButton({
       header: (
         <>
           <Text.FormTitle size="base" className="font-medium">
-            Log out of the CMS?
+            {t("logoutTitle")}
           </Text.FormTitle>
           <Text size="sm" color="muted-foreground">
-            You will be signed out and returned to the login page.
+            {t("logoutDescription")}
           </Text>
         </>
       ),
       footer: ({ loading, close, run }) => (
         <>
           <Button variant="outline" disabled={loading} onClick={close}>
-            Cancel
+            {commonT("cancel")}
           </Button>
           <Button
             variant="destructive"
             loading={loading}
             onClick={() => void run(handleLogout)}
           >
-            Logout
+            {t("logout")}
           </Button>
         </>
       ),
@@ -290,10 +291,10 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
         </aside>
       </div>
       <button
-        className="group h-full w-2 cursor-col-resize bg-black py-2"
+        className="group h-full cursor-col-resize bg-background"
         onMouseDown={startResize}
       >
-        <div className="w-0.5 h-full rounded-lg mx-auto group-hover:bg-white duration-200" />
+        <div className="w-0.5 h-full rounded-lg mx-auto group-hover:bg-black duration-200" />
       </button>
     </div>
   );
