@@ -964,16 +964,6 @@ export type Database = {
         Args: { p_submission_id: string }
         Returns: undefined
       }
-      save_car_submission_review: {
-        Args: {
-          p_expected_updated_at: string
-          p_form: Json
-          p_form_id: string
-          p_submission_id: string
-          p_vehicle: Json
-        }
-        Returns: Json
-      }
       submit_car_application: {
         Args: { p_submission: Json; p_vehicles: Json }
         Returns: string
