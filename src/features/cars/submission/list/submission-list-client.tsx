@@ -209,7 +209,7 @@ function ClearSubmissionConfirmation({
   );
 }
 
-export function SubmissionsClient({ type }: { type: "deleted" }) {
+export function SubmissionsClient({ type }: { type?: "deleted" }) {
   const router = useRouter();
   const locale = useLocale() as Locale;
   const t = useTranslations("cars.submission.list");
