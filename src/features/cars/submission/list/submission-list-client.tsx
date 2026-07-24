@@ -160,19 +160,16 @@ function ClearSubmissionConfirmation({
   const t = useTranslations("cars.submission.list");
   const commonT = useTranslations("common");
   const [value, setValue] = useState("");
-  const [loading, setLoading] = useState(false);
+  const { isLoading, execute } = useAsync(false);
   const confirmed = value === "delete";
 
   async function handleClear() {
-    if (!confirmed || loading) return;
+    if (!confirmed || isLoading) return;
 
-    setLoading(true);
-
-    try {
-      if (await clearSubmission()) modal.close();
-    } finally {
-      setLoading(false);
-    }
+    await execute(async () => {
+      const clearSuccess = await clearSubmission();
+      if (clearSuccess) modal.close();
+    });
   }
 
   return (
@@ -197,12 +194,12 @@ function ClearSubmissionConfirmation({
         />
       </div>
       <div className="flex justify-end gap-2 border-t bg-muted/50 p-4">
-        <Button variant="outline" disabled={loading} onClick={modal.close}>
+        <Button variant="outline" disabled={isLoading} onClick={modal.close}>
           {commonT("cancel")}
         </Button>
         <Button
-          loading={loading}
-          disabled={loading || !confirmed}
+          loading={isLoading}
+          disabled={isLoading || !confirmed}
           onClick={() => void handleClear()}
         >
           {t("clearAction")}
@@ -212,7 +209,7 @@ function ClearSubmissionConfirmation({
   );
 }
 
-export function SubmissionsClient({ type }: { type?: "deleted" }) {
+export function SubmissionsClient({ type }: { type: "deleted" }) {
   const router = useRouter();
   const locale = useLocale() as Locale;
   const t = useTranslations("cars.submission.list");
@@ -241,6 +238,8 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
 
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
+  const deleted = type === "deleted";
+
   useEffect(() => {
     let cancelled = false;
 
@@ -250,10 +249,10 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
           page,
           pageSize: PAGE_SIZE,
           query: debounceQuery,
-          sort: activeSort(columnSorting, type === "deleted"),
+          sort: activeSort(columnSorting, deleted),
           status,
           hasArchivedAt: status === "archived",
-          hasDeletedAt: type === "deleted",
+          hasDeletedAt: deleted,
         });
 
         if (cancelled) return;
@@ -281,7 +280,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
     refreshing,
     status,
     t,
-    type,
+    deleted,
   ]);
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -375,7 +374,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => {
           const submission = row.original;
 
-          return type !== "deleted" ? (
+          return !deleted ? (
             <Link
               href={`/app/cars/submissions/${submission.id}`}
               aria-label={`${t("review")} ${submissionVehicleName(submission)}`}
@@ -389,7 +388,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
             <>
               {RenderImage(
                 submission.images as SubmissionVehicleImage[],
-                type === "deleted",
+                deleted,
               ) ?? <div className="w-[62px] h-[46px]" />}
             </>
           );
@@ -403,13 +402,13 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => (
           <div
             className={cn("flex items-center gap-2 whitespace-nowrap", {
-              "opacity-60": type === "deleted",
+              "opacity-60": deleted,
             })}
           >
             <span className="font-medium">
               {submissionOwnerName(row.original)}
             </span>
-            {type !== "deleted" && !isNewSubmission(row.original) ? (
+            {!deleted && !isNewSubmission(row.original) ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
                 <span className="size-1.5 rounded-full bg-primary" />
                 {t("new")}
@@ -426,7 +425,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => (
           <span
             className={cn("font-mono text-xs text-muted-foreground", {
-              "opacity-60": type === "deleted",
+              "opacity-60": deleted,
             })}
           >
             {row.original.vehicleRef}
@@ -439,9 +438,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         header: "Vehicle",
         enableSorting: true,
         cell: ({ row }) => (
-          <span
-            className={cn("font-medium", { "opacity-60": type === "deleted" })}
-          >
+          <span className={cn("font-medium", { "opacity-60": deleted })}>
             {submissionVehicleName(row.original)}
           </span>
         ),
@@ -452,9 +449,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         header: "Year",
         enableSorting: true,
         cell: ({ row }) => (
-          <span
-            className={cn("tabular-nums", { "opacity-60": type === "deleted" })}
-          >
+          <span className={cn("tabular-nums", { "opacity-60": deleted })}>
             {row.original.yearOfManufacture}
           </span>
         ),
@@ -467,7 +462,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => (
           <span
             className={cn("whitespace-nowrap text-muted-foreground", {
-              "opacity-60": type === "deleted",
+              "opacity-60": deleted,
             })}
           >
             {formatDate(row.original.createdAt, locale)}
@@ -482,11 +477,11 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => (
           <SubmissionStatusBadge
             status={row.original.status}
-            className={cn({ "opacity-60": type === "deleted" })}
+            className={cn({ "opacity-60": deleted })}
           />
         ),
       },
-      type !== "deleted"
+      !deleted
         ? {
             id: "updated",
             accessorFn: (submission) => submission.updatedAt,
@@ -495,7 +490,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
             cell: ({ row }) => (
               <span
                 className={cn("whitespace-nowrap text-muted-foreground", {
-                  "opacity-60": type === "deleted",
+                  "opacity-60": deleted,
                 })}
               >
                 {formatDate(row.original.updatedAt, locale)}
@@ -510,7 +505,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
             cell: ({ row }) => (
               <span
                 className={cn("whitespace-nowrap text-muted-foreground", {
-                  "opacity-60": type === "deleted",
+                  "opacity-60": deleted,
                 })}
               >
                 {formatDate(row.original.deletedAt, locale)}
@@ -523,7 +518,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            {type === "deleted" ? (
+            {deleted ? (
               <Button asChild variant="ghost" size="xs">
                 <Link
                   href={`/app/cars/submissions/${row.original.id}`}
@@ -542,7 +537,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
               </Button>
             )}
 
-            {type === "deleted" ? (
+            {deleted ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -580,7 +575,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         ),
       },
     ],
-    [locale, onRestoreSubmission, t, type],
+    [deleted, locale, onRestoreSubmission, t],
   );
 
   const handleReorder = useCallback(() => {}, []);
@@ -651,31 +646,27 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
     modal.open({
       className: "gap-0",
       content: (
-        <ClearSubmissionConfirmation
-          clearSubmission={clearSubmission}
-        />
+        <ClearSubmissionConfirmation clearSubmission={clearSubmission} />
       ),
     });
   }
 
   return (
     <>
-      {type === "deleted" && (
+      {deleted && (
         <NavigationButton
           text={t("backToSubmissions")}
           onClick={() => router.push("/app/cars/submissions")}
         />
       )}
       <PageHeader
-        title={type !== "deleted" ? t("title") : t("deleteHistoryTitle")}
+        title={!deleted ? t("title") : t("deleteHistoryTitle")}
         description={
-          type !== "deleted"
-            ? t("description")
-            : t("deleteHistoryDescription")
+          !deleted ? t("description") : t("deleteHistoryDescription")
         }
-        viewport={type !== "deleted" ? ["desktop", "mobile"] : undefined}
+        viewport={!deleted ? ["desktop", "mobile"] : undefined}
         titleAccessory={
-          type !== "deleted" ? (
+          !deleted ? (
             featureFlagCarSubmission ? (
               <Badge
                 variant="outline"
@@ -696,18 +687,14 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
               variant="outline"
               className="border-muted-foreground/30 bg-muted text-muted-foreground"
             >
-              <Text
-                size="xs"
-                weight="medium"
-                color="muted-foreground"
-              >
+              <Text size="xs" weight="medium" color="muted-foreground">
                 {t("deletedCount", { count: counts.all })}
               </Text>
             </Badge>
           )
         }
       >
-        {type !== "deleted" && (
+        {!deleted && (
           <>
             <Button variant="ghost">
               <Link
@@ -731,7 +718,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       </PageHeader>
 
       <div className="flex min-w-0 flex-col gap-6">
-        {type !== "deleted" && (
+        {!deleted && (
           <Card className="flex w-full min-w-0 flex-row items-center justify-between gap-5 p-5 shadow-none">
             <div className="min-w-0">
               <p className="text-sm font-semibold">{t("acceptNew")}</p>
@@ -778,9 +765,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
                   >
                     {counts[filter] ?? 0}
                   </span>
-                  {filter === "all"
-                    ? "All"
-                    : SUBMISSION_STATUS_LABELS[filter]}
+                  {filter === "all" ? "All" : SUBMISSION_STATUS_LABELS[filter]}
                 </button>
               );
             })}

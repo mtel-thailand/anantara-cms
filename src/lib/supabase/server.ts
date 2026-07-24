@@ -1,4 +1,5 @@
 import { Database } from "@/src/types/database.types";
+import { logger } from "@/src/lib/logger";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -42,6 +43,13 @@ export async function createAuthenticatedClient() {
   } = await supabase.auth.getUser();
 
   if (error || !user) {
+    logger.warn("SUPABASE-AUTH", "Failed to authenticate server client", {
+      errorName: error?.name,
+      errorCode: error?.code,
+      errorStatus: error?.status,
+      userReturned: Boolean(user),
+    });
+
     throw new Error("Unauthorized");
   }
 
