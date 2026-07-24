@@ -271,6 +271,7 @@ export function toCarSubmission(
 
   return {
     id: vehicle.id,
+    deletedAt: vehicle.deleted_at,
     vehicleRef: vehicle.vehicle_ref,
     formId: form.id,
     classId: car?.category_id ? String(car.category_id) : "",

@@ -7,7 +7,7 @@ import type {
   CarSubmission,
   SubmissionStatus,
 } from "@/src/features/cars/submission/submission.types";
-import { createClient } from "@/src/lib/supabase/server";
+import { createAuthenticatedClient } from "@/src/lib/supabase/server";
 import { submissionFromFormValues } from "./submission-review.helpers";
 import {
   deleteSubmissionKeys,
@@ -38,12 +38,7 @@ export async function saveCarSubmissionAction(
   const validationT = await getTranslations("cars.submission.validation");
   const { expectedUpdatedAt, formId, uploads, values } =
     parseSubmissionReviewPayload(payload, validationT);
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) throw new Error("Unauthorized");
+  const supabase = await createAuthenticatedClient();
 
   const uploadedKeys = uploadedSubmissionKeys(uploads, formId, id);
   let submissionSaved = false;

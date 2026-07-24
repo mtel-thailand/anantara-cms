@@ -189,6 +189,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
   const currentDraft = draft;
   const liveStatus = submission.status;
   const isArchived = currentDraft.status === "archived";
+  const isReadOnly = isArchived || submission.deletedAt !== null;
   const willSaveStatus: SubmissionStatus =
     currentDraft.status === "requested_info" &&
     liveStatus === "info_received" &&
@@ -306,14 +307,10 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       header: (
         <div className="pr-8">
           <h2 className="font-heading text-xl">
-            {warnLanguage
-              ? t("oneLanguageTitle")
-              : t("saveTitle")}
+            {warnLanguage ? t("oneLanguageTitle") : t("saveTitle")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {warnLanguage
-              ? t("oneLanguageDescription")
-              : t("saveDescription")}
+            {warnLanguage ? t("oneLanguageDescription") : t("saveDescription")}
           </p>
         </div>
       ),
@@ -402,16 +399,17 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         ),
       });
     } else {
-      router.push("/app/cars/submissions");
+      const redirectUrl =
+        submission.deletedAt !== null
+          ? "/app/cars/submissions/deleted"
+          : "/app/cars/submissions";
+      router.push(redirectUrl);
     }
   };
 
   return (
     <>
-      <NavigationButton
-        text={t("back")}
-        onClick={hancleConfirmCancel}
-      />
+      <NavigationButton text={t("back")} onClick={hancleConfirmCancel} />
 
       <PageHeader
         title={submissionVehicleName(submission)}
@@ -427,6 +425,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
       >
         <Button
           variant="outline"
+          disabled={isReadOnly}
           loading={isDownloading}
           loadingClassName="text-foreground"
           title={t("downloadTitle")}
@@ -448,9 +447,10 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
           statusChanged={statusChanged}
           statusOptions={statusOptions}
           willSaveStatus={willSaveStatus}
+          disabled={isReadOnly}
         />
 
-        <InternalCommentsCard control={control} isArchived={isArchived} />
+        <InternalCommentsCard control={control} disabled={isReadOnly} />
 
         <CarDetailsCard
           clearErrors={clearErrors}
@@ -458,7 +458,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
           draft={draft}
           editLocale={editLocale}
           errors={formState.errors}
-          isArchived={isArchived}
+          disabled={isReadOnly}
           onImageFilesAdded={(files) => {
             files.forEach(({ file, id }) => {
               pendingFilesRef.current.set(id, file);
@@ -482,20 +482,22 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         />
       </div>
 
-      <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur">
-        <div className="flex flex-wrap items-center justify-end gap-2 py-4">
-          <Button variant="outline" onClick={hancleConfirmCancel}>
-            {commonT("cancel")}
-          </Button>
-          <Button
-            variant="default"
-            disabled={!formState.isDirty}
-            onClick={handleSubmit(requestSave, handleInvalid)}
-          >
-            {commonT("saveChanges")}
-          </Button>
+      {!isReadOnly && (
+        <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur">
+          <div className="flex flex-wrap items-center justify-end gap-2 py-4">
+            <Button variant="outline" onClick={hancleConfirmCancel}>
+              {commonT("cancel")}
+            </Button>
+            <Button
+              variant="default"
+              disabled={isReadOnly || !formState.isDirty}
+              onClick={handleSubmit(requestSave, handleInvalid)}
+            >
+              {commonT("saveChanges")}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

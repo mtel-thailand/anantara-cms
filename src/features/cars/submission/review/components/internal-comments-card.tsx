@@ -8,10 +8,10 @@ import { useTranslations } from "next-intl";
 
 export function InternalCommentsCard({
   control,
-  isArchived,
+  disabled,
 }: {
   control: Control<SubmissionReviewFormValues>;
-  isArchived: boolean;
+  disabled: boolean;
 }) {
   const t = useTranslations("cars.submission.review");
   return (
@@ -26,7 +26,7 @@ export function InternalCommentsCard({
         control={control}
         name="internalComments"
         rows={4}
-        disabled={isArchived}
+        disabled={disabled}
         placeholder={t("internalCommentsPlaceholder")}
       />
     </Card>
