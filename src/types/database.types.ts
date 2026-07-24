@@ -687,6 +687,251 @@ export type Database = {
         }
         Relationships: []
       }
+      owner_package_room_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          owner_package_id: string
+          sequence: number
+          starting_price_eur: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_package_id: string
+          sequence?: number
+          starting_price_eur?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_package_id?: string
+          sequence?: number
+          starting_price_eur?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_package_room_categories_owner_package_id_fkey"
+            columns: ["owner_package_id"]
+            isOneToOne: false
+            referencedRelation: "owner_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      owner_packages: {
+        Row: {
+          code: string
+          created_at: string
+          default_arrival_date: string
+          default_departure_date: string
+          description: string | null
+          id: string
+          inclusions: Json
+          is_active: boolean
+          name: string
+          price_eur: number
+          sequence: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          default_arrival_date: string
+          default_departure_date: string
+          description?: string | null
+          id?: string
+          inclusions?: Json
+          is_active?: boolean
+          name: string
+          price_eur: number
+          sequence?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          default_arrival_date?: string
+          default_departure_date?: string
+          description?: string | null
+          id?: string
+          inclusions?: Json
+          is_active?: boolean
+          name?: string
+          price_eur?: number
+          sequence?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      owner_reservations: {
+        Row: {
+          accepts_event_communications: boolean
+          accepts_legal_terms: boolean
+          accepts_personal_data_processing: boolean
+          approved_at: string | null
+          approved_by: string | null
+          arrival_date: string
+          assistant_country: string | null
+          assistant_email: string | null
+          assistant_forenames: string | null
+          assistant_phone_number: string | null
+          assistant_surname: string | null
+          assistant_title: string | null
+          confirms_information: boolean
+          created_at: string
+          departure_date: string
+          guest_country: string | null
+          guest_forenames: string | null
+          guest_surname: string | null
+          guest_title: string | null
+          id: string
+          invoice_address: string | null
+          invoice_country: string | null
+          invoice_email: string | null
+          invoice_iata_code: string | null
+          invoice_name_or_company: string | null
+          invoice_pec_or_sdi: string | null
+          invoice_recipient: Database["public"]["Enums"]["invoice_recipient"]
+          invoice_vat_number: string | null
+          invoice_zip_code: string | null
+          owner_address: string
+          owner_country: string
+          owner_email: string
+          owner_forenames: string
+          owner_package_id: string
+          owner_phone_number: string
+          owner_surname: string
+          owner_title: string
+          owner_zip_code: string
+          received_at: string | null
+          requested_at: string | null
+          room_category: string | null
+          seen: boolean
+          status: Database["public"]["Enums"]["owner_reservation_status"]
+          submission_id: string
+          updated_at: string
+        }
+        Insert: {
+          accepts_event_communications?: boolean
+          accepts_legal_terms?: boolean
+          accepts_personal_data_processing?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          arrival_date: string
+          assistant_country?: string | null
+          assistant_email?: string | null
+          assistant_forenames?: string | null
+          assistant_phone_number?: string | null
+          assistant_surname?: string | null
+          assistant_title?: string | null
+          confirms_information?: boolean
+          created_at?: string
+          departure_date: string
+          guest_country?: string | null
+          guest_forenames?: string | null
+          guest_surname?: string | null
+          guest_title?: string | null
+          id?: string
+          invoice_address?: string | null
+          invoice_country?: string | null
+          invoice_email?: string | null
+          invoice_iata_code?: string | null
+          invoice_name_or_company?: string | null
+          invoice_pec_or_sdi?: string | null
+          invoice_recipient: Database["public"]["Enums"]["invoice_recipient"]
+          invoice_vat_number?: string | null
+          invoice_zip_code?: string | null
+          owner_address: string
+          owner_country: string
+          owner_email: string
+          owner_forenames: string
+          owner_package_id: string
+          owner_phone_number: string
+          owner_surname: string
+          owner_title: string
+          owner_zip_code: string
+          received_at?: string | null
+          requested_at?: string | null
+          room_category?: string | null
+          seen?: boolean
+          status?: Database["public"]["Enums"]["owner_reservation_status"]
+          submission_id: string
+          updated_at?: string
+        }
+        Update: {
+          accepts_event_communications?: boolean
+          accepts_legal_terms?: boolean
+          accepts_personal_data_processing?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          arrival_date?: string
+          assistant_country?: string | null
+          assistant_email?: string | null
+          assistant_forenames?: string | null
+          assistant_phone_number?: string | null
+          assistant_surname?: string | null
+          assistant_title?: string | null
+          confirms_information?: boolean
+          created_at?: string
+          departure_date?: string
+          guest_country?: string | null
+          guest_forenames?: string | null
+          guest_surname?: string | null
+          guest_title?: string | null
+          id?: string
+          invoice_address?: string | null
+          invoice_country?: string | null
+          invoice_email?: string | null
+          invoice_iata_code?: string | null
+          invoice_name_or_company?: string | null
+          invoice_pec_or_sdi?: string | null
+          invoice_recipient?: Database["public"]["Enums"]["invoice_recipient"]
+          invoice_vat_number?: string | null
+          invoice_zip_code?: string | null
+          owner_address?: string
+          owner_country?: string
+          owner_email?: string
+          owner_forenames?: string
+          owner_package_id?: string
+          owner_phone_number?: string
+          owner_surname?: string
+          owner_title?: string
+          owner_zip_code?: string
+          received_at?: string | null
+          requested_at?: string | null
+          room_category?: string | null
+          seen?: boolean
+          status?: Database["public"]["Enums"]["owner_reservation_status"]
+          submission_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_reservations_owner_package_id_fkey"
+            columns: ["owner_package_id"]
+            isOneToOne: false
+            referencedRelation: "owner_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_reservations_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: true
+            referencedRelation: "car_submissions_form"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           created_at: string
@@ -752,6 +997,50 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      reservation_status_events: {
+        Row: {
+          admin_id: string | null
+          from_status:
+            | Database["public"]["Enums"]["owner_reservation_status"]
+            | null
+          id: number
+          metadata: Json
+          occurred_at: string
+          reservation_id: string
+          to_status: Database["public"]["Enums"]["owner_reservation_status"]
+        }
+        Insert: {
+          admin_id?: string | null
+          from_status?:
+            | Database["public"]["Enums"]["owner_reservation_status"]
+            | null
+          id?: never
+          metadata?: Json
+          occurred_at?: string
+          reservation_id: string
+          to_status: Database["public"]["Enums"]["owner_reservation_status"]
+        }
+        Update: {
+          admin_id?: string | null
+          from_status?:
+            | Database["public"]["Enums"]["owner_reservation_status"]
+            | null
+          id?: never
+          metadata?: Json
+          occurred_at?: string
+          reservation_id?: string
+          to_status?: Database["public"]["Enums"]["owner_reservation_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_status_events_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "owner_reservations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       special_awards: {
         Row: {
@@ -978,6 +1267,12 @@ export type Database = {
       }
     }
     Enums: {
+      invoice_recipient: "owner" | "company"
+      owner_reservation_status:
+        | "required"
+        | "requested"
+        | "received"
+        | "approved"
       submission_status:
         | "pending"
         | "under_review"
@@ -1115,6 +1410,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      invoice_recipient: ["owner", "company"],
+      owner_reservation_status: [
+        "required",
+        "requested",
+        "received",
+        "approved",
+      ],
       submission_status: [
         "pending",
         "under_review",
