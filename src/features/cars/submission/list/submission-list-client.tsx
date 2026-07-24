@@ -101,7 +101,7 @@ function EmptyImage() {
   );
 }
 
-function RenderImage(images: unknown, deleted?: boolean) {
+function RenderImage(images: unknown, isDeleted?: boolean) {
   if (!Array.isArray(images) || !images.length) {
     return <EmptyImage />;
   }
@@ -119,7 +119,7 @@ function RenderImage(images: unknown, deleted?: boolean) {
     <div
       className={cn(
         "relative h-12 w-16 overflow-hidden rounded-md border bg-muted",
-        { "opacity-60": deleted },
+        { "opacity-60": isDeleted },
       )}
     >
       <Image
@@ -238,7 +238,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
 
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  const deleted = type === "deleted";
+  const isDeleted = type === "deleted";
 
   useEffect(() => {
     let cancelled = false;
@@ -249,10 +249,10 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
           page,
           pageSize: PAGE_SIZE,
           query: debounceQuery,
-          sort: activeSort(columnSorting, deleted),
+          sort: activeSort(columnSorting, isDeleted),
           status,
           hasArchivedAt: status === "archived",
-          hasDeletedAt: deleted,
+          hasDeletedAt: isDeleted,
         });
 
         if (cancelled) return;
@@ -280,7 +280,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
     refreshing,
     status,
     t,
-    deleted,
+    isDeleted,
   ]);
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -374,7 +374,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => {
           const submission = row.original;
 
-          return !deleted ? (
+          return !isDeleted ? (
             <Link
               href={`/app/cars/submissions/${submission.id}`}
               aria-label={`${t("review")} ${submissionVehicleName(submission)}`}
@@ -388,7 +388,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
             <>
               {RenderImage(
                 submission.images as SubmissionVehicleImage[],
-                deleted,
+                isDeleted,
               ) ?? <div className="w-[62px] h-[46px]" />}
             </>
           );
@@ -402,13 +402,13 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => (
           <div
             className={cn("flex items-center gap-2 whitespace-nowrap", {
-              "opacity-60": deleted,
+              "opacity-60": isDeleted,
             })}
           >
             <span className="font-medium">
               {submissionOwnerName(row.original)}
             </span>
-            {!deleted && !isNewSubmission(row.original) ? (
+            {!isDeleted && !isNewSubmission(row.original) ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
                 <span className="size-1.5 rounded-full bg-primary" />
                 {t("new")}
@@ -425,7 +425,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => (
           <span
             className={cn("font-mono text-xs text-muted-foreground", {
-              "opacity-60": deleted,
+              "opacity-60": isDeleted,
             })}
           >
             {row.original.vehicleRef}
@@ -438,7 +438,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         header: "Vehicle",
         enableSorting: true,
         cell: ({ row }) => (
-          <span className={cn("font-medium", { "opacity-60": deleted })}>
+          <span className={cn("font-medium", { "opacity-60": isDeleted })}>
             {submissionVehicleName(row.original)}
           </span>
         ),
@@ -449,7 +449,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         header: "Year",
         enableSorting: true,
         cell: ({ row }) => (
-          <span className={cn("tabular-nums", { "opacity-60": deleted })}>
+          <span className={cn("tabular-nums", { "opacity-60": isDeleted })}>
             {row.original.yearOfManufacture}
           </span>
         ),
@@ -462,7 +462,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => (
           <span
             className={cn("whitespace-nowrap text-muted-foreground", {
-              "opacity-60": deleted,
+              "opacity-60": isDeleted,
             })}
           >
             {formatDate(row.original.createdAt, locale)}
@@ -477,11 +477,11 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         cell: ({ row }) => (
           <SubmissionStatusBadge
             status={row.original.status}
-            className={cn({ "opacity-60": deleted })}
+            className={cn({ "opacity-60": isDeleted })}
           />
         ),
       },
-      !deleted
+      !isDeleted
         ? {
             id: "updated",
             accessorFn: (submission) => submission.updatedAt,
@@ -490,7 +490,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
             cell: ({ row }) => (
               <span
                 className={cn("whitespace-nowrap text-muted-foreground", {
-                  "opacity-60": deleted,
+                  "opacity-60": isDeleted,
                 })}
               >
                 {formatDate(row.original.updatedAt, locale)}
@@ -505,7 +505,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
             cell: ({ row }) => (
               <span
                 className={cn("whitespace-nowrap text-muted-foreground", {
-                  "opacity-60": deleted,
+                  "opacity-60": isDeleted,
                 })}
               >
                 {formatDate(row.original.deletedAt, locale)}
@@ -518,7 +518,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            {deleted ? (
+            {isDeleted ? (
               <Button asChild variant="ghost" size="xs">
                 <Link
                   href={`/app/cars/submissions/${row.original.id}`}
@@ -537,7 +537,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
               </Button>
             )}
 
-            {deleted ? (
+            {isDeleted ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -575,7 +575,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         ),
       },
     ],
-    [deleted, locale, onRestoreSubmission, t],
+    [isDeleted, locale, onRestoreSubmission, t],
   );
 
   const handleReorder = useCallback(() => {}, []);
@@ -653,20 +653,20 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
 
   return (
     <>
-      {deleted && (
+      {isDeleted && (
         <NavigationButton
           text={t("backToSubmissions")}
           onClick={() => router.push("/app/cars/submissions")}
         />
       )}
       <PageHeader
-        title={!deleted ? t("title") : t("deleteHistoryTitle")}
+        title={!isDeleted ? t("title") : t("deleteHistoryTitle")}
         description={
-          !deleted ? t("description") : t("deleteHistoryDescription")
+          !isDeleted ? t("description") : t("deleteHistoryDescription")
         }
-        viewport={!deleted ? ["desktop", "mobile"] : undefined}
+        viewport={!isDeleted ? ["desktop", "mobile"] : undefined}
         titleAccessory={
-          !deleted ? (
+          !isDeleted ? (
             featureFlagCarSubmission ? (
               <Badge
                 variant="outline"
@@ -694,7 +694,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
           )
         }
       >
-        {!deleted && (
+        {!isDeleted && (
           <>
             <Button variant="ghost">
               <Link
@@ -718,7 +718,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       </PageHeader>
 
       <div className="flex min-w-0 flex-col gap-6">
-        {!deleted && (
+        {!isDeleted && (
           <Card className="flex w-full min-w-0 flex-row items-center justify-between gap-5 p-5 shadow-none">
             <div className="min-w-0">
               <p className="text-sm font-semibold">{t("acceptNew")}</p>
