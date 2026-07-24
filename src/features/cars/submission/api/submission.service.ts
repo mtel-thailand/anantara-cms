@@ -27,7 +27,8 @@ export type CarSubmissionListSortKey =
   | "year"
   | "submitted"
   | "status"
-  | "updated";
+  | "updated"
+  | "deleted";
 
 export type CarSubmissionListParams = {
   page: number;

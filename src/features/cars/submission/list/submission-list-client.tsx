@@ -5,9 +5,18 @@ import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
 import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
-import { Link } from "@/src/i18n/navigation";
+import { Link, useRouter } from "@/src/i18n/navigation";
 import { cn } from "@/src/lib/utils";
-import { Download, Search, SquarePen, X } from "lucide-react";
+import {
+  Download,
+  Eye,
+  History,
+  RotateCcw,
+  Search,
+  SquarePen,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -45,17 +54,28 @@ import useConfig from "@/src/features/config/hooks/use-config";
 import { downloadSubmissionForm } from "@/src/features/cars/submission/submission-download";
 import type { Locale } from "@/src/types/locale";
 import { useLocale, useTranslations } from "next-intl";
+import Text from "@/src/components/ui/text";
+import {
+  clearSubmissionVehicle,
+  restoreSubmissionVehicle,
+} from "./submission-list.actions";
+import { runAsyncTask } from "@/src/lib/async";
+import NavigationButton from "@/src/components/navigation-button";
 
 const PAGE_SIZE = 10;
 
-const FILTERS: Array<"all" | DbSubmissionStatus> = [
-  "all",
+const CLEARABLE_STATUSES = [
   "pending",
   "under_review",
   "requested_info",
   "info_received",
   "waitlist",
   "rejected",
+] satisfies DbSubmissionStatus[];
+
+const FILTERS: Array<"all" | DbSubmissionStatus> = [
+  "all",
+  ...CLEARABLE_STATUSES,
 ];
 
 function yearValue(submission: SubmissionVehicleWithFormState) {
@@ -81,7 +101,7 @@ function EmptyImage() {
   );
 }
 
-function RenderImage(images: unknown) {
+function RenderImage(images: unknown, isDeleted?: boolean) {
   if (!Array.isArray(images) || !images.length) {
     return <EmptyImage />;
   }
@@ -96,7 +116,12 @@ function RenderImage(images: unknown) {
   }
 
   return (
-    <div className="relative h-12 w-16 overflow-hidden rounded-md border bg-muted">
+    <div
+      className={cn(
+        "relative h-12 w-16 overflow-hidden rounded-md border bg-muted",
+        { "opacity-60": isDeleted },
+      )}
+    >
       <Image
         src={mainImage.publicUrl}
         alt={mainImage.fileName}
@@ -113,9 +138,12 @@ function createEmptyCounts() {
   } satisfies CarSubmissionListResult["counts"];
 }
 
-function activeSort(columnSorting: SortingState) {
+function activeSort(columnSorting: SortingState, deleted: boolean) {
   const [sort] = columnSorting;
-  if (!sort) return { key: "updated" as const, descending: true };
+  if (!sort)
+    return deleted
+      ? { key: "deleted" as const, descending: true }
+      : { key: "updated" as const, descending: true };
 
   return {
     key: sort.id as CarSubmissionListSortKey,
@@ -123,7 +151,66 @@ function activeSort(columnSorting: SortingState) {
   };
 }
 
-export function SubmissionsClient() {
+function ClearSubmissionConfirmation({
+  clearSubmission,
+}: {
+  clearSubmission: () => Promise<boolean>;
+}) {
+  const modal = useModal();
+  const t = useTranslations("cars.submission.list");
+  const commonT = useTranslations("common");
+  const [value, setValue] = useState("");
+  const { isLoading, execute } = useAsync(false);
+  const confirmed = value === "delete";
+
+  async function handleClear() {
+    if (!confirmed || isLoading) return;
+
+    await execute(async () => {
+      const clearSuccess = await clearSubmission();
+      if (clearSuccess) modal.close();
+    });
+  }
+
+  return (
+    <>
+      <div className="space-y-2 p-4">
+        <Text.FormTitle size="base" className="font-medium">
+          {t("clearConfirmTitle")}
+        </Text.FormTitle>
+        <Text size="sm" color="muted-foreground">
+          {t("clearConfirmDescription")}
+        </Text>
+        <Text size="sm" color="muted-foreground" className="pt-2">
+          {t.rich("clearConfirmInstruction", {
+            keyword: (chunks) => (
+              <strong className="font-semibold text-black">{chunks}</strong>
+            ),
+          })}
+        </Text>
+        <Input
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+        />
+      </div>
+      <div className="flex justify-end gap-2 border-t bg-muted/50 p-4">
+        <Button variant="outline" disabled={isLoading} onClick={modal.close}>
+          {commonT("cancel")}
+        </Button>
+        <Button
+          loading={isLoading}
+          disabled={isLoading || !confirmed}
+          onClick={() => void handleClear()}
+        >
+          {t("clearAction")}
+        </Button>
+      </div>
+    </>
+  );
+}
+
+export function SubmissionsClient({ type }: { type?: "deleted" }) {
+  const router = useRouter();
   const locale = useLocale() as Locale;
   const t = useTranslations("cars.submission.list");
   const commonT = useTranslations("common");
@@ -147,9 +234,11 @@ export function SubmissionsClient() {
   const [status, setStatus] = useState<"all" | DbSubmissionStatus>("all");
   const [page, setPage] = useState(1);
 
-  const [columnSorting, setColumnSorting] = useState<SortingState>([
-    { desc: true, id: "updated" },
-  ]);
+  const [columnSorting, setColumnSorting] = useState<SortingState>([]);
+
+  const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  const isDeleted = type === "deleted";
 
   useEffect(() => {
     let cancelled = false;
@@ -160,9 +249,10 @@ export function SubmissionsClient() {
           page,
           pageSize: PAGE_SIZE,
           query: debounceQuery,
-          sort: activeSort(columnSorting),
+          sort: activeSort(columnSorting, isDeleted),
           status,
           hasArchivedAt: status === "archived",
+          hasDeletedAt: isDeleted,
         });
 
         if (cancelled) return;
@@ -182,7 +272,16 @@ export function SubmissionsClient() {
     return () => {
       cancelled = true;
     };
-  }, [columnSorting, execute, page, debounceQuery, status, t]);
+  }, [
+    columnSorting,
+    debounceQuery,
+    execute,
+    page,
+    refreshing,
+    status,
+    t,
+    isDeleted,
+  ]);
 
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -203,16 +302,79 @@ export function SubmissionsClient() {
     [],
   );
 
+  const handleRestoreSubmission = useCallback(
+    async (vehicleId: string, name: string) => {
+      await runAsyncTask<void>({
+        action: () => {
+          restoreSubmissionVehicle(vehicleId);
+          toast.success(t("restoreSuccess", { name }), {
+            description: t("restoreSuccessDescription"),
+          });
+        },
+        onError: (error) => {
+          logger.error("CAR-SUBMISSIONS", "Failed to restore submission", {
+            error: error instanceof Error ? error.message : String(error),
+            vehicleId,
+          });
+        },
+        onFinally: () => setRefreshing((current) => !current),
+      });
+    },
+    [t],
+  );
+
+  const onRestoreSubmission = useCallback(
+    (vehicleData: SubmissionVehicleWithFormState) => {
+      modal.open({
+        className: "gap-0 w-fit",
+        headerClassName: "border-b-0 px-4 pt-4 pb-3",
+        header: (
+          <Text.FormTitle size="base" weight="medium">
+            {t("restoreTitle", { name: vehicleData.makeOfVehicle })}
+          </Text.FormTitle>
+        ),
+        contentClassName: "px-4 pb-4",
+        content: (
+          <Text size="sm" color="muted-foreground">
+            {t("restoreDescription")}
+          </Text>
+        ),
+        footer: ({ loading, close, run }) => (
+          <>
+            <Button variant="outline" onClick={modal.close}>
+              {commonT("cancel")}
+            </Button>
+            <Button
+              loading={loading}
+              onClick={async () => {
+                void run(() =>
+                  handleRestoreSubmission(
+                    vehicleData.id,
+                    vehicleData.makeOfVehicle,
+                  ),
+                );
+                close();
+              }}
+            >
+              {t("restoreAction")}
+            </Button>
+          </>
+        ),
+      });
+    },
+    [commonT, handleRestoreSubmission, modal, t],
+  );
+
   const columns = useMemo<ColumnDef<SubmissionVehicleWithFormState, unknown>[]>(
     () => [
       {
         id: "image",
-        header: t("image"),
+        header: "Image",
         enableSorting: false,
         cell: ({ row }) => {
           const submission = row.original;
 
-          return (
+          return !isDeleted ? (
             <Link
               href={`/app/cars/submissions/${submission.id}`}
               aria-label={`${t("review")} ${submissionVehicleName(submission)}`}
@@ -222,20 +384,31 @@ export function SubmissionsClient() {
                 <div className="w-[62px] h-[46px]" />
               )}
             </Link>
+          ) : (
+            <>
+              {RenderImage(
+                submission.images as SubmissionVehicleImage[],
+                isDeleted,
+              ) ?? <div className="w-[62px] h-[46px]" />}
+            </>
           );
         },
       },
       {
         id: "owner",
         accessorFn: submissionOwnerName,
-        header: t("owner"),
+        header: "Owner",
         enableSorting: true,
         cell: ({ row }) => (
-          <div className="flex items-center gap-2 whitespace-nowrap">
+          <div
+            className={cn("flex items-center gap-2 whitespace-nowrap", {
+              "opacity-60": isDeleted,
+            })}
+          >
             <span className="font-medium">
               {submissionOwnerName(row.original)}
             </span>
-            {!isNewSubmission(row.original) ? (
+            {!isDeleted && !isNewSubmission(row.original) ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
                 <span className="size-1.5 rounded-full bg-primary" />
                 {t("new")}
@@ -247,10 +420,14 @@ export function SubmissionsClient() {
       {
         id: "reference",
         accessorFn: (submission) => submission.vehicleRef,
-        header: t("vehicleRef"),
+        header: "Reference",
         enableSorting: true,
         cell: ({ row }) => (
-          <span className="font-mono text-xs text-muted-foreground">
+          <span
+            className={cn("font-mono text-xs text-muted-foreground", {
+              "opacity-60": isDeleted,
+            })}
+          >
             {row.original.vehicleRef}
           </span>
         ),
@@ -258,10 +435,10 @@ export function SubmissionsClient() {
       {
         id: "vehicle",
         accessorFn: submissionVehicleName,
-        header: t("vehicle"),
+        header: "Vehicle",
         enableSorting: true,
         cell: ({ row }) => (
-          <span className="font-medium">
+          <span className={cn("font-medium", { "opacity-60": isDeleted })}>
             {submissionVehicleName(row.original)}
           </span>
         ),
@@ -269,84 +446,136 @@ export function SubmissionsClient() {
       {
         id: "year",
         accessorFn: yearValue,
-        header: t("year"),
+        header: "Year",
         enableSorting: true,
         cell: ({ row }) => (
-          <span className="tabular-nums">{row.original.yearOfManufacture}</span>
+          <span className={cn("tabular-nums", { "opacity-60": isDeleted })}>
+            {row.original.yearOfManufacture}
+          </span>
         ),
       },
       {
         id: "submitted",
         accessorFn: (submission) => submission.createdAt,
-        header: t("submitted"),
+        header: "Submitted",
         enableSorting: true,
         cell: ({ row }) => (
-          <span className="whitespace-nowrap text-muted-foreground">
+          <span
+            className={cn("whitespace-nowrap text-muted-foreground", {
+              "opacity-60": isDeleted,
+            })}
+          >
             {formatDate(row.original.createdAt, locale)}
           </span>
         ),
       },
       {
         id: "status",
-        accessorFn: (submission) =>
-          SUBMISSION_STATUS_LABELS[submission.status],
-        header: t("status"),
+        accessorFn: (submission) => SUBMISSION_STATUS_LABELS[submission.status],
+        header: "Status",
         enableSorting: false,
         cell: ({ row }) => (
-          <SubmissionStatusBadge status={row.original.status} />
+          <SubmissionStatusBadge
+            status={row.original.status}
+            className={cn({ "opacity-60": isDeleted })}
+          />
         ),
       },
-      {
-        id: "updated",
-        accessorFn: (submission) => submission.updatedAt,
-        header: t("lastUpdate"),
-        enableSorting: true,
-        cell: ({ row }) => (
-          <span className="whitespace-nowrap text-muted-foreground">
-            {formatDate(row.original.updatedAt, locale)}
-          </span>
-        ),
-      },
+      !isDeleted
+        ? {
+            id: "updated",
+            accessorFn: (submission) => submission.updatedAt,
+            header: "Last update",
+            enableSorting: true,
+            cell: ({ row }) => (
+              <span
+                className={cn("whitespace-nowrap text-muted-foreground", {
+                  "opacity-60": isDeleted,
+                })}
+              >
+                {formatDate(row.original.updatedAt, locale)}
+              </span>
+            ),
+          }
+        : {
+            id: "deleted",
+            accessorFn: (submission) => submission.deletedAt,
+            header: "Deleted",
+            enableSorting: true,
+            cell: ({ row }) => (
+              <span
+                className={cn("whitespace-nowrap text-muted-foreground", {
+                  "opacity-60": isDeleted,
+                })}
+              >
+                {formatDate(row.original.deletedAt, locale)}
+              </span>
+            ),
+          },
       {
         id: "actions",
-        header: t("action"),
+        header: "Action",
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/app/cars/submissions/${row.original.id}`}>
-                <SquarePen className="size-3.5" /> {t("review")}
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="text-muted-foreground hover:text-foreground"
-              aria-label={t("downloadAria", {
-                vehicle: submissionVehicleName(row.original),
-              })}
-              onClick={() =>
-                Promise.all([
-                  getCarSubmissionVehicle(row.original.id),
-                  getCarSubmissionClasses(),
-                ])
-                  .then(([car, classes]) =>
-                    downloadSubmissionForm(car, classes),
-                  )
-                  .catch(() => {
-                    toast.error(t("downloadError"), {
-                      description: t("tryAgain"),
-                    });
-                  })
-              }
-            >
-              <Download className="size-4" />
-            </Button>
+            {isDeleted ? (
+              <Button asChild variant="ghost" size="xs">
+                <Link
+                  href={`/app/cars/submissions/${row.original.id}`}
+                  aria-label={t("viewDetailsAria", {
+                    vehicle: row.original.makeOfVehicle,
+                  })}
+                >
+                  <Eye className="size-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/app/cars/submissions/${row.original.id}`}>
+                  <SquarePen className="size-3.5" /> {t("review")}
+                </Link>
+              </Button>
+            )}
+
+            {isDeleted ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onRestoreSubmission(row.original)}
+              >
+                <RotateCcw className="size-3.5" /> {t("restoreAction")}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={t("downloadAria", {
+                  vehicle: submissionVehicleName(row.original),
+                })}
+                onClick={() =>
+                  Promise.all([
+                    getCarSubmissionVehicle(row.original.id),
+                    getCarSubmissionClasses(),
+                  ])
+                    .then(([car, classes]) =>
+                      downloadSubmissionForm(car, classes),
+                    )
+                    .catch(() => {
+                      toast.error(t("downloadError"), {
+                        description: t("tryAgain"),
+                      });
+                    })
+                }
+              >
+                <Download className="size-4" />
+              </Button>
+            )}
           </div>
         ),
       },
     ],
-    [locale, t],
+    [isDeleted, locale, onRestoreSubmission, t],
   );
 
   const handleReorder = useCallback(() => {}, []);
@@ -368,9 +597,7 @@ export function SubmissionsClient() {
             {nextOpen ? t("openTitle") : t("closeTitle")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {nextOpen
-              ? t("openDescription")
-              : t("closeDescription")}
+            {nextOpen ? t("openDescription") : t("closeDescription")}
           </p>
         </div>
       ),
@@ -393,46 +620,121 @@ export function SubmissionsClient() {
     });
   }
 
+  async function clearSubmission() {
+    const clearedCount = await runAsyncTask({
+      action: () => clearSubmissionVehicle(CLEARABLE_STATUSES),
+      onError: (error) => {
+        logger.error("CAR-SUBMISSIONS", "Failed to clear submissions", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        toast.error(t("clearError"));
+      },
+    });
+
+    if (clearedCount === undefined) return false;
+
+    toast.success(t("clearSuccess", { count: clearedCount }), {
+      description: t("clearSuccessDescription"),
+    });
+    setRefreshing((current) => !current);
+    return true;
+  }
+
+  function requestClearSubmission() {
+    modal.handleHideShowCloseButton();
+    modal.preventBackdropClose();
+    modal.open({
+      className: "gap-0",
+      content: (
+        <ClearSubmissionConfirmation clearSubmission={clearSubmission} />
+      ),
+    });
+  }
+
   return (
     <>
+      {isDeleted && (
+        <NavigationButton
+          text={t("backToSubmissions")}
+          onClick={() => router.push("/app/cars/submissions")}
+        />
+      )}
       <PageHeader
-        title={t("title")}
-        description={t("description")}
-        viewport={["desktop", "mobile"]}
+        title={!isDeleted ? t("title") : t("deleteHistoryTitle")}
+        description={
+          !isDeleted ? t("description") : t("deleteHistoryDescription")
+        }
+        viewport={!isDeleted ? ["desktop", "mobile"] : undefined}
         titleAccessory={
-          featureFlagCarSubmission ? (
+          !isDeleted ? (
+            featureFlagCarSubmission ? (
+              <Badge
+                variant="outline"
+                className="border-emerald-200 bg-emerald-50 text-emerald-700"
+              >
+                {t("formOpen")}
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="bg-muted text-muted-foreground"
+              >
+                {t("formClosed")}
+              </Badge>
+            )
+          ) : (
             <Badge
               variant="outline"
-              className="border-emerald-200 bg-emerald-50 text-emerald-700"
+              className="border-muted-foreground/30 bg-muted text-muted-foreground"
             >
-              {t("formOpen")}
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="bg-muted text-muted-foreground">
-              {t("formClosed")}
+              <Text size="xs" weight="medium" color="muted-foreground">
+                {t("deletedCount", { count: counts.all })}
+              </Text>
             </Badge>
           )
         }
-      />
+      >
+        {!isDeleted && (
+          <>
+            <Button variant="ghost">
+              <Link
+                href="/app/cars/submissions/deleted"
+                className="flex items-center gap-2"
+              >
+                <History className="size-4" />{" "}
+                <Text size="sm">{t("deleteHistoryTitle")}</Text>
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              disabled={submissions.length === 0}
+              onClick={requestClearSubmission}
+            >
+              <Trash2 className="size-4" />{" "}
+              <Text size="sm">{t("clearData")}</Text>
+            </Button>
+          </>
+        )}
+      </PageHeader>
 
       <div className="flex min-w-0 flex-col gap-6">
-        <Card className="flex w-full min-w-0 flex-row items-center justify-between gap-5 p-5 shadow-none">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold">{t("acceptNew")}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {featureFlagCarSubmission
-                ? t("accepting")
-                : t("notAccepting")}
-            </p>
-          </div>
-          <Switch
-            checked={featureFlagCarSubmission}
-            onCheckedChange={requestSubmissionToggle}
-          />
-        </Card>
+        {!isDeleted && (
+          <Card className="flex w-full min-w-0 flex-row items-center justify-between gap-5 p-5 shadow-none">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">{t("acceptNew")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {featureFlagCarSubmission ? t("accepting") : t("notAccepting")}
+              </p>
+            </div>
+            <Switch
+              checked={featureFlagCarSubmission}
+              onCheckedChange={requestSubmissionToggle}
+            />
+          </Card>
+        )}
 
         <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
-          <div className="flex w-full min-w-0 items-center gap-5 overflow-scroll border-b lg:w-auto">
+          <div className="flex w-full min-w-0 max-w-full touch-pan-x items-center gap-5 overflow-x-auto overflow-y-hidden overscroll-x-contain border-b [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:w-auto">
             {FILTERS.map((filter) => {
               const active = status === filter;
               return (
@@ -447,7 +749,7 @@ export function SubmissionsClient() {
                     }
                   }}
                   className={cn(
-                    "-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-0.5 pb-2.5 text-xs font-semibold uppercase transition-colors",
+                    "flex shrink-0 items-center gap-1.5 border-b-2 px-0.5 pb-2.5 text-xs font-semibold uppercase transition-colors",
                     active
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-foreground cursor-pointer",
@@ -463,9 +765,7 @@ export function SubmissionsClient() {
                   >
                     {counts[filter] ?? 0}
                   </span>
-                  {filter === "all"
-                    ? t("all")
-                    : SUBMISSION_STATUS_LABELS[filter]}
+                  {filter === "all" ? "All" : SUBMISSION_STATUS_LABELS[filter]}
                 </button>
               );
             })}

@@ -113,6 +113,7 @@ export type InformationRequest = {
 
 export type CarSubmission = {
   id: string;
+  deletedAt: string | null;
   vehicleRef: string;
   formId: string;
   classId: string;

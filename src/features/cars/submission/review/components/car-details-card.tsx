@@ -32,17 +32,17 @@ export function CarDetailsCard({
   clearErrors,
   control,
   draft,
+  disabled,
   editLocale,
   errors,
-  isArchived,
   onImageFilesAdded,
   onImagesChange,
   setEditLocale,
   submission,
 }: ReviewFormControlProps & {
   draft: SubmissionReviewFormValues;
+  disabled: boolean;
   editLocale: Locale;
-  isArchived: boolean;
   onImageFilesAdded: (files: Array<{ id: string; file: File }>) => void;
   onImagesChange: (images: SubmissionReviewFormValues["images"]) => void;
   setEditLocale: (locale: Locale) => void;
@@ -64,7 +64,7 @@ export function CarDetailsCard({
           name={submissionVehicleName(draft)}
           required
           compact
-          disabled={isArchived}
+          disabled={disabled}
           invalid={hasImageError}
           onChange={onImagesChange}
           onFilesAdded={onImageFilesAdded}
@@ -79,7 +79,7 @@ export function CarDetailsCard({
       <section>
         <h3 className="mb-3 text-sm font-semibold">{t("personalInformation")}</h3>
         <fieldset
-          disabled={isArchived}
+          disabled={disabled}
           className="grid grid-cols-2 gap-4 sm:grid-cols-3"
         >
           <ControlledInput<SubmissionReviewFormValues>
@@ -148,7 +148,7 @@ export function CarDetailsCard({
       <section>
         <h3 className="mb-3 text-sm font-semibold">{t("vehicleInformation")}</h3>
         <fieldset
-          disabled={isArchived}
+          disabled={disabled}
           className="grid grid-cols-2 gap-4 sm:grid-cols-3"
         >
           <ControlledInput<SubmissionReviewFormValues>
@@ -239,6 +239,7 @@ export function CarDetailsCard({
               {t("editingLanguage")}
             </span>
             <FormLanguageToggle
+              // disabled={disabled}
               size="sm"
               value={editLocale}
               onValueChange={setEditLocale}
@@ -261,7 +262,7 @@ export function CarDetailsCard({
             message: errors.history?.en?.message ?? errors.history?.it?.message,
           }}
           rows={4}
-          disabled={isArchived}
+          disabled={disabled}
           onValueChange={() => clearErrors(["history.en", "history.it"])}
         />
       </section>
@@ -270,7 +271,7 @@ export function CarDetailsCard({
         control={control}
         name="documentFiles"
         previewFiles={savedDocuments}
-        disabled={isArchived}
+        disabled={disabled}
         required
         emptyText={
           savedDocuments.length

@@ -960,6 +960,10 @@ export type Database = {
         Args: { p_access_token: string; p_car_id: string }
         Returns: Json
       }
+      mark_car_submission_vehicles_deleted_by_statuses: {
+        Args: { p_statuses: Database["public"]["Enums"]["submission_status"][] }
+        Returns: number
+      }
       refresh_car_submission_deleted_at: {
         Args: { p_submission_id: string }
         Returns: undefined

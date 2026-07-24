@@ -31,6 +31,7 @@ type ReviewFormControlProps = {
 export function ReviewDecisionCard({
   clearErrors,
   control,
+  disabled,
   draft,
   errors,
   liveStatus,
@@ -40,6 +41,7 @@ export function ReviewDecisionCard({
   willSaveStatus,
 }: ReviewFormControlProps & {
   draft: SubmissionReviewFormValues;
+  disabled: boolean;
   liveStatus: SubmissionStatus;
   setValue: UseFormSetValue<SubmissionReviewFormValues>;
   statusChanged: boolean;
@@ -70,6 +72,7 @@ export function ReviewDecisionCard({
           ) : (
             <ControlledDropdown<SubmissionReviewFormValues>
               control={control}
+              disabled={disabled}
               name="status"
               label="Status"
               options={statusOptions}
@@ -149,6 +152,7 @@ export function ReviewDecisionCard({
                   message: errors.newInfoMessage?.message,
                 }}
                 rows={4}
+                disabled={disabled}
                 placeholder={t("messagePlaceholder")}
                 onValueChange={() => {
                   clearErrors("newInfoMessage");
@@ -158,6 +162,7 @@ export function ReviewDecisionCard({
               <Button
                 variant="outline"
                 size="sm"
+                disabled={disabled}
                 className="w-fit"
                 onClick={() => {
                   setValue("newInfoMessageRequired", true, {
