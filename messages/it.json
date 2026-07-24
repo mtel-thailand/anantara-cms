@@ -267,16 +267,7 @@
         "restoreAction": "Ripristina",
         "restoreSuccess": "{name} ripristinata",
         "restoreSuccessDescription": "La candidatura è tornata nella pagina Candidature.",
-        "viewDetailsAria": "Visualizza i dettagli di {vehicle}",
-        "statusPending": "In attesa",
-        "statusUnderReview": "In revisione",
-        "statusRequestInfo": "Richiedi informazioni",
-        "statusInfoReceived": "Informazioni ricevute",
-        "statusWaitlist": "Lista d’attesa",
-        "statusNotSelected": "Non selezionata",
-        "statusApproved": "Approvata",
-        "statusArchived": "Archiviata",
-        "statusFinalized": "Finalizzata"
+        "viewDetailsAria": "Visualizza i dettagli di {vehicle}"
       },
       "validation": {
         "ownerName": "Inserisci il cognome del proprietario.",

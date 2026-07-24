@@ -267,16 +267,7 @@
         "restoreAction": "Restore",
         "restoreSuccess": "{name} restored",
         "restoreSuccessDescription": "The submission is back on the Submissions page.",
-        "viewDetailsAria": "See details for {vehicle}",
-        "statusPending": "Pending",
-        "statusUnderReview": "Under review",
-        "statusRequestInfo": "Request info",
-        "statusInfoReceived": "Info received",
-        "statusWaitlist": "Waitlist",
-        "statusNotSelected": "Not selected",
-        "statusApproved": "Approved",
-        "statusArchived": "Archived",
-        "statusFinalized": "Finalized"
+        "viewDetailsAria": "See details for {vehicle}"
       },
       "validation": {
         "ownerName": "Enter the owner's name.",

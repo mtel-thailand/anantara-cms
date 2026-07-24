@@ -48,19 +48,6 @@ export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatusKey, string> = {
   finalized: "Finalized",
 };
 
-export const SUBMISSION_STATUS_TRANSLATION_KEYS = {
-  pending: "statusPending",
-  under_review: "statusUnderReview",
-  requested_info: "statusRequestInfo",
-  info_received: "statusInfoReceived",
-  waitlist: "statusWaitlist",
-  not_selected: "statusNotSelected",
-  rejected: "statusNotSelected",
-  approved: "statusApproved",
-  archived: "statusArchived",
-  finalized: "statusFinalized",
-} as const satisfies Record<SubmissionStatusKey, string>;
-
 export const SUBMISSION_STATUS_CLASSES: Record<SubmissionStatusKey, string> = {
   pending: "border-amber-200 bg-amber-50 text-amber-700",
   under_review: "border-sky-200 bg-sky-50 text-sky-700",

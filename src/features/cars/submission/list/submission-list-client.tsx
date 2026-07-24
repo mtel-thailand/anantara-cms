@@ -40,7 +40,7 @@ import {
 import type { CarSubmissionListSortKey } from "@/src/features/cars/submission/api/submission.service";
 import { logger } from "@/src/lib/logger";
 import { SubmissionsTableSkeleton } from "./components/submission-list-skeleton";
-import { SUBMISSION_STATUS_TRANSLATION_KEYS } from "@/src/features/cars/submission/submission.types";
+import { SUBMISSION_STATUS_LABELS } from "@/src/features/cars/submission/submission.types";
 import { isSubmissionVehicleImage } from "@/src/features/cars/submission/submission.types";
 import type {
   DbSubmissionStatus,
@@ -370,7 +370,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
     () => [
       {
         id: "image",
-        header: t("image"),
+        header: "Image",
         enableSorting: false,
         cell: ({ row }) => {
           const submission = row.original;
@@ -398,7 +398,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       {
         id: "owner",
         accessorFn: submissionOwnerName,
-        header: t("owner"),
+        header: "Owner",
         enableSorting: true,
         cell: ({ row }) => (
           <div
@@ -421,7 +421,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       {
         id: "reference",
         accessorFn: (submission) => submission.vehicleRef,
-        header: t("vehicleRef"),
+        header: "Reference",
         enableSorting: true,
         cell: ({ row }) => (
           <span
@@ -436,7 +436,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       {
         id: "vehicle",
         accessorFn: submissionVehicleName,
-        header: t("vehicle"),
+        header: "Vehicle",
         enableSorting: true,
         cell: ({ row }) => (
           <span
@@ -449,7 +449,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       {
         id: "year",
         accessorFn: yearValue,
-        header: t("year"),
+        header: "Year",
         enableSorting: true,
         cell: ({ row }) => (
           <span
@@ -462,7 +462,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       {
         id: "submitted",
         accessorFn: (submission) => submission.createdAt,
-        header: t("submitted"),
+        header: "Submitted",
         enableSorting: true,
         cell: ({ row }) => (
           <span
@@ -476,9 +476,8 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       },
       {
         id: "status",
-        accessorFn: (submission) =>
-          t(SUBMISSION_STATUS_TRANSLATION_KEYS[submission.status]),
-        header: t("status"),
+        accessorFn: (submission) => SUBMISSION_STATUS_LABELS[submission.status],
+        header: "Status",
         enableSorting: false,
         cell: ({ row }) => (
           <SubmissionStatusBadge
@@ -491,7 +490,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         ? {
             id: "updated",
             accessorFn: (submission) => submission.updatedAt,
-            header: t("lastUpdate"),
+            header: "Last update",
             enableSorting: true,
             cell: ({ row }) => (
               <span
@@ -506,7 +505,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         : {
             id: "deleted",
             accessorFn: (submission) => submission.deletedAt,
-            header: t("deleted"),
+            header: "Deleted",
             enableSorting: true,
             cell: ({ row }) => (
               <span
@@ -520,7 +519,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
           },
       {
         id: "actions",
-        header: t("action"),
+        header: "Action",
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
@@ -780,8 +779,8 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
                     {counts[filter] ?? 0}
                   </span>
                   {filter === "all"
-                    ? t("all")
-                    : t(SUBMISSION_STATUS_TRANSLATION_KEYS[filter])}
+                    ? "All"
+                    : SUBMISSION_STATUS_LABELS[filter]}
                 </button>
               );
             })}
