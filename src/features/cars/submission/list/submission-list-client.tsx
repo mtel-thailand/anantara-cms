@@ -61,6 +61,7 @@ import {
 } from "./submission-list.actions";
 import { runAsyncTask } from "@/src/lib/async";
 import NavigationButton from "@/src/components/navigation-button";
+import { useNotificationContext } from "@/src/components/providers/notification-provider";
 
 const PAGE_SIZE = 10;
 
@@ -215,6 +216,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
   const t = useTranslations("cars.submission.list");
   const commonT = useTranslations("common");
   const modal = useModal();
+  const { submissionCount } = useNotificationContext();
   const { isLoading, execute } = useAsync(true);
   const [submissions, setSubmissions] = useState<
     SubmissionVehicleWithFormState[]
@@ -278,6 +280,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
     execute,
     page,
     refreshing,
+    submissionCount,
     status,
     t,
     isDeleted,
