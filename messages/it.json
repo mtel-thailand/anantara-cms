@@ -295,8 +295,9 @@
     "cars": {
       "root": "Auto",
       "submissions": "Candidature",
-      "classes": "Classi",
-      "list": "Elenco auto",
+      "forms": "Moduli auto e prenotazioni",
+      "finalized": "Auto finalizzate",
+      "classes": "Classi e assegnazione",
       "contentField": "Campo contenuto"
     },
     "awards": {

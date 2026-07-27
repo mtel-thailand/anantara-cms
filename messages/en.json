@@ -295,8 +295,9 @@
     "cars": {
       "root": "Cars",
       "submissions": "Submissions",
-      "classes": "Classes",
-      "list": "Car list",
+      "forms": "Car & reservation forms",
+      "finalized": "Finalized cars",
+      "classes": "Classes & assignment",
       "contentField": "Content field"
     },
     "awards": {

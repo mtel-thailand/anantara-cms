@@ -1,0 +1,31 @@
+import { z } from "zod";
+
+import { OWNER_RESERVATION_STATUSES } from "./owner-reservation-list.types";
+
+export const OwnerReservationListRpcSchema = z
+  .object({
+    data: z.array(
+      z
+        .object({
+          id: z.string().uuid(),
+          submission_id: z.string().uuid(),
+          owner_title: z.string(),
+          owner_forenames: z.string(),
+          owner_surname: z.string(),
+          owner_email: z.string().min(1),
+          status: z.enum(OWNER_RESERVATION_STATUSES),
+          seen: z.boolean(),
+          created_at: z.string(),
+          updated_at: z.string(),
+          approved_vehicle_count: z.number().int().nonnegative(),
+          finalized_vehicle_count: z.number().int().nonnegative(),
+        })
+        .strict(),
+    ),
+    total: z.number().int().nonnegative(),
+  })
+  .strict();
+
+export type OwnerReservationListRpc = z.infer<
+  typeof OwnerReservationListRpcSchema
+>;
