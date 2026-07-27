@@ -13,6 +13,7 @@ import { JwtPayload } from "@supabase/supabase-js";
 import { selectSetUser, useAuthStore } from "@/src/stores/auth";
 import { menuConfig } from "@/src/constants/nav-config";
 import OverlayPage from "@/src/components/layout/overlay-page";
+import { NotificationProvider } from "@/src/components/providers/notification-provider";
 
 export type OverlayElementType = {
   header?: ReactNode | null;
@@ -74,20 +75,22 @@ export default function AppLayoutProvider({
         setOverlayPage,
       }}
     >
-      <div className="w-screen h-screen flex flex-row">
-        <Sidebar menu={menuConfig} />
-        <main className="min-w-0 min-h-0 flex flex-1 flex-col overflow-y-auto overscroll-contain">
-          <Topbar />
-          <div className="mx-auto max-w-6xl w-full px-10 py-9 content-animate-in">
-            {children}
-          </div>
-        </main>
-      </div>
-      <OverlayPage
-        open={openOverlay}
-        setOpen={setOpenOverlay}
-        overlayElement={overlayElement}
-      />
+      <NotificationProvider>
+        <div className="w-screen h-screen flex flex-row">
+          <Sidebar menu={menuConfig} />
+          <main className="min-w-0 min-h-0 flex flex-1 flex-col overflow-y-auto overscroll-contain">
+            <Topbar />
+            <div className="mx-auto max-w-6xl w-full px-10 py-9 content-animate-in">
+              {children}
+            </div>
+          </main>
+        </div>
+        <OverlayPage
+          open={openOverlay}
+          setOpen={setOpenOverlay}
+          overlayElement={overlayElement}
+        />
+      </NotificationProvider>
     </AppLayoutContext.Provider>
   );
 }

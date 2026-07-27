@@ -21,7 +21,7 @@ import {
 import useAsync from "@/src/hooks/use-async";
 import { useModal } from "@/src/components/providers/modal-provider";
 import Text from "@/src/components/ui/text";
-import { useUnseenSubmissionCount } from "@/src/features/cars/submission/hooks/use-unseen-submission-count";
+import { useNotificationContext } from "@/src/components/providers/notification-provider";
 
 function CountBadge({ count }: { count: number }) {
   return (
@@ -226,10 +226,10 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
 
   const sidebarWidth = useSidebarStore(selectWidth);
   const setSidebarWidth = useSidebarStore(selectSetSidebarWidth);
-  const unseenSubmissionCount = useUnseenSubmissionCount();
+  const { submissionCount } = useNotificationContext();
 
   const navCounts: Record<string, number> = {
-    "/app/cars/submissions": unseenSubmissionCount,
+    "/app/cars/submissions": submissionCount,
   };
 
   const startResize = (event: ReactMouseEvent<HTMLButtonElement>) => {
