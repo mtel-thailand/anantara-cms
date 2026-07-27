@@ -310,6 +310,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
       await runAsyncTask<void>({
         action: () => {
           restoreSubmissionVehicle(vehicleId);
+          setRefreshing((prev) => !prev);
           toast.success(t("restoreSuccess", { name }), {
             description: t("restoreSuccessDescription"),
           });
