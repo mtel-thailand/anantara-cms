@@ -11,6 +11,8 @@ export const OWNER_RESERVATION_STATUSES = [
   "approved",
 ] as const satisfies readonly Database["public"]["Enums"]["owner_reservation_status"][];
 
+export type OwnerFormStatus = (typeof OWNER_RESERVATION_STATUSES)[number];
+
 export type OwnerReservationStatus =
   Database["public"]["Enums"]["owner_reservation_status"];
 
@@ -21,11 +23,10 @@ export type OwnerReservationListFilters = {
   hasDeletedAt: boolean;
 };
 
-export type OwnerReservationListParams =
-  PaginationRequest<
-    OwnerReservationListSortKey,
-    OwnerReservationListFilters
-  >;
+export type OwnerReservationListParams = PaginationRequest<
+  OwnerReservationListSortKey,
+  OwnerReservationListFilters
+>;
 
 export type OwnerReservationListItem = {
   id: string;
@@ -42,5 +43,6 @@ export type OwnerReservationListItem = {
   finalizedVehicleCount: number;
 };
 
-export type OwnerReservationListResult =
-  PaginationResult<OwnerReservationListItem[]>;
+export type OwnerReservationListResult = PaginationResult<
+  OwnerReservationListItem[]
+>;

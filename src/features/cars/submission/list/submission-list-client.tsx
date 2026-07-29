@@ -664,7 +664,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         />
       )}
       <PageHeader
-        title={!isDeleted ? t("title") : t("deleteHistoryTitle")}
+        title={!isDeleted ? t("title") : commonT("deleteHistoryTitle")}
         description={
           !isDeleted ? t("description") : t("deleteHistoryDescription")
         }
@@ -706,7 +706,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
                 className="flex items-center gap-2"
               >
                 <History className="size-4" />{" "}
-                <Text size="sm">{t("deleteHistoryTitle")}</Text>
+                <Text size="sm">{commonT("deleteHistoryTitle")}</Text>
               </Link>
             </Button>
             <Button
@@ -715,7 +715,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
               onClick={requestClearSubmission}
             >
               <Trash2 className="size-4" />{" "}
-              <Text size="sm">{t("clearData")}</Text>
+              <Text size="sm">{commonT("clearData")}</Text>
             </Button>
           </>
         )}
@@ -776,7 +776,6 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
           </div>
 
           <div className="relative w-full sm:w-72">
-            <Search className="z-5 absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               aria-label={t("searchAria")}
               value={query}
@@ -785,7 +784,8 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
                 setPage(1);
               }}
               placeholder={t("search")}
-              className="bg-card pl-9 truncate"
+              className="bg-card truncate"
+              leftButton={{ icon: Search, label: "eiei" }}
             />
           </div>
         </div>

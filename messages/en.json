@@ -12,7 +12,9 @@
     "submittedLastUpdate": "Submitted {submitted} · Last update {updated}",
     "keepEditing": "Keep editing",
     "remove": "Remove",
-    "restore": "Restore"
+    "restore": "Restore",
+    "deleteHistoryTitle": "Delete history",
+    "clearData": "Clear data"
   },
   "topbar": {
     "editLanguage": "Edit language",
@@ -247,7 +249,6 @@
         "closeDescription": "The public form will be replaced with a submissions-closed message.",
         "openAction": "Open submissions",
         "closeAction": "Close submissions",
-        "clearData": "Clear data",
         "clearTitle": "Clear submission data?",
         "clearDescription": "Matching submissions will move to Delete history. You can restore them later.",
         "clearAction": "Clear data",
@@ -257,7 +258,6 @@
         "clearConfirmTitle": "Clear all submissions?",
         "clearConfirmDescription": "This removes every car submission on this page. Cleared items move to the delete history, where they can be restored.",
         "clearConfirmInstruction": "Type <keyword>delete</keyword> to confirm",
-        "deleteHistoryTitle": "Delete history",
         "deleteHistoryDescription": "Cleared car submissions. Restore any one to move it back onto the Submissions page.",
         "deleted": "Deleted",
         "deletedCount": "{count, plural, one {# deleted} other {# deleted}}",

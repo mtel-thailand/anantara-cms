@@ -3,10 +3,12 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type SetStateAction,
 } from "react";
+import type { OnChangeFn, SortingState } from "@tanstack/react-table";
 
 import useAsync from "@/src/hooks/use-async";
 import { useDebounce } from "@/src/hooks/use-debounce";
@@ -64,7 +66,10 @@ export function usePaginationState<
   const [total, setTotal] = useState(0);
   const [page, setPageState] = useState(Math.max(initialPage, 1));
   const [query, setQueryState] = useState(initialQuery);
-  const [sort, setSortState] = useState<PaginationSort<TSortKey>>(initialSort);
+  const initialSortRef = useRef(initialSort);
+  const [sortingState, setSortingState] = useState<SortingState>([
+    { id: initialSort.key, desc: initialSort.descending },
+  ]);
   const [filters, setFiltersState] = useState<TFilters>(initialFilters);
   const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState<unknown>(null);
@@ -72,6 +77,13 @@ export function usePaginationState<
   const { isLoading, execute } = useAsync(true);
   const debouncedQuery = useDebounce(query, queryDebounceMs);
   const pageCount = Math.max(1, Math.ceil(total / effectivePageSize));
+  const sort = useMemo<PaginationSort<TSortKey>>(() => {
+    const [activeSort] = sortingState;
+
+    return activeSort
+      ? { key: activeSort.id as TSortKey, descending: activeSort.desc }
+      : initialSortRef.current;
+  }, [sortingState]);
 
   useEffect(() => {
     const request = ++requestSequence.current;
@@ -128,8 +140,10 @@ export function usePaginationState<
     setPageState(1);
   }, []);
 
-  const setSort = useCallback((key: TSortKey, descending: boolean) => {
-    setSortState({ key, descending });
+  const setSortState = useCallback<OnChangeFn<SortingState>>((updater) => {
+    setSortingState((current) =>
+      typeof updater === "function" ? updater(current) : updater,
+    );
     setPageState(1);
   }, []);
 
@@ -150,12 +164,13 @@ export function usePaginationState<
     pageCount,
     query,
     sort,
+    sortingState,
     filters,
     isLoading,
     error,
     setPage,
     setQuery,
-    setSort,
+    setSortState,
     setFilters,
     refresh,
   };

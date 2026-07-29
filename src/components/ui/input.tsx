@@ -18,6 +18,12 @@ export interface InputProps extends ComponentProps<"input"> {
     hasError: boolean;
     message?: string;
   };
+  leftButton?: {
+    label: string;
+    disabled?: boolean;
+    onClick?: (event: ReactMouseEvent<HTMLButtonElement>) => void;
+    icon: LucideIcon;
+  };
   rightButton?: {
     label: string;
     disabled?: boolean;
@@ -28,9 +34,20 @@ export interface InputProps extends ComponentProps<"input"> {
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
-    { className, type, label, htmlFor, required, error, rightButton, ...props },
+    {
+      className,
+      type,
+      label,
+      htmlFor,
+      required,
+      error,
+      leftButton,
+      rightButton,
+      ...props
+    },
     ref,
   ) => {
+    const LeftButtonIcon = leftButton?.icon;
     const RightButtonIcon = rightButton?.icon;
 
     return (
@@ -38,10 +55,25 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <div className="flex flex-col gap-2">
           {label && (
             <Label htmlFor={htmlFor}>
-              {label}{" "}{required && <span className="text-destructive">*</span>}
+              {label} {required && <span className="text-destructive">*</span>}
             </Label>
           )}
           <div className="relative">
+            {leftButton && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="absolute top-1/2 left-1.5 -translate-y-1/2 rounded-md"
+                aria-label={leftButton?.label}
+                disabled={leftButton?.disabled}
+                onClick={leftButton?.onClick}
+              >
+                {LeftButtonIcon && (
+                  <LeftButtonIcon className="size-4 text-muted-foreground" />
+                )}
+              </Button>
+            )}
             <input
               type={type}
               className={cn(
@@ -56,6 +88,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                 "aria-invalid:focus-visible:border-destructive aria-invalid:focus-visible:ring-destructive/20",
                 "dark:bg-input/30 dark:disabled:bg-input/80",
                 "dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+                { "pl-8": leftButton },
                 { "pr-8": rightButton },
                 className,
               )}
