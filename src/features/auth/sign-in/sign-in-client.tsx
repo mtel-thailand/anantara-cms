@@ -15,10 +15,7 @@ import LogoBlack from "@/public/images/logo-black.png";
 import Text from "@/src/components/ui/text";
 import { Eye, EyeOff } from "lucide-react";
 import useAsync from "@/src/hooks/use-async";
-import {
-  signInSchema,
-  type SignInFormValues,
-} from "./sign-in.schema";
+import { signInSchema, type SignInFormValues } from "./sign-in.schema";
 
 const defaultValues: SignInFormValues = {
   email: "",
@@ -56,7 +53,7 @@ export function SignInClient({
           if (error) throw error;
 
           // Update this route to redirect to an authenticated route. The user already has an active session.
-          router.push("/app/agenda");
+          router.push("/app/cars/submissions");
         } catch (error: unknown) {
           setError(
             error instanceof Error ? error.message : "An error occurred",

@@ -5,8 +5,8 @@ import type { PaginationSort } from "@/src/hooks/use-pagination-state";
 
 import { getOwnerReservations } from "../owner-reservation-list.service";
 import type {
+  OwnerReservationListData,
   OwnerReservationListFilters,
-  OwnerReservationListItem,
   OwnerReservationListSortKey,
 } from "../owner-reservation-list.types";
 
@@ -23,7 +23,7 @@ export function useOwnerReservationList({
   filters?: OwnerReservationListFilters;
 }) {
   return usePaginationState<
-    OwnerReservationListItem[],
+    OwnerReservationListData,
     OwnerReservationListSortKey,
     OwnerReservationListFilters
   >({

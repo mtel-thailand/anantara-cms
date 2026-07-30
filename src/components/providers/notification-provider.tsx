@@ -8,8 +8,10 @@ import {
 } from "react";
 
 import { useUnseenSubmissionCount } from "@/src/features/cars/submission/hooks/use-unseen-submission-count";
+import { useUnseenReservationFormCount } from "@/src/features/cars/reservation/list/hooks/use-unseen-reservation-form-count";
 
 type NotificationContextValue = {
+  reservationFormCount: number;
   submissionCount: number;
 };
 
@@ -19,7 +21,11 @@ const NotificationContext = createContext<NotificationContextValue | null>(
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const submissionCount = useUnseenSubmissionCount();
-  const value = useMemo(() => ({ submissionCount }), [submissionCount]);
+  const reservationFormCount = useUnseenReservationFormCount();
+  const value = useMemo(
+    () => ({ reservationFormCount, submissionCount }),
+    [reservationFormCount, submissionCount],
+  );
 
   return (
     <NotificationContext.Provider value={value}>

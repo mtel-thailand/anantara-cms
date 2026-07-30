@@ -22,6 +22,15 @@ export const OwnerReservationListRpcSchema = z
         })
         .strict(),
     ),
+    status_counts: z
+      .object({
+        all: z.number().int().nonnegative(),
+        required: z.number().int().nonnegative(),
+        requested: z.number().int().nonnegative(),
+        received: z.number().int().nonnegative(),
+        approved: z.number().int().nonnegative(),
+      })
+      .strict(),
     total: z.number().int().nonnegative(),
   })
   .strict();

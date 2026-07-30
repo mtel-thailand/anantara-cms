@@ -16,6 +16,8 @@ export type OwnerFormStatus = (typeof OWNER_RESERVATION_STATUSES)[number];
 export type OwnerReservationStatus =
   Database["public"]["Enums"]["owner_reservation_status"];
 
+export type OwnerReservationFilter = OwnerReservationStatus | "all";
+
 export type OwnerReservationListSortKey = "status" | "updated";
 
 export type OwnerReservationListFilters = {
@@ -43,6 +45,28 @@ export type OwnerReservationListItem = {
   finalizedVehicleCount: number;
 };
 
-export type OwnerReservationListResult = PaginationResult<
-  OwnerReservationListItem[]
+export type OwnerReservationInformationRequest = {
+  id: string;
+  message: string;
+  sentDate: string;
+};
+
+export type OwnerReservationDetail =
+  Database["public"]["Tables"]["owner_reservations"]["Row"] & {
+    carNames: string[];
+    infoRequests: OwnerReservationInformationRequest[];
+    ownerPackageName: string;
+  };
+
+export type OwnerReservationStatusCounts = Record<
+  OwnerReservationStatus | "all",
+  number
 >;
+
+export type OwnerReservationListData = {
+  items: OwnerReservationListItem[];
+  statusCounts: OwnerReservationStatusCounts;
+};
+
+export type OwnerReservationListResult =
+  PaginationResult<OwnerReservationListData>;

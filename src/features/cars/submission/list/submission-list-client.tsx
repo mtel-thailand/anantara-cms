@@ -668,7 +668,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
         description={
           !isDeleted ? t("description") : t("deleteHistoryDescription")
         }
-        viewport={!isDeleted ? ["desktop", "mobile"] : undefined}
+        viewport={undefined}
         titleAccessory={
           !isDeleted ? (
             featureFlagCarSubmission ? (
@@ -785,7 +785,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
               }}
               placeholder={t("search")}
               className="bg-card truncate"
-              leftButton={{ icon: Search, label: "eiei" }}
+              leftButton={{ icon: Search, label: "", disabled: true }}
             />
           </div>
         </div>

@@ -780,7 +780,7 @@ export type Database = {
           accepts_personal_data_processing: boolean
           approved_at: string | null
           approved_by: string | null
-          arrival_date: string
+          arrival_date: string | null
           assistant_country: string | null
           assistant_email: string | null
           assistant_forenames: string | null
@@ -789,7 +789,7 @@ export type Database = {
           assistant_title: string | null
           confirms_information: boolean
           created_at: string
-          departure_date: string
+          departure_date: string | null
           guest_country: string | null
           guest_forenames: string | null
           guest_surname: string | null
@@ -801,19 +801,22 @@ export type Database = {
           invoice_iata_code: string | null
           invoice_name_or_company: string | null
           invoice_pec_or_sdi: string | null
-          invoice_recipient: Database["public"]["Enums"]["invoice_recipient"]
+          invoice_recipient:
+            | Database["public"]["Enums"]["invoice_recipient"]
+            | null
           invoice_vat_number: string | null
           invoice_zip_code: string | null
-          owner_address: string
-          owner_country: string
-          owner_email: string
-          owner_forenames: string
-          owner_package_id: string
-          owner_phone_number: string
-          owner_surname: string
-          owner_title: string
-          owner_zip_code: string
+          owner_address: string | null
+          owner_country: string | null
+          owner_email: string | null
+          owner_forenames: string | null
+          owner_package_id: string | null
+          owner_phone_number: string | null
+          owner_surname: string | null
+          owner_title: string | null
+          owner_zip_code: string | null
           received_at: string | null
+          request_note: Json
           requested_at: string | null
           room_category: string | null
           seen: boolean
@@ -827,7 +830,7 @@ export type Database = {
           accepts_personal_data_processing?: boolean
           approved_at?: string | null
           approved_by?: string | null
-          arrival_date: string
+          arrival_date?: string | null
           assistant_country?: string | null
           assistant_email?: string | null
           assistant_forenames?: string | null
@@ -836,7 +839,7 @@ export type Database = {
           assistant_title?: string | null
           confirms_information?: boolean
           created_at?: string
-          departure_date: string
+          departure_date?: string | null
           guest_country?: string | null
           guest_forenames?: string | null
           guest_surname?: string | null
@@ -848,19 +851,22 @@ export type Database = {
           invoice_iata_code?: string | null
           invoice_name_or_company?: string | null
           invoice_pec_or_sdi?: string | null
-          invoice_recipient: Database["public"]["Enums"]["invoice_recipient"]
+          invoice_recipient?:
+            | Database["public"]["Enums"]["invoice_recipient"]
+            | null
           invoice_vat_number?: string | null
           invoice_zip_code?: string | null
-          owner_address: string
-          owner_country: string
-          owner_email: string
-          owner_forenames: string
-          owner_package_id: string
-          owner_phone_number: string
-          owner_surname: string
-          owner_title: string
-          owner_zip_code: string
+          owner_address?: string | null
+          owner_country?: string | null
+          owner_email?: string | null
+          owner_forenames?: string | null
+          owner_package_id?: string | null
+          owner_phone_number?: string | null
+          owner_surname?: string | null
+          owner_title?: string | null
+          owner_zip_code?: string | null
           received_at?: string | null
+          request_note?: Json
           requested_at?: string | null
           room_category?: string | null
           seen?: boolean
@@ -874,7 +880,7 @@ export type Database = {
           accepts_personal_data_processing?: boolean
           approved_at?: string | null
           approved_by?: string | null
-          arrival_date?: string
+          arrival_date?: string | null
           assistant_country?: string | null
           assistant_email?: string | null
           assistant_forenames?: string | null
@@ -883,7 +889,7 @@ export type Database = {
           assistant_title?: string | null
           confirms_information?: boolean
           created_at?: string
-          departure_date?: string
+          departure_date?: string | null
           guest_country?: string | null
           guest_forenames?: string | null
           guest_surname?: string | null
@@ -895,19 +901,22 @@ export type Database = {
           invoice_iata_code?: string | null
           invoice_name_or_company?: string | null
           invoice_pec_or_sdi?: string | null
-          invoice_recipient?: Database["public"]["Enums"]["invoice_recipient"]
+          invoice_recipient?:
+            | Database["public"]["Enums"]["invoice_recipient"]
+            | null
           invoice_vat_number?: string | null
           invoice_zip_code?: string | null
-          owner_address?: string
-          owner_country?: string
-          owner_email?: string
-          owner_forenames?: string
-          owner_package_id?: string
-          owner_phone_number?: string
-          owner_surname?: string
-          owner_title?: string
-          owner_zip_code?: string
+          owner_address?: string | null
+          owner_country?: string | null
+          owner_email?: string | null
+          owner_forenames?: string | null
+          owner_package_id?: string | null
+          owner_phone_number?: string | null
+          owner_surname?: string | null
+          owner_title?: string | null
+          owner_zip_code?: string | null
           received_at?: string | null
+          request_note?: Json
           requested_at?: string | null
           room_category?: string | null
           seen?: boolean
@@ -1249,6 +1258,22 @@ export type Database = {
         Args: { p_access_token: string; p_car_id: string }
         Returns: Json
       }
+      get_owner_registration: {
+        Args: { p_access_token: string }
+        Returns: Json
+      }
+      get_owner_reservations_list: {
+        Args: {
+          p_has_deleted_at?: boolean
+          p_page?: number
+          p_page_size?: number
+          p_query?: string
+          p_sort_desc?: boolean
+          p_sort_key?: string
+          p_status?: Database["public"]["Enums"]["owner_reservation_status"]
+        }
+        Returns: Json
+      }
       mark_car_submission_vehicles_deleted_by_statuses: {
         Args: { p_statuses: Database["public"]["Enums"]["submission_status"][] }
         Returns: number
@@ -1260,6 +1285,10 @@ export type Database = {
       submit_car_application: {
         Args: { p_submission: Json; p_vehicles: Json }
         Returns: string
+      }
+      submit_owner_registration: {
+        Args: { p_access_token: string; p_registration: Json }
+        Returns: Json
       }
       update_my_submission_vehicle: {
         Args: { p_access_token: string; p_car_id: string; p_vehicle: Json }
