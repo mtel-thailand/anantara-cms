@@ -22,6 +22,7 @@ export function emptyReviewFormValues(): SubmissionReviewFormValues {
       bodyStyle: "",
       coachbuilder: "",
       exteriorColour: "",
+      interiorColour: "",
       chassisNumber: "",
       engineNumber: "",
     },
