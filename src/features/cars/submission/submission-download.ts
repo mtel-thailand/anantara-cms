@@ -189,11 +189,15 @@ async function renderBasicInformation(
     { label: "Make of vehicle / marque", value: submission.vehicle.make },
     { label: "Model", value: submission.vehicle.model },
     { label: "Year of manufacture", value: String(submission.year) },
-    { label: "Body style", value: submission.vehicle.bodyStyle },
+    { label: "Body Type", value: submission.vehicle.bodyStyle },
     { label: "Coachbuilder", value: submission.vehicle.coachbuilder },
     {
       label: "Exterior colour(s)",
       value: submission.vehicle.exteriorColour,
+    },
+    {
+      label: "Interior colour(s)",
+      value: submission.vehicle.interiorColour,
     },
     { label: "Chassis no.", value: submission.vehicle.chassisNumber },
     { label: "Engine no.", value: submission.vehicle.engineNumber },
