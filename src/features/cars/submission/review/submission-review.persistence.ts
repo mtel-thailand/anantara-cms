@@ -18,6 +18,45 @@ export type CanonicalSubmission = {
   submission: CarSubmission;
 };
 
+export async function ensureOwnerReservationForApprovedSubmission(
+  supabase: ServerSupabaseClient,
+  submission: CarSubmission,
+) {
+  const { error: reservationError } = await supabase
+    .from("owner_reservations")
+    .upsert(
+      {
+        owner_address: submission.owner.address || null,
+        owner_email: submission.owner.email,
+        owner_forenames: submission.owner.firstName,
+        owner_phone_number: submission.owner.mobile || null,
+        owner_surname: submission.owner.lastName,
+        owner_title: "",
+        owner_zip_code: submission.owner.postcode || null,
+        seen: false,
+        status: "required",
+        submission_id: submission.formId,
+      },
+      {
+        ignoreDuplicates: true,
+        onConflict: "submission_id",
+      },
+    );
+
+  if (reservationError) throw reservationError;
+
+  const { data: reservation, error: reservationLookupError } = await supabase
+    .from("owner_reservations")
+    .select("id")
+    .eq("submission_id", submission.formId)
+    .maybeSingle();
+
+  if (reservationLookupError) throw reservationLookupError;
+  if (!reservation) {
+    throw new Error("The owner reservation could not be created.");
+  }
+}
+
 export async function getCanonicalSubmission(
   supabase: ServerSupabaseClient,
   id: string,

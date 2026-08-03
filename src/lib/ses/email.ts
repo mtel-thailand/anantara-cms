@@ -5,6 +5,8 @@ import { sendSesEmail } from "@/src/lib/ses/client";
 import Handlebars from "handlebars";
 
 export enum EmailTemplate {
+  OwnerRegistrationComplete = "owner-registration-complete",
+  OwnerRegistrationRequired = "owner-registration-required",
   SubmissionConfirm = "submission-confirm",
   SubmissionStatus = "submission-status",
   SubmissionRecovery = "submission-recovery",
@@ -18,6 +20,13 @@ export type SubmissionEmailStatus =
   | "waitlist";
 
 export type EmailTemplateParams = {
+  [EmailTemplate.OwnerRegistrationComplete]: {
+    accessToken: string;
+  };
+  [EmailTemplate.OwnerRegistrationRequired]: {
+    accessToken: string;
+    message: string;
+  };
   [EmailTemplate.SubmissionConfirm]: {
     recipientName: string;
     accessToken: string;
@@ -189,6 +198,25 @@ const STATUS_CONTENT: Record<
 };
 
 const EMAIL_TEMPLATES = {
+  [EmailTemplate.OwnerRegistrationComplete]: {
+    file: "owner-registration-complete.html",
+    subject: "Your Owner Registration is complete",
+    resolveParams: ({ accessToken }) => ({
+      submissionUrl: createClientUrl("/en/my-submission", {
+        token: accessToken,
+      }),
+    }),
+  },
+  [EmailTemplate.OwnerRegistrationRequired]: {
+    file: "owner-registration-required.html",
+    subject: "Action required: complete your Owner Registration",
+    resolveParams: ({ accessToken, message }) => ({
+      message,
+      formUrl: createClientUrl("/en/my-submission", {
+        token: accessToken,
+      }),
+    }),
+  },
   [EmailTemplate.SubmissionConfirm]: {
     file: "submission-confirm.html",
     subject: "We've received your Concorso Roma submission",

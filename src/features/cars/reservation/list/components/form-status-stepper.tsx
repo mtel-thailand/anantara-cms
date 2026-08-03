@@ -18,6 +18,13 @@ const STATUS_FILL: Record<OwnerFormStatus, string> = {
   approved: "bg-emerald-600",
 };
 
+export const FORM_STATUS_BADGE: Record<OwnerFormStatus, string> = {
+  required: "border-amber-200 bg-amber-50 text-amber-700",
+  requested: "border-sky-200 bg-sky-50 text-sky-700",
+  received: "border-teal-200 bg-teal-50 text-teal-700",
+  approved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+};
+
 export function FormStatusChip({
   status,
   steps = OWNER_RESERVATION_STATUSES,

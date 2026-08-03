@@ -32,12 +32,14 @@ import OwnerReservationTab from "./components/owner-registration-tab";
 import { Badge } from "@/src/components/ui/badge";
 import { toast } from "sonner";
 import { logger } from "@/src/lib/logger";
-import {
-  getOwnerReservation,
-  requestOwnerReservationInformation,
-} from "./owner-reservation-list.service";
+import { getOwnerReservation } from "./owner-reservation-list.service";
+import { requestOwnerReservationInformationAction } from "./owner-reservation-list.actions";
 import { downloadOwnerReservation } from "./owner-reservation-download";
-import { OwnerRequestInfoModal } from "./components/owner-request-info-modal";
+import {
+  createOwnerRequestInfoModalStore,
+  OwnerRequestInfoModal,
+  OwnerRequestInfoModalFooter,
+} from "./components/owner-request-info-modal";
 
 const PAGE_SIZE = 10;
 const DEFAULT_OWNER_COLUMN_VISIBILITY: VisibilityState = { deleted: false };
@@ -175,27 +177,44 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     async (owner: OwnerReservationListItem) => {
       try {
         const reservation = await getOwnerReservation(owner.id);
+        const requestInfoStore = createOwnerRequestInfoModalStore();
+        const sendRequest = async (message: string) => {
+          const result = await requestOwnerReservationInformationAction({
+            id: owner.id,
+            message,
+          });
+          refresh();
+          return result;
+        };
         modal.handleShowShowCloseButton();
         modal.disableBackdropClose();
         modal.open({
+          headerClassName: "border-b-0 px-4 !py-0 !pt-4",
           header: (
             <div className="pr-8">
               <Text.FormTitle size="xl">
                 Request info — {ownerName(owner)}
               </Text.FormTitle>
               <Text size="sm" color="muted-foreground">
-                Record a request for the owner to complete or correct their
-                registration information.
+                Email the owner a request to fill in the owners’ registration
+                form.
               </Text>
             </div>
           ),
           content: (
             <OwnerRequestInfoModal
               reservation={reservation}
-              onSend={async (message) => {
-                await requestOwnerReservationInformation(owner.id, message);
-                refresh();
-              }}
+              store={requestInfoStore}
+            />
+          ),
+          footer: ({ loading, close, run }) => (
+            <OwnerRequestInfoModalFooter
+              close={close}
+              loading={loading}
+              onSend={sendRequest}
+              reservation={reservation}
+              run={run}
+              store={requestInfoStore}
             />
           ),
         });
@@ -329,7 +348,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
               <Mail className="size-3.5" /> Request info
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/app/cars/submissions/${row.original.id}`}>
+              <Link href={`/app/cars/forms/owners/${row.original.id}`}>
                 <SquarePen className="size-3.5" /> Review
               </Link>
             </Button>

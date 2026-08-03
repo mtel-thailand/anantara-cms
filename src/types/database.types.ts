@@ -789,6 +789,7 @@ export type Database = {
           assistant_title: string | null
           confirms_information: boolean
           created_at: string
+          deleted_at: string | null
           departure_date: string | null
           guest_country: string | null
           guest_forenames: string | null
@@ -839,6 +840,7 @@ export type Database = {
           assistant_title?: string | null
           confirms_information?: boolean
           created_at?: string
+          deleted_at?: string | null
           departure_date?: string | null
           guest_country?: string | null
           guest_forenames?: string | null
@@ -889,6 +891,7 @@ export type Database = {
           assistant_title?: string | null
           confirms_information?: boolean
           created_at?: string
+          deleted_at?: string | null
           departure_date?: string | null
           guest_country?: string | null
           guest_forenames?: string | null

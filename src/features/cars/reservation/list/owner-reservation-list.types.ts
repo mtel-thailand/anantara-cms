@@ -54,6 +54,7 @@ export type OwnerReservationInformationRequest = {
 export type OwnerReservationDetail =
   Database["public"]["Tables"]["owner_reservations"]["Row"] & {
     carNames: string[];
+    deletedAt: string | null;
     infoRequests: OwnerReservationInformationRequest[];
     ownerPackageName: string;
   };

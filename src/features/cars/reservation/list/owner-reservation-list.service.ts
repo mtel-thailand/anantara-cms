@@ -7,42 +7,27 @@ import {
 } from "./owner-reservation-list.schema";
 import type {
   OwnerReservationDetail,
-  OwnerReservationInformationRequest,
   OwnerReservationListItem,
   OwnerReservationListParams,
   OwnerReservationListResult,
 } from "./owner-reservation-list.types";
-import type { Database, Json } from "@/src/types/database.types";
+import type { Database } from "@/src/types/database.types";
+import { ownerReservationInformationRequests } from "./owner-reservation-list.helpers";
 
 type OwnerReservationRow =
   Database["public"]["Tables"]["owner_reservations"]["Row"];
-
-function isInformationRequest(
-  value: Json,
-): value is OwnerReservationInformationRequest {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value) &&
-    typeof value.id === "string" &&
-    typeof value.message === "string" &&
-    typeof value.sentDate === "string"
-  );
-}
-
-function informationRequests(value: Json): OwnerReservationInformationRequest[] {
-  return Array.isArray(value) ? value.filter(isInformationRequest) : [];
-}
 
 function toOwnerReservationDetail(
   row: OwnerReservationRow,
   carNames: string[],
   ownerPackageName: string,
+  deletedAt: string | null,
 ): OwnerReservationDetail {
   return {
     ...row,
     carNames,
-    infoRequests: informationRequests(row.request_note),
+    deletedAt,
+    infoRequests: ownerReservationInformationRequests(row.request_note),
     ownerPackageName,
   };
 }
@@ -111,7 +96,7 @@ export async function getOwnerReservation(
   const supabase = createClient();
   const { data, error } = await supabase
     .from("owner_reservations")
-    .select("*, owner_packages(name)")
+    .select("*, owner_packages(name), car_submissions_form(deleted_at)")
     .eq("id", id)
     .single();
   const reservation = unwrap(data, error);
@@ -127,40 +112,19 @@ export async function getOwnerReservation(
     reservation,
     carNames,
     reservation.owner_packages?.name ?? "",
+    reservation.car_submissions_form?.deleted_at ?? null,
   );
 }
 
-export async function requestOwnerReservationInformation(
-  id: string,
-  message: string,
-): Promise<OwnerReservationDetail> {
-  if (!message.trim()) throw new Error("The information request is required.");
-
-  const current = await getOwnerReservation(id);
-  const requestedAt = new Date().toISOString();
-  const request: OwnerReservationInformationRequest = {
-    id: `request-${crypto.randomUUID()}`,
-    message: message.trim(),
-    sentDate: requestedAt.slice(0, 10),
-  };
+export async function markOwnerReservationSeen(id: string) {
   const supabase = createClient();
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("owner_reservations")
-    .update({
-      request_note: [...current.infoRequests, request] as unknown as Json,
-      requested_at: requestedAt,
-      status: "requested",
-      updated_at: requestedAt,
-    })
+    .update({ seen: true })
     .eq("id", id)
-    .eq("updated_at", current.updated_at)
-    .select("*")
-    .single();
+    .eq("seen", false)
+    .select("id")
+    .maybeSingle();
 
-  const saved = unwrap(data, error);
-  return toOwnerReservationDetail(
-    saved,
-    current.carNames,
-    current.ownerPackageName,
-  );
+  if (error) throw error;
 }

@@ -21,6 +21,7 @@ import {
   resolveSubmissionReviewStatus,
 } from "./submission-review.payload";
 import {
+  ensureOwnerReservationForApprovedSubmission,
   getCanonicalSubmission,
   saveSubmissionReview,
 } from "./submission-review.persistence";
@@ -81,6 +82,10 @@ export async function saveCarSubmissionAction(
       submission,
     });
     submissionSaved = true;
+
+    if (finalStatus === "approved") {
+      await ensureOwnerReservationForApprovedSubmission(supabase, submission);
+    }
 
     const saved = await getCanonicalSubmission(supabase, id);
     const obsoleteKeys = removedSubmissionKeys(
