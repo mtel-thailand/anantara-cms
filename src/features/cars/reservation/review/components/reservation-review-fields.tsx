@@ -2,7 +2,6 @@ import { Check, Minus } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
 import { cn } from "@/src/lib/utils";
 
 export function ReviewField({ className, label, value }: {
@@ -11,10 +10,14 @@ export function ReviewField({ className, label, value }: {
   value: string;
 }) {
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      <Label className="text-xs text-muted-foreground">{label}</Label>
-      <Input value={value} disabled readOnly className="disabled:cursor-default disabled:opacity-100" />
-    </div>
+    <Input
+      label={label}
+      value={value}
+      disabled
+      readOnly
+      containerClassName={className}
+      className="disabled:cursor-default disabled:opacity-100"
+    />
   );
 }
 

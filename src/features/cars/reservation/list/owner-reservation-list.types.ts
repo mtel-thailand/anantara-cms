@@ -57,6 +57,7 @@ export type OwnerReservationDetail =
     deletedAt: string | null;
     infoRequests: OwnerReservationInformationRequest[];
     ownerPackageName: string;
+    roomCategoryName: string;
   };
 
 export type OwnerReservationStatusCounts = Record<

@@ -43,8 +43,9 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
   const modal = useModal();
   const { isLoading, execute } = useAsync(true);
   const { isLoading: isSaving, execute: executeSave } = useAsync();
-  const [reservation, setReservation] = useState<OwnerReservationDetail | null>(null);
-
+  const [reservation, setReservation] = useState<OwnerReservationDetail | null>(
+    null,
+  );
   const loadReservation = useCallback(async () => {
     try {
       await markOwnerReservationSeen(ownerId);
@@ -70,9 +71,9 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
       const notification = await executeSave(
         updateOwnerReservationApprovalAction,
         {
-        action,
-        expectedUpdatedAt: reservation.updated_at,
-        id: reservation.id,
+          action,
+          expectedUpdatedAt: reservation.updated_at,
+          id: reservation.id,
         },
       );
       const saved = await getOwnerReservation(reservation.id);
@@ -125,7 +126,9 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
       ),
       footer: ({ loading, run }) => (
         <>
-          <Button variant="outline" onClick={modal.close}>{commonT("cancel")}</Button>
+          <Button variant="outline" onClick={modal.close}>
+            {commonT("cancel")}
+          </Button>
           <Button
             variant={action === "undo" ? "secondary" : "default"}
             loading={loading}
@@ -146,8 +149,13 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
   if (isLoading) {
     return (
       <>
-        <NavigationButton text={t("back")} onClick={() => router.push("/app/cars/forms")} />
-        <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">{t("loading")}</Card>
+        <NavigationButton
+          text={t("back")}
+          onClick={() => router.push("/app/cars/forms")}
+        />
+        <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
+          {t("loading")}
+        </Card>
       </>
     );
   }
@@ -155,14 +163,20 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
   if (!reservation) {
     return (
       <>
-        <NavigationButton text={t("back")} onClick={() => router.push("/app/cars/forms")} />
-        <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">{t("notFound")}</Card>
+        <NavigationButton
+          text={t("back")}
+          onClick={() => router.push("/app/cars/forms")}
+        />
+        <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
+          {t("notFound")}
+        </Card>
       </>
     );
   }
 
   const name = ownerName(reservation);
-  const returned = reservation.status === "received" || reservation.status === "approved";
+  const returned =
+    reservation.status === "received" || reservation.status === "approved";
   const readOnly = reservation.deletedAt !== null;
   const carDescription = reservation.carNames.length
     ? t("description", {
@@ -171,15 +185,20 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
         names: reservation.carNames.join(", "),
       })
     : t("descriptionNoCars", { email: reservation.owner_email ?? "" });
-
   return (
     <>
-      <NavigationButton text={backLabel} onClick={() => router.push(backHref)} />
+      <NavigationButton
+        text={backLabel}
+        onClick={() => router.push(backHref)}
+      />
       <PageHeader
         title={name || reservation.owner_email || t("unknownOwner")}
         description={carDescription}
         titleAccessory={
-          <Badge variant="outline" className={cn(FORM_STATUS_BADGE[reservation.status])}>
+          <Badge
+            variant="outline"
+            className={cn(FORM_STATUS_BADGE[reservation.status])}
+          >
             {FORM_STATUS_LABELS[reservation.status]}
           </Badge>
         }
@@ -198,7 +217,10 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <h2 className="text-sm font-semibold">{t("ownerRegistration")}</h2>
-            <Badge variant="outline" className={cn(FORM_STATUS_BADGE[reservation.status])}>
+            <Badge
+              variant="outline"
+              className={cn(FORM_STATUS_BADGE[reservation.status])}
+            >
               {FORM_STATUS_LABELS[reservation.status]}
             </Badge>
           </div>
@@ -213,15 +235,26 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
       {!readOnly ? (
         <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur">
           <div className="flex flex-wrap items-center justify-end gap-2 py-4">
-            <Button variant="outline" disabled={isSaving} onClick={() => router.push(backHref)}>
+            <Button
+              variant="outline"
+              disabled={isSaving}
+              onClick={() => router.push(backHref)}
+            >
               {commonT("cancel")}
             </Button>
             {reservation.status === "approved" ? (
-              <Button variant="outline" disabled={isSaving} onClick={() => requestApprovalChange("undo")}>
+              <Button
+                variant="outline"
+                disabled={isSaving}
+                onClick={() => requestApprovalChange("undo")}
+              >
                 {t("undoApproval")}
               </Button>
             ) : (
-              <Button disabled={isSaving || reservation.status !== "received"} onClick={() => requestApprovalChange("approve")}>
+              <Button
+                disabled={isSaving || reservation.status !== "received"}
+                onClick={() => requestApprovalChange("approve")}
+              >
                 {t("approve")}
               </Button>
             )}

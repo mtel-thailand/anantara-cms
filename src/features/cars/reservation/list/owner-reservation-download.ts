@@ -80,7 +80,7 @@ export function downloadOwnerReservation(reservation: OwnerReservationDetail) {
       text(reservation.invoice_pec_or_sdi),
     ],
     ["Reservation details", "Owner’s package", reservation.ownerPackageName],
-    ["Reservation details", "Room category", text(reservation.room_category)],
+    ["Reservation details", "Room category", reservation.roomCategoryName],
     [
       "Reservation details",
       "Arrival date",

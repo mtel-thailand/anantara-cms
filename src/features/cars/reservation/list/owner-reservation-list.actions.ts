@@ -17,6 +17,9 @@ const requestInformationSchema = z
 export async function requestOwnerReservationInformationAction(input: unknown) {
   const { id, message } = requestInformationSchema.parse(input);
   const supabase = await createAuthenticatedClient();
+  const { data: authData, error: userError } = await supabase.auth.getUser();
+  if (userError || !authData.user) throw new Error("Unauthorized");
+
   const requestedAt = new Date().toISOString();
   const request: OwnerReservationInformationRequest = {
     id: `request-${crypto.randomUUID()}`,
@@ -25,6 +28,7 @@ export async function requestOwnerReservationInformationAction(input: unknown) {
   };
 
   const context = await saveOwnerReservationInformationRequest(supabase, {
+    adminId: authData.user.id,
     id,
     request,
     requestedAt,

@@ -21,6 +21,7 @@ function toOwnerReservationDetail(
   row: OwnerReservationRow,
   carNames: string[],
   ownerPackageName: string,
+  roomCategoryName: string,
   deletedAt: string | null,
 ): OwnerReservationDetail {
   return {
@@ -29,6 +30,7 @@ function toOwnerReservationDetail(
     deletedAt,
     infoRequests: ownerReservationInformationRequests(row.request_note),
     ownerPackageName,
+    roomCategoryName,
   };
 }
 
@@ -96,10 +98,13 @@ export async function getOwnerReservation(
   const supabase = createClient();
   const { data, error } = await supabase
     .from("owner_reservations")
-    .select("*, owner_packages(name), car_submissions_form(deleted_at)")
+    .select(
+      "*, owner_packages(name, owner_package_room_categories(id, name))",
+    )
     .eq("id", id)
     .single();
   const reservation = unwrap(data, error);
+
   const { data: vehicles, error: vehiclesError } = await supabase
     .from("car_submission_vehicles")
     .select("make_of_vehicle, model")
@@ -107,12 +112,19 @@ export async function getOwnerReservation(
   const carNames = unwrap(vehicles, vehiclesError).map((vehicle) =>
     [vehicle.make_of_vehicle, vehicle.model].filter(Boolean).join(" "),
   );
+  const roomCategory =
+    reservation.owner_packages?.owner_package_room_categories.find(
+      (category) =>
+        category.id === reservation.room_category ||
+        category.name === reservation.room_category,
+    );
 
   return toOwnerReservationDetail(
     reservation,
     carNames,
     reservation.owner_packages?.name ?? "",
-    reservation.car_submissions_form?.deleted_at ?? null,
+    roomCategory?.name ?? reservation.room_category ?? "",
+    reservation.deleted_at,
   );
 }
 

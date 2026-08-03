@@ -1,5 +1,6 @@
 import type { Json } from "@/src/types/database.types";
 import { createClient } from "@/src/lib/supabase/server";
+import { recordOwnerReservationStatusEvent } from "../owner-reservation-status-events.persistence";
 import { ownerReservationInformationRequests } from "./owner-reservation-list.helpers";
 import type { OwnerReservationInformationRequest } from "./owner-reservation-list.types";
 
@@ -14,10 +15,12 @@ export async function saveOwnerReservationInformationRequest(
   supabase: ServerSupabaseClient,
   {
     id,
+    adminId,
     request,
     requestedAt,
   }: {
     id: string;
+    adminId: string;
     request: OwnerReservationInformationRequest;
     requestedAt: string;
   },
@@ -25,7 +28,7 @@ export async function saveOwnerReservationInformationRequest(
   const { data: current, error: currentError } = await supabase
     .from("owner_reservations")
     .select(
-      "id, owner_email, request_note, updated_at, car_submissions_form!inner(access_token, email)",
+      "id, owner_email, request_note, status, updated_at, car_submissions_form!inner(access_token, email)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -58,6 +61,14 @@ export async function saveOwnerReservationInformationRequest(
       "The reservation was changed or could not be updated. Refresh and try again.",
     );
   }
+
+  await recordOwnerReservationStatusEvent(supabase, {
+    adminId,
+    fromStatus: current.status,
+    occurredAt: requestedAt,
+    reservationId: id,
+    toStatus: "requested",
+  });
 
   return {
     accessToken: current.car_submissions_form.access_token ?? "",

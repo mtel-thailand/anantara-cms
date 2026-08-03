@@ -10,7 +10,6 @@ begin
     where namespace.nspname = 'public'
       and relation.relname in (
         'owner_reservations',
-        'car_submissions_form',
         'car_submission_vehicles'
       )
       and not relation.relrowsecurity
@@ -44,7 +43,15 @@ create index if not exists owner_reservations_status_alpha_updated_at_id_idx
 create index if not exists owner_reservations_owner_search_trgm_idx
   on public.owner_reservations
   using gin (
-    lower(owner_forenames || ' ' || owner_surname || ' ' || owner_email)
+    lower(
+      owner_title
+      || ' '
+      || owner_forenames
+      || ' '
+      || owner_surname
+      || ' '
+      || owner_email
+    )
       extensions.gin_trgm_ops
   );
 
@@ -102,15 +109,15 @@ begin
         when 'required'::public.owner_reservation_status then 4
       end as status_sort_rank
     from public.owner_reservations as reservation
-    inner join public.car_submissions_form as submission
-      on submission.id = reservation.submission_id
     where
       (p_status is null or reservation.status = p_status)
-      and (submission.deleted_at is not null) = coalesce(p_has_deleted_at, false)
+      and (reservation.deleted_at is not null) = coalesce(p_has_deleted_at, false)
       and (
         v_query is null
         or lower(
-          reservation.owner_forenames
+          reservation.owner_title
+          || ' '
+          || reservation.owner_forenames
           || ' '
           || reservation.owner_surname
           || ' '
@@ -227,15 +234,47 @@ begin
     'total', (
       select count(*)
       from public.owner_reservations as reservation
-      inner join public.car_submissions_form as submission
-        on submission.id = reservation.submission_id
       where
         (p_status is null or reservation.status = p_status)
-        and (submission.deleted_at is not null) = coalesce(p_has_deleted_at, false)
+        and (reservation.deleted_at is not null) = coalesce(p_has_deleted_at, false)
         and (
           v_query is null
           or lower(
-            reservation.owner_forenames
+            reservation.owner_title
+            || ' '
+            || reservation.owner_forenames
+            || ' '
+            || reservation.owner_surname
+            || ' '
+            || reservation.owner_email
+          ) like '%' || v_query || '%'
+        )
+    ),
+    'status_counts', (
+      select jsonb_build_object(
+        'all', count(*),
+        'required', count(*) filter (
+          where reservation.status = 'required'::public.owner_reservation_status
+        ),
+        'requested', count(*) filter (
+          where reservation.status = 'requested'::public.owner_reservation_status
+        ),
+        'received', count(*) filter (
+          where reservation.status = 'received'::public.owner_reservation_status
+        ),
+        'approved', count(*) filter (
+          where reservation.status = 'approved'::public.owner_reservation_status
+        )
+      )
+      from public.owner_reservations as reservation
+      where
+        (reservation.deleted_at is not null) = coalesce(p_has_deleted_at, false)
+        and (
+          v_query is null
+          or lower(
+            reservation.owner_title
+            || ' '
+            || reservation.owner_forenames
             || ' '
             || reservation.owner_surname
             || ' '

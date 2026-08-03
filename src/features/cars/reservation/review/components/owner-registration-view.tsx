@@ -72,7 +72,7 @@ export function OwnerRegistrationView({ reservation }: { reservation: OwnerReser
       <ReviewSection title={t("reservationDetails")}>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <ReviewField label={t("ownerPackage")} value={returned ? reservation.ownerPackageName : ""} className="col-span-2" />
-          {field("roomCategory", reservation.room_category)}
+          {field("roomCategory", reservation.roomCategoryName)}
           <ReviewField label={t("arrivalDate")} value={returned && reservation.arrival_date ? formatDate(reservation.arrival_date) : ""} />
           <ReviewField label={t("departureDate")} value={returned && reservation.departure_date ? formatDate(reservation.departure_date) : ""} />
         </div>

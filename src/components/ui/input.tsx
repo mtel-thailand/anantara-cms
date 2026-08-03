@@ -11,6 +11,7 @@ import Text from "./text";
 import { Label } from "./label";
 
 export interface InputProps extends ComponentProps<"input"> {
+  containerClassName?: string;
   label?: string;
   htmlFor?: string;
   required?: boolean;
@@ -36,6 +37,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       className,
+      containerClassName,
       type,
       label,
       htmlFor,
@@ -51,7 +53,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const RightButtonIcon = rightButton?.icon;
 
     return (
-      <div className="flex flex-col gap-2">
+      <div className={cn("flex flex-col gap-2", containerClassName)}>
         <div className="flex flex-col gap-2">
           {label && (
             <Label htmlFor={htmlFor}>

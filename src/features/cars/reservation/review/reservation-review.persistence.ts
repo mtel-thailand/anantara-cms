@@ -1,4 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
+import { recordOwnerReservationStatusEvent } from "../owner-reservation-status-events.persistence";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -24,7 +25,7 @@ export async function updateOwnerReservationApproval(
   const { data: current, error: currentError } = await supabase
     .from("owner_reservations")
     .select(
-      "id, owner_email, car_submissions_form!inner(access_token, email)",
+      "id, owner_email, status, car_submissions_form!inner(access_token, email)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -65,6 +66,15 @@ export async function updateOwnerReservationApproval(
       "This registration was changed by another reviewer. Refresh and try again.",
     );
   }
+
+  const toStatus = action === "approve" ? "approved" : "received";
+  await recordOwnerReservationStatusEvent(supabase, {
+    adminId: reviewerId,
+    fromStatus: current.status,
+    occurredAt: now,
+    reservationId: id,
+    toStatus,
+  });
 
   if (action === "undo") return null;
 
