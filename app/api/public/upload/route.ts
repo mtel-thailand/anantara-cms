@@ -103,11 +103,3 @@ const deleteAuthWithValidateSchemaHandler = withValidate<
 >(deleteSchemas, deleteRouteHandler);
 
 export const DELETE = withApiLogger(deleteAuthWithValidateSchemaHandler);
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '20mb',
-    },
-  },
-}
