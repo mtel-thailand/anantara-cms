@@ -101,6 +101,7 @@ export type SubmissionVehicle = {
   bodyStyle: string;
   coachbuilder: string;
   exteriorColour: string;
+  interiorColour: string;
   chassisNumber: string;
   engineNumber: string;
 };

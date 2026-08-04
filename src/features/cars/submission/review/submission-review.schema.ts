@@ -52,6 +52,7 @@ export function getSubmissionReviewSchema(t: Translator) {
       bodyStyle: optionalString,
       coachbuilder: optionalString,
       exteriorColour: optionalString,
+      interiorColour: optionalString,
       chassisNumber: optionalString,
       engineNumber: optionalString,
     }),

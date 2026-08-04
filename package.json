@@ -5,6 +5,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "upload:presigned": "node scripts/upload-presigned.js",
     "gen-type": "set -a && . .env.local && set +a && supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" > src/types/database.types.ts"
   },
   "dependencies": {

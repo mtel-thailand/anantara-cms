@@ -208,6 +208,11 @@ export function CarDetailsCard({
           />
           <ControlledInput<SubmissionReviewFormValues>
             control={control}
+            name="vehicle.interiorColour"
+            label={t("interiorColour")}
+          />
+          <ControlledInput<SubmissionReviewFormValues>
+            control={control}
             name="vehicle.chassisNumber"
             label={t("chassisNumber")}
           />
