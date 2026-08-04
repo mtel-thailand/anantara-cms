@@ -323,7 +323,13 @@
         "restoreAction": "Restore",
         "restoreSuccess": "{name} restored",
         "restoreSuccessDescription": "The submission is back on the Submissions page.",
-        "viewDetailsAria": "See details for {vehicle}"
+        "viewDetailsAria": "See details for {vehicle}",
+        "reservationListChanged": "Reservation list updated",
+        "reservationListChangedDescription": "Reservation data has changed. Refresh the list to see the latest information.",
+        "refreshReservations": "Refresh",
+        "submissionListChanged": "Submission list updated",
+        "submissionListChangedDescription": "Submission data has changed. Refresh the list to see the latest information.",
+        "refreshSubmissions": "Refresh"
       },
       "validation": {
         "ownerName": "Enter the owner's name.",

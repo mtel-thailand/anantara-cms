@@ -219,11 +219,11 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
 
   const sidebarWidth = useSidebarStore(selectWidth);
   const setSidebarWidth = useSidebarStore(selectSetSidebarWidth);
-  const { reservationFormCount, submissionCount } = useNotificationContext();
+  const { reservationSeenCount, submissionSeenCount } = useNotificationContext();
 
   const navCounts: Record<string, number> = {
-    "/app/cars/submissions": submissionCount,
-    "/app/cars/forms": reservationFormCount,
+    "/app/cars/submissions": submissionSeenCount,
+    "/app/cars/forms": reservationSeenCount,
   };
 
   const startResize = (event: ReactMouseEvent<HTMLButtonElement>) => {

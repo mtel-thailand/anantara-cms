@@ -323,7 +323,13 @@
         "restoreAction": "Ripristina",
         "restoreSuccess": "{name} ripristinata",
         "restoreSuccessDescription": "La candidatura è tornata nella pagina Candidature.",
-        "viewDetailsAria": "Visualizza i dettagli di {vehicle}"
+        "viewDetailsAria": "Visualizza i dettagli di {vehicle}",
+        "reservationListChanged": "Elenco prenotazioni aggiornato",
+        "reservationListChangedDescription": "I dati delle prenotazioni sono cambiati. Aggiorna l’elenco per vedere le informazioni più recenti.",
+        "refreshReservations": "Aggiorna",
+        "submissionListChanged": "Elenco candidature aggiornato",
+        "submissionListChangedDescription": "I dati delle candidature sono cambiati. Aggiorna l’elenco per vedere le informazioni più recenti.",
+        "refreshSubmissions": "Aggiorna"
       },
       "validation": {
         "ownerName": "Inserisci il cognome del proprietario.",

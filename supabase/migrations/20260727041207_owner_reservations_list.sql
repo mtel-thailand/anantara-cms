@@ -44,11 +44,7 @@ create index if not exists owner_reservations_owner_search_trgm_idx
   on public.owner_reservations
   using gin (
     lower(
-      owner_title
-      || ' '
-      || owner_forenames
-      || ' '
-      || owner_surname
+      owner_surname
       || ' '
       || owner_email
     )
@@ -115,11 +111,7 @@ begin
       and (
         v_query is null
         or lower(
-          reservation.owner_title
-          || ' '
-          || reservation.owner_forenames
-          || ' '
-          || reservation.owner_surname
+          reservation.owner_surname
           || ' '
           || reservation.owner_email
         ) like '%' || v_query || '%'
@@ -240,11 +232,7 @@ begin
         and (
           v_query is null
           or lower(
-            reservation.owner_title
-            || ' '
-            || reservation.owner_forenames
-            || ' '
-            || reservation.owner_surname
+            reservation.owner_surname
             || ' '
             || reservation.owner_email
           ) like '%' || v_query || '%'
@@ -272,11 +260,7 @@ begin
         and (
           v_query is null
           or lower(
-            reservation.owner_title
-            || ' '
-            || reservation.owner_forenames
-            || ' '
-            || reservation.owner_surname
+            reservation.owner_surname
             || ' '
             || reservation.owner_email
           ) like '%' || v_query || '%'

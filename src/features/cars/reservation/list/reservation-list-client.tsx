@@ -3,7 +3,7 @@
 import type { ColumnDef, VisibilityState } from "@tanstack/react-table";
 import { Download, History, Mail, SquarePen, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { PageHeader } from "@/src/components/page-header";
 import { Button } from "@/src/components/ui/button";
@@ -40,8 +40,10 @@ import {
   OwnerRequestInfoModal,
   OwnerRequestInfoModalFooter,
 } from "./components/owner-request-info-modal";
+import { useNotificationContext } from "@/src/components/providers/notification-provider";
 
 const PAGE_SIZE = 10;
+const RESERVATION_UPDATE_TOAST_ID = "owner-reservation-list-update";
 const DEFAULT_OWNER_COLUMN_VISIBILITY: VisibilityState = { deleted: false };
 const DELETED_OWNER_COLUMN_VISIBILITY: VisibilityState = {
   approvedCars: false,
@@ -119,9 +121,13 @@ function ClearSubmissionFormConfirmation({
 
 export function ReservationFormListClient({ type }: { type?: "deleted" }) {
   const router = useRouter();
+  const t = useTranslations("cars.submission.list");
   const commonT = useTranslations("common");
   const locale = useLocale() as Locale;
   const isDeleted = type === "deleted";
+  const { reservationSeenCount, reservationTrigger } = useNotificationContext();
+  const previousReservationSeenCount = useRef(reservationSeenCount);
+  const previousReservationTrigger = useRef(reservationTrigger);
   const modal = useModal();
   const [currentTab, setCurrentTab] = useState<"owner" | "car">("owner");
   const {
@@ -142,6 +148,44 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     pageSize: PAGE_SIZE,
     filters: { status: null, hasDeletedAt: isDeleted },
   });
+
+  useEffect(() => {
+    const seenCountChanged =
+      previousReservationSeenCount.current !== reservationSeenCount;
+    const reservationCountChanged =
+      previousReservationTrigger.current !== reservationTrigger;
+
+    previousReservationSeenCount.current = reservationSeenCount;
+
+    if (reservationCountChanged) {
+      if (currentTab !== "owner") return;
+
+      previousReservationTrigger.current = reservationTrigger;
+      toast.info(t("reservationListChanged"), {
+        id: RESERVATION_UPDATE_TOAST_ID,
+        description: t("reservationListChangedDescription"),
+        duration: Infinity,
+        action: {
+          label: t("refreshReservations"),
+          onClick: () => {
+            refresh();
+            toast.dismiss(RESERVATION_UPDATE_TOAST_ID);
+          },
+        },
+      });
+      return;
+    }
+
+    if (seenCountChanged) {
+      refresh();
+    }
+  }, [
+    currentTab,
+    refresh,
+    reservationSeenCount,
+    reservationTrigger,
+    t,
+  ]);
 
   const owners = data?.items ?? [];
   const filterItems = useMemo(
