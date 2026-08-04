@@ -30,9 +30,26 @@ const PAGE_SIZE = 10;
 
 function OwnerTableSkeleton() {
   return (
-    <div className="space-y-1 p-3">
+    <div className="min-w-[850px]">
       {Array.from({ length: PAGE_SIZE }, (_, index) => (
-        <Skeleton key={index} className="h-12 w-full" />
+        <div
+          key={index}
+          className="grid min-h-14 grid-cols-[minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(8rem,1fr)_minmax(7rem,1fr)_minmax(14rem,2fr)] items-center gap-4 border-b px-2 py-2"
+        >
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-3 w-44" />
+          </div>
+          <Skeleton className="mx-auto h-4 w-8" />
+          <Skeleton className="mx-auto h-4 w-8" />
+          <Skeleton className="h-6 w-24 rounded-full" />
+          <Skeleton className="h-4 w-24" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="size-8" />
+          </div>
+        </div>
       ))}
     </div>
   );

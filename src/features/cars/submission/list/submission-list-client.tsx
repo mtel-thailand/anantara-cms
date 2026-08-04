@@ -246,6 +246,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
   const isDeleted = type === "deleted";
 
   useEffect(() => {
+    if (isDeleted) return;
     const seenCountChanged =
       previousSubmissionSeenCount.current !== submissionSeenCount;
     const submissionCountChanged =

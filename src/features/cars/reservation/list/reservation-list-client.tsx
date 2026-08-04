@@ -150,6 +150,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
   });
 
   useEffect(() => {
+    if (isDeleted) return;
     const seenCountChanged =
       previousReservationSeenCount.current !== reservationSeenCount;
     const reservationCountChanged =
@@ -179,13 +180,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     if (seenCountChanged) {
       refresh();
     }
-  }, [
-    currentTab,
-    refresh,
-    reservationSeenCount,
-    reservationTrigger,
-    t,
-  ]);
+  }, [currentTab, refresh, reservationSeenCount, reservationTrigger, t]);
 
   const owners = data?.items ?? [];
   const filterItems = useMemo(
