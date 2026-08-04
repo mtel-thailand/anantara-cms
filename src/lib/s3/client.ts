@@ -28,6 +28,12 @@ export const s3Client = new S3Client({
   credentials,
 });
 
+const presignedUploadClient = new S3Client({
+  region,
+  credentials,
+  requestChecksumCalculation: "WHEN_REQUIRED",
+});
+
 export type StorageFile = {
   url: string;
   publicUrl: string;
@@ -53,7 +59,7 @@ export function buildStoragePublicUrl(key: string) {
   return `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
 }
 
-function assertDeletableKey(key: string) {
+function assertAllowedStorageKey(key: string) {
   const allowedFolders = [cmsFolder, clientFolder];
 
   if (!key || key.includes("..") || key.startsWith("/")) {
@@ -181,7 +187,7 @@ export type StoredFileMetadata = {
 export async function storageAdaptorGetFileMetadata(
   key: string,
 ): Promise<StoredFileMetadata> {
-  assertDeletableKey(key);
+  assertAllowedStorageKey(key);
   const response = await s3Client.send(
     new HeadObjectCommand({
       Bucket: bucketName,
@@ -245,6 +251,65 @@ export async function storageAdaptorGetDownloadUrl(key: string) {
   );
 }
 
+export type PresignedUpload = {
+  expiresIn: number;
+  headers: {
+    "Content-Disposition": "inline";
+    "Content-Length": string;
+    "Content-Type": string;
+    "If-None-Match": "*";
+  };
+  key: string;
+  method: "PUT";
+  url: string;
+};
+
+const PRESIGNED_UPLOAD_EXPIRY_SECONDS = 60;
+
+export async function storageAdaptorGetUploadUrl({
+  key,
+  contentType,
+  size,
+}: {
+  key: string;
+  contentType: string;
+  size: number;
+}): Promise<PresignedUpload> {
+  assertAllowedStorageKey(key);
+
+  const fileName = key.split("/").at(-1) || "file";
+
+  const url = await getSignedUrl(
+    presignedUploadClient,
+    new PutObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      ContentDisposition: "inline",
+      ContentLength: size,
+      ContentType: contentType,
+      IfNoneMatch: "*",
+      Metadata: {
+        originalfilename: encodeURIComponent(fileName),
+        uploadscope: encodeURIComponent(JSON.stringify([])),
+      },
+    }),
+    { expiresIn: PRESIGNED_UPLOAD_EXPIRY_SECONDS },
+  );
+
+  return {
+    expiresIn: PRESIGNED_UPLOAD_EXPIRY_SECONDS,
+    headers: {
+      "Content-Disposition": "inline",
+      "Content-Length": String(size),
+      "Content-Type": contentType,
+      "If-None-Match": "*",
+    },
+    key,
+    method: "PUT",
+    url,
+  };
+}
+
 export async function storageAdaptorGetFile(key: string) {
   const metadata = await storageAdaptorGetFileMetadata(key);
   const response = await s3Client.send(
@@ -266,7 +331,7 @@ export async function storageAdaptorGetFile(key: string) {
 
 export async function storageAdaptorDeleteFile(key: string) {
   const start = performance.now();
-  assertDeletableKey(key);
+  assertAllowedStorageKey(key);
 
   logger.info("S3", "delete started", {
     bucket: bucketName || "missing",

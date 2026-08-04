@@ -32,8 +32,8 @@ export function buildStoragePrefix(
 ) {
   const root = normalizeStorageFolder(
     folder === "client"
-      ? process.env.AWS_S3_CLIENT_FOLDER?.trim() || "client-uploads"
-      : process.env.AWS_S3_CMS_FOLDER?.trim() || "cms-uploads",
+      ? process.env.S3_CLIENT_FOLDER?.trim() || "client-uploads"
+      : process.env.S3_CMS_FOLDER?.trim() || "cms-uploads",
   );
 
   return [root, ...scope.map(safeKeyPart)].join("/");
