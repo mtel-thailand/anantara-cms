@@ -5,7 +5,10 @@ import type { ApiContext } from "@/src/lib/api/types";
 import { withApiLogger } from "@/src/lib/api/with-api-logger";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { storageAdaptorGetUploadUrl } from "@/src/lib/s3/client";
-import { buildStoragePrefix } from "@/src/lib/s3/key";
+import {
+  buildStoragePrefix,
+  normalizeStorageFolder,
+} from "@/src/lib/s3/key";
 import type { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 
 const MAX_FILE_SIZE_MB = 100;
@@ -31,14 +34,10 @@ const schemas = {
         .max(1024)
         .refine(
           (key) =>
-            !key.startsWith("/") &&
             !key.endsWith("/") &&
-            !key.includes(".."),
+            !key.includes("..") &&
+            !key.split("/").includes("."),
           "Invalid S3 key.",
-        )
-        .refine(
-          (key) => key.startsWith(CLIENT_UPLOAD_PREFIX),
-          `S3 key must start with ${CLIENT_UPLOAD_PREFIX}`,
         ),
       contentType: z.enum(ACCEPTED_FILE_TYPES, {
         error: "Unsupported file type.",
@@ -55,8 +54,13 @@ const schemas = {
 type Context = ApiContext & InferSchemas<typeof schemas>;
 
 async function handler(request: NextRequest, context: Context) {
+  const normalizedKey = normalizeStorageFolder(context.body.key);
+  const key = normalizedKey.startsWith(CLIENT_UPLOAD_PREFIX)
+    ? normalizedKey
+    : `${CLIENT_UPLOAD_PREFIX}${normalizedKey}`;
+
   const upload = await storageAdaptorGetUploadUrl({
-    key: context.body.key,
+    key,
     contentType: context.body.contentType,
     size: context.body.size,
   });
