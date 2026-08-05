@@ -84,7 +84,10 @@ export async function saveCarSubmissionAction(
     submissionSaved = true;
 
     if (finalStatus === "approved") {
-      await ensureOwnerReservationForApprovedSubmission(supabase, submission);
+      await ensureOwnerReservationForApprovedSubmission(
+        supabase,
+        submission.formId,
+      );
     }
 
     const saved = await getCanonicalSubmission(supabase, id);

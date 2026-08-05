@@ -25,8 +25,7 @@ export function useUnseenReservationFormCount() {
           head: true,
         })
         .eq("seen", false)
-        .is("deleted_at", null)
-        .is("car_submissions_form.deleted_at", null),
+        .is("deleted_at", null),
       supabase
         .from(OWNER_RESERVATIONS_TABLE)
         .select("id", { count: "exact", head: true })
@@ -64,7 +63,9 @@ export function useUnseenReservationFormCount() {
       }
 
       ownerReservationCount.current = nextOwnerReservationCount;
-      setReservationSeenCount((ownerResult.count ?? 0) + (vehicleResult.count ?? 0));
+      setReservationSeenCount(
+        (ownerResult.count ?? 0) + (vehicleResult.count ?? 0),
+      );
     }
   }, [supabase]);
 

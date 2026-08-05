@@ -1233,6 +1233,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clear_owner_reservation_forms: { Args: never; Returns: Json }
       append_my_submission_vehicles: {
         Args: { p_access_token: string; p_vehicles: Json }
         Returns: Json

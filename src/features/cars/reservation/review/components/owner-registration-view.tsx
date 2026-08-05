@@ -2,11 +2,22 @@ import { useTranslations } from "next-intl";
 
 import type { OwnerReservationDetail } from "../../list/owner-reservation-list.types";
 import { formatDate } from "@/src/lib/date";
-import { ReviewBool, ReviewField, ReviewSection } from "./reservation-review-fields";
+import {
+  ReviewBool,
+  ReviewField,
+  ReviewSection,
+} from "./reservation-review-fields";
 
-export function OwnerRegistrationView({ reservation }: { reservation: OwnerReservationDetail }) {
+export function OwnerRegistrationView({
+  reservation,
+}: {
+  reservation: OwnerReservationDetail;
+}) {
   const t = useTranslations("cars.reservation.review");
-  const returned = reservation.status === "received" || reservation.status === "approved";
+  const returned =
+    reservation.status === "received" ||
+    reservation.status === "approved" ||
+    reservation.status === "requested";
   const value = (current: string | null) => (returned ? current : null);
   const field = (label: string, current: string | null) => (
     <ReviewField label={t(label)} value={returned ? (current ?? "") : ""} />
@@ -24,7 +35,11 @@ export function OwnerRegistrationView({ reservation }: { reservation: OwnerReser
           {field("titleField", value(reservation.owner_title))}
           {field("surname", value(reservation.owner_surname))}
           {field("forenames", value(reservation.owner_forenames))}
-          <ReviewField label={t("address")} value={value(reservation.owner_address) ?? ""} className="col-span-2 sm:col-span-1" />
+          <ReviewField
+            label={t("address")}
+            value={value(reservation.owner_address) ?? ""}
+            className="col-span-2 sm:col-span-1"
+          />
           {field("postcode", value(reservation.owner_zip_code))}
           {field("country", value(reservation.owner_country))}
           {field("mobile", value(reservation.owner_phone_number))}
@@ -54,12 +69,24 @@ export function OwnerRegistrationView({ reservation }: { reservation: OwnerReser
       <div className="border-t" />
       <ReviewSection title={t("invoiceDetails")}>
         <div className="mb-4 flex flex-wrap gap-x-6 gap-y-1">
-          <ReviewBool label={t("invoiceMe")} value={returned ? reservation.invoice_recipient === "owner" : null} />
-          <ReviewBool label={t("invoiceCompany")} value={returned ? reservation.invoice_recipient === "company" : null} />
+          <ReviewBool
+            label={t("invoiceMe")}
+            value={returned ? reservation.invoice_recipient === "owner" : null}
+          />
+          <ReviewBool
+            label={t("invoiceCompany")}
+            value={
+              returned ? reservation.invoice_recipient === "company" : null
+            }
+          />
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {field("companyName", reservation.invoice_name_or_company)}
-          <ReviewField label={t("address")} value={returned ? (reservation.invoice_address ?? "") : ""} className="col-span-2 sm:col-span-1" />
+          <ReviewField
+            label={t("address")}
+            value={returned ? (reservation.invoice_address ?? "") : ""}
+            className="col-span-2 sm:col-span-1"
+          />
           {field("postcode", reservation.invoice_zip_code)}
           {field("country", reservation.invoice_country)}
           {field("vatNumber", reservation.invoice_vat_number)}
@@ -71,10 +98,28 @@ export function OwnerRegistrationView({ reservation }: { reservation: OwnerReser
       <div className="border-t" />
       <ReviewSection title={t("reservationDetails")}>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          <ReviewField label={t("ownerPackage")} value={returned ? reservation.ownerPackageName : ""} className="col-span-2" />
+          <ReviewField
+            label={t("ownerPackage")}
+            value={returned ? reservation.ownerPackageName : ""}
+            className="col-span-2"
+          />
           {field("roomCategory", reservation.roomCategoryName)}
-          <ReviewField label={t("arrivalDate")} value={returned && reservation.arrival_date ? formatDate(reservation.arrival_date) : ""} />
-          <ReviewField label={t("departureDate")} value={returned && reservation.departure_date ? formatDate(reservation.departure_date) : ""} />
+          <ReviewField
+            label={t("arrivalDate")}
+            value={
+              returned && reservation.arrival_date
+                ? formatDate(reservation.arrival_date)
+                : ""
+            }
+          />
+          <ReviewField
+            label={t("departureDate")}
+            value={
+              returned && reservation.departure_date
+                ? formatDate(reservation.departure_date)
+                : ""
+            }
+          />
         </div>
       </ReviewSection>
     </div>

@@ -7,7 +7,7 @@ import type {
   VisibilityState,
 } from "@tanstack/react-table";
 import { Search, X } from "lucide-react";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback } from "react";
 
 import { Card } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
@@ -19,7 +19,6 @@ import {
   type FilterToggleGroupItem,
 } from "@/src/components/ui/filter-toggle-group";
 
-import { useDebounce } from "@/src/hooks/use-debounce";
 import {
   OwnerReservationFilter,
   OwnerReservationListItem,
@@ -70,6 +69,7 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
   filterItems,
   isLoading,
   onColumnSortingChange,
+  onClearFilters,
   onFilterChange,
   onPageChange,
   onQueryChange,
@@ -86,6 +86,7 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
   filterItems: readonly FilterToggleGroupItem<OwnerReservationFilter>[];
   isLoading: boolean;
   onColumnSortingChange: OnChangeFn<SortingState>;
+  onClearFilters: () => void;
   onFilterChange: (filter: OwnerReservationFilter) => void;
   onPageChange: (page: number) => void;
   onQueryChange: (query: string) => void;
@@ -96,13 +97,6 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
   total: number;
   currentFilter?: OwnerReservationFilter;
 }) {
-  const [searchQuery, setSearchQuery] = useState<string>(query);
-  const debouncedQuery = useDebounce(searchQuery, 300);
-
-  useEffect(() => {
-    onQueryChange(debouncedQuery);
-  }, [debouncedQuery, onQueryChange]);
-
   const ignoreOwnerReorder = useCallback(() => {}, []);
 
   return (
@@ -115,24 +109,20 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
           onValueChange={onFilterChange}
         />
         <div className="flex items-center">
-          {searchQuery.trim() ? (
+          {query.trim() || currentFilter !== "all" ? (
             <Button
               variant="ghost"
               size="sm"
               className="w-fit text-muted-foreground"
-              onClick={() => {
-                setSearchQuery("");
-                onFilterChange("all");
-                onPageChange(1);
-              }}
+              onClick={onClearFilters}
             >
               <X className="size-3.5" /> Clear filters
             </Button>
           ) : null}
           <Input
             aria-label="Search owners"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Search by name or email..."
             className="bg-card min-w-60"
             leftButton={{

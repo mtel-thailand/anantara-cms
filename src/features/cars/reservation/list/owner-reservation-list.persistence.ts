@@ -66,6 +66,7 @@ export async function saveOwnerReservationInformationRequest(
     adminId,
     fromStatus: current.status,
     occurredAt: requestedAt,
+    recordUnchangedStatus: true,
     reservationId: id,
     toStatus: "requested",
   });

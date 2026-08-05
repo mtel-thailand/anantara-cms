@@ -1,7 +1,15 @@
 "use client";
 
 import type { ColumnDef, VisibilityState } from "@tanstack/react-table";
-import { Download, History, Mail, SquarePen, Trash2 } from "lucide-react";
+import {
+  Download,
+  Eye,
+  History,
+  Mail,
+  RotateCcw,
+  SquarePen,
+  Trash2,
+} from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -32,8 +40,13 @@ import OwnerReservationTab from "./components/owner-registration-tab";
 import { Badge } from "@/src/components/ui/badge";
 import { toast } from "sonner";
 import { logger } from "@/src/lib/logger";
+import { runAsyncTask } from "@/src/lib/async";
 import { getOwnerReservation } from "./owner-reservation-list.service";
-import { requestOwnerReservationInformationAction } from "./owner-reservation-list.actions";
+import {
+  clearOwnerReservationFormsAction,
+  requestOwnerReservationInformationAction,
+  restoreOwnerReservationAction,
+} from "./owner-reservation-list.actions";
 import { downloadOwnerReservation } from "./owner-reservation-download";
 import {
   createOwnerRequestInfoModalStore,
@@ -53,9 +66,7 @@ const DELETED_OWNER_COLUMN_VISIBILITY: VisibilityState = {
 const OWNER_FILTER_VALUES = ["all", ...OWNER_RESERVATION_STATUSES] as const;
 
 function ownerName(owner: OwnerReservationListItem) {
-  return [owner.ownerTitle, owner.ownerForenames, owner.ownerSurname]
-    .filter(Boolean)
-    .join(" ");
+  return [owner.ownerForenames, owner.ownerSurname].filter(Boolean).join(" ");
 }
 
 function ClearSubmissionFormConfirmation({
@@ -143,12 +154,12 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     setQuery,
     setSortState,
     setFilters,
+    resetQueryAndFilters,
     refresh,
   } = useOwnerReservationList({
     pageSize: PAGE_SIZE,
     filters: { status: null, hasDeletedAt: isDeleted },
   });
-
   useEffect(() => {
     if (isDeleted) return;
     const seenCountChanged =
@@ -180,7 +191,14 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     if (seenCountChanged) {
       refresh();
     }
-  }, [currentTab, refresh, reservationSeenCount, reservationTrigger, t]);
+  }, [
+    currentTab,
+    isDeleted,
+    refresh,
+    reservationSeenCount,
+    reservationTrigger,
+    t,
+  ]);
 
   const owners = data?.items ?? [];
   const filterItems = useMemo(
@@ -214,60 +232,135 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
 
   const handleOwnerRequestInfo = useCallback(
     async (owner: OwnerReservationListItem) => {
-      try {
-        const reservation = await getOwnerReservation(owner.id);
-        const requestInfoStore = createOwnerRequestInfoModalStore();
-        const sendRequest = async (message: string) => {
-          const result = await requestOwnerReservationInformationAction({
-            id: owner.id,
-            message,
+      await runAsyncTask<void>({
+        action: async () => {
+          const reservation = await getOwnerReservation(owner.id);
+          const requestInfoStore = createOwnerRequestInfoModalStore();
+          const sendRequest = async (message: string) => {
+            const result = await requestOwnerReservationInformationAction({
+              id: owner.id,
+              message,
+            });
+            refresh();
+            return result;
+          };
+          modal.handleShowShowCloseButton();
+          modal.disableBackdropClose();
+          modal.open({
+            headerClassName: "border-b-0 px-4 !py-0 !pt-4",
+            header: (
+              <div className="pr-8">
+                <Text.FormTitle size="xl">
+                  Request info — {ownerName(owner)}
+                </Text.FormTitle>
+                <Text size="sm" color="muted-foreground">
+                  Email the owner a request to fill in the owners’ registration
+                  form.
+                </Text>
+              </div>
+            ),
+            content: (
+              <OwnerRequestInfoModal
+                reservation={reservation}
+                store={requestInfoStore}
+              />
+            ),
+            footer: ({ loading, close, run }) => (
+              <OwnerRequestInfoModalFooter
+                close={close}
+                loading={loading}
+                onSend={sendRequest}
+                reservation={reservation}
+                run={run}
+                store={requestInfoStore}
+              />
+            ),
           });
-          refresh();
-          return result;
-        };
-        modal.handleShowShowCloseButton();
-        modal.disableBackdropClose();
-        modal.open({
-          headerClassName: "border-b-0 px-4 !py-0 !pt-4",
-          header: (
-            <div className="pr-8">
-              <Text.FormTitle size="xl">
-                Request info — {ownerName(owner)}
-              </Text.FormTitle>
-              <Text size="sm" color="muted-foreground">
-                Email the owner a request to fill in the owners’ registration
-                form.
-              </Text>
-            </div>
-          ),
-          content: (
-            <OwnerRequestInfoModal
-              reservation={reservation}
-              store={requestInfoStore}
-            />
-          ),
-          footer: ({ loading, close, run }) => (
-            <OwnerRequestInfoModalFooter
-              close={close}
-              loading={loading}
-              onSend={sendRequest}
-              reservation={reservation}
-              run={run}
-              store={requestInfoStore}
-            />
-          ),
-        });
-      } catch (error) {
-        logger.error("OWNER-RESERVATIONS", "Failed to load request history", {
-          error: error instanceof Error ? error.message : String(error),
-          reservationId: owner.id,
-        });
-        toast.error("Couldn’t load the information requests", {
-          description: "Please try again.",
-        });
-      }
+        },
+        onError: (error) => {
+          logger.error("OWNER-RESERVATIONS", "Failed to load request history", {
+            error: error instanceof Error ? error.message : String(error),
+            reservationId: owner.id,
+          });
+          toast.error("Couldn’t load the information requests", {
+            description: "Please try again.",
+          });
+        },
+      });
     },
     [modal, refresh],
+  );
+
+  const handleRestoreOwner = useCallback(
+    async (owner: OwnerReservationListItem) => {
+      const restored = await runAsyncTask<boolean>({
+        action: async () => {
+          await restoreOwnerReservationAction(owner.id);
+          refresh();
+          toast.success(
+            `${ownerName(owner) || "Owner registration"} restored`,
+            {
+              description:
+                "The owner registration is back on the reservation forms page.",
+            },
+          );
+          return true;
+        },
+        onError: (error) => {
+          logger.error("OWNER-RESERVATIONS", "Failed to restore reservation", {
+            error: error instanceof Error ? error.message : String(error),
+            reservationId: owner.id,
+          });
+          toast.error("Couldn’t restore the owner registration", {
+            description: "Please try again.",
+          });
+        },
+      });
+
+      return restored === true;
+    },
+    [refresh],
+  );
+
+  const onRestoreOwner = useCallback(
+    (owner: OwnerReservationListItem) => {
+      const name = ownerName(owner) || "owner registration";
+
+      modal.open({
+        className: "gap-0 w-fit",
+        headerClassName: "border-b-0 px-4 pt-4 pb-3",
+        header: (
+          <Text.FormTitle size="base" weight="medium">
+            Restore {name}?
+          </Text.FormTitle>
+        ),
+        contentClassName: "px-4 pb-4",
+        content: (
+          <Text size="sm" color="muted-foreground">
+            This owner registration will move back onto the reservation forms
+            page.
+          </Text>
+        ),
+        footer: ({ loading, close, run }) => (
+          <>
+            <Button variant="outline" disabled={loading} onClick={close}>
+              {commonT("cancel")}
+            </Button>
+            <Button
+              loading={loading}
+              onClick={() =>
+                void run(async () => {
+                  if (await handleRestoreOwner(owner)) close();
+                })
+              }
+            >
+              {t("restoreAction")}
+            </Button>
+          </>
+        ),
+      });
+    },
+    [commonT, handleRestoreOwner, modal, t],
   );
 
   const columns = useMemo<ColumnDef<OwnerReservationListItem, unknown>[]>(
@@ -378,62 +471,91 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
         enableSorting: false,
         cell: ({ row }) => (
           <div className="flex items-center gap-2 whitespace-nowrap">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={isDeleted || row.original.status === "approved"}
-              onClick={() => void handleOwnerRequestInfo(row.original)}
-            >
-              <Mail className="size-3.5" /> Request info
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/app/cars/forms/owners/${row.original.id}`}>
-                <SquarePen className="size-3.5" /> Review
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={`Download registration for ${ownerName(row.original)}`}
-              title={
-                row.original.status === "received" ||
-                row.original.status === "approved"
-                  ? "Download owner registration"
-                  : "Enabled once the owner registration has been received"
-              }
-              disabled={
-                isDeleted ||
-                (row.original.status !== "received" &&
-                  row.original.status !== "approved")
-              }
-              onClick={() => void handleOwnerDownload(row.original)}
-            >
-              <Download className="size-4" />
-            </Button>
+            {isDeleted ? (
+              <>
+                <Button variant="ghost">
+                  <Link href={`/app/cars/forms/owners/${row.original.id}`}>
+                    <Eye className="size-3.5" />
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onRestoreOwner(row.original)}
+                >
+                  <RotateCcw className="size-3.5" /> {t("restoreAction")}
+                </Button>
+              </>
+            ) : (
+              <>
+                {" "}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isDeleted || row.original.status === "approved"}
+                  onClick={() => void handleOwnerRequestInfo(row.original)}
+                >
+                  <Mail className="size-3.5" /> Request info
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/app/cars/forms/owners/${row.original.id}`}>
+                    <SquarePen className="size-3.5" /> Review
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={`Download registration for ${ownerName(row.original)}`}
+                  title={
+                    row.original.status === "received" ||
+                    row.original.status === "approved"
+                      ? "Download owner registration"
+                      : "Enabled once the owner registration has been received"
+                  }
+                  disabled={
+                    isDeleted ||
+                    (row.original.status !== "received" &&
+                      row.original.status !== "approved")
+                  }
+                  onClick={() => void handleOwnerDownload(row.original)}
+                >
+                  <Download className="size-4" />
+                </Button>
+              </>
+            )}
           </div>
         ),
       },
     ],
-    [handleOwnerDownload, handleOwnerRequestInfo, isDeleted, locale],
+    [
+      handleOwnerDownload,
+      handleOwnerRequestInfo,
+      isDeleted,
+      locale,
+      onRestoreOwner,
+      t,
+    ],
   );
 
   async function clearSubmissionForm() {
-    // const clearedCount = await runAsyncTask({
-    //   action: () => clearSubmissionVehicle(CLEARABLE_STATUSES),
-    //   onError: (error) => {
-    //     logger.error("CAR-SUBMISSIONS", "Failed to clear submissions", {
-    //       error: error instanceof Error ? error.message : String(error),
-    //     });
-    //     toast.error(t("clearError"));
-    //   },
-    // });
+    const result = await runAsyncTask({
+      action: clearOwnerReservationFormsAction,
+      onError: (error) => {
+        logger.error("OWNER-RESERVATIONS", "Failed to clear form data", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+        toast.error("Couldn’t clear car and reservation forms", {
+          description: "Please try again.",
+        });
+      },
+    });
 
-    // if (clearedCount === undefined) return false;
+    if (!result) return false;
 
-    // toast.success(t("clearSuccess", { count: clearedCount }), {
-    //   description: t("clearSuccessDescription"),
-    // });
-    // setRefreshing((current) => !current);
+    toast.success("Car and reservation forms cleared", {
+      description: `${result.owner_reservation_count} owner registrations and ${result.approved_vehicle_count} approved cars moved to delete history.`,
+    });
+    refresh();
     return true;
   }
 
@@ -446,6 +568,13 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     },
     [setFilters],
   );
+
+  const handleClearOwnerFilters = useCallback(() => {
+    resetQueryAndFilters((current) => ({
+      ...current,
+      status: null,
+    }));
+  }, [resetQueryAndFilters]);
 
   function requestClearSubmissionForm() {
     modal.handleHideShowCloseButton();
@@ -533,6 +662,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
                 }
                 sortingState={sortingState}
                 onColumnSortingChange={setSortState}
+                onClearFilters={handleClearOwnerFilters}
                 onFilterChange={handleOwnerFilterChange}
                 onPageChange={setPage}
                 onQueryChange={setQuery}
@@ -548,6 +678,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
           {
             value: "car",
             label: "Car forms",
+            disabled: true,
             children: (
               <div className="py-12 text-center text-sm text-muted-foreground">
                 Car forms table is not implemented yet.

@@ -7,29 +7,40 @@ export async function recordOwnerReservationStatusEvent(
   supabase: ServerSupabaseClient,
   {
     adminId,
+    eventAction,
     fromStatus,
     occurredAt,
+    recordUnchangedStatus = false,
     reservationId,
     toStatus,
   }: {
     adminId: string;
+    eventAction?: "restore";
     fromStatus: OwnerReservationStatus;
     occurredAt: string;
+    recordUnchangedStatus?: boolean;
     reservationId: string;
     toStatus: OwnerReservationStatus;
   },
 ) {
-  if (fromStatus === toStatus) return;
+  if (fromStatus === toStatus && !recordUnchangedStatus) return;
 
   const { error } = await supabase
     .from("reservation_status_events")
     .insert({
       admin_id: adminId,
       from_status: fromStatus,
-      metadata: {
-        mode: "create",
-        source: "owner-registration",
-      },
+      metadata:
+        eventAction === "restore"
+          ? {
+              action: "restore",
+              mode: "update",
+              source: "owner-registration",
+            }
+          : {
+              mode: "create",
+              source: "owner-registration",
+            },
       occurred_at: occurredAt,
       reservation_id: reservationId,
       to_status: toStatus,

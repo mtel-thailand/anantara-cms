@@ -44,9 +44,32 @@ create index if not exists owner_reservations_owner_search_trgm_idx
   on public.owner_reservations
   using gin (
     lower(
-      owner_surname
+      coalesce(owner_forenames, '')
       || ' '
-      || owner_email
+      || coalesce(owner_surname, '')
+      || ' '
+      || coalesce(owner_surname, '')
+      || ' '
+      || coalesce(owner_forenames, '')
+      || ' '
+      || coalesce(owner_email, '')
+    )
+      extensions.gin_trgm_ops
+  );
+
+create index if not exists car_submissions_form_owner_search_trgm_idx
+  on public.car_submissions_form
+  using gin (
+    lower(
+      first_name
+      || ' '
+      || name
+      || ' '
+      || name
+      || ' '
+      || first_name
+      || ' '
+      || email
     )
       extensions.gin_trgm_ops
   );
@@ -91,9 +114,18 @@ begin
       reservation.id,
       reservation.submission_id,
       reservation.owner_title,
-      reservation.owner_forenames,
-      reservation.owner_surname,
-      reservation.owner_email,
+      coalesce(
+        nullif(btrim(reservation.owner_forenames), ''),
+        submission.first_name
+      ) as owner_forenames,
+      coalesce(
+        nullif(btrim(reservation.owner_surname), ''),
+        submission.name
+      ) as owner_surname,
+      coalesce(
+        nullif(btrim(reservation.owner_email), ''),
+        submission.email
+      ) as owner_email,
       reservation.status,
       reservation.seen,
       reservation.created_at,
@@ -105,15 +137,34 @@ begin
         when 'required'::public.owner_reservation_status then 4
       end as status_sort_rank
     from public.owner_reservations as reservation
+    left join public.car_submissions_form as submission
+      on submission.id = reservation.submission_id
     where
       (p_status is null or reservation.status = p_status)
       and (reservation.deleted_at is not null) = coalesce(p_has_deleted_at, false)
       and (
         v_query is null
         or lower(
-          reservation.owner_surname
+          coalesce(reservation.owner_forenames, '')
           || ' '
-          || reservation.owner_email
+          || coalesce(reservation.owner_surname, '')
+          || ' '
+          || coalesce(reservation.owner_surname, '')
+          || ' '
+          || coalesce(reservation.owner_forenames, '')
+          || ' '
+          || coalesce(reservation.owner_email, '')
+        ) like '%' || v_query || '%'
+        or lower(
+          submission.first_name
+          || ' '
+          || submission.name
+          || ' '
+          || submission.name
+          || ' '
+          || submission.first_name
+          || ' '
+          || submission.email
         ) like '%' || v_query || '%'
       )
     order by
@@ -171,6 +222,7 @@ begin
         )::integer as approved_vehicle_count,
         count(*) filter (
           where vehicle.status = 'finalized'::public.submission_status
+            and vehicle.archived_at is null
         )::integer as finalized_vehicle_count
         from public.car_submission_vehicles as vehicle
         where vehicle.submission_id = paged.submission_id
@@ -226,15 +278,34 @@ begin
     'total', (
       select count(*)
       from public.owner_reservations as reservation
+      left join public.car_submissions_form as submission
+        on submission.id = reservation.submission_id
       where
         (p_status is null or reservation.status = p_status)
         and (reservation.deleted_at is not null) = coalesce(p_has_deleted_at, false)
         and (
           v_query is null
           or lower(
-            reservation.owner_surname
+            coalesce(reservation.owner_forenames, '')
             || ' '
-            || reservation.owner_email
+            || coalesce(reservation.owner_surname, '')
+            || ' '
+            || coalesce(reservation.owner_surname, '')
+            || ' '
+            || coalesce(reservation.owner_forenames, '')
+            || ' '
+            || coalesce(reservation.owner_email, '')
+          ) like '%' || v_query || '%'
+          or lower(
+            submission.first_name
+            || ' '
+            || submission.name
+            || ' '
+            || submission.name
+            || ' '
+            || submission.first_name
+            || ' '
+            || submission.email
           ) like '%' || v_query || '%'
         )
     ),
@@ -255,14 +326,33 @@ begin
         )
       )
       from public.owner_reservations as reservation
+      left join public.car_submissions_form as submission
+        on submission.id = reservation.submission_id
       where
         (reservation.deleted_at is not null) = coalesce(p_has_deleted_at, false)
         and (
           v_query is null
           or lower(
-            reservation.owner_surname
+            coalesce(reservation.owner_forenames, '')
             || ' '
-            || reservation.owner_email
+            || coalesce(reservation.owner_surname, '')
+            || ' '
+            || coalesce(reservation.owner_surname, '')
+            || ' '
+            || coalesce(reservation.owner_forenames, '')
+            || ' '
+            || coalesce(reservation.owner_email, '')
+          ) like '%' || v_query || '%'
+          or lower(
+            submission.first_name
+            || ' '
+            || submission.name
+            || ' '
+            || submission.name
+            || ' '
+            || submission.first_name
+            || ' '
+            || submission.email
           ) like '%' || v_query || '%'
         )
     )

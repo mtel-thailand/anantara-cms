@@ -125,8 +125,7 @@ export function OwnerRequestInfoModalFooter({
       const { emailSent } = await onSend(nextMessage);
       if (emailSent) {
         toast.success("Information requested", {
-          description:
-            "The request was saved and emailed to the owner.",
+          description: "The request was saved and emailed to the owner.",
         });
       } else {
         toast.warning("Request saved, but the email wasn’t sent", {
@@ -155,7 +154,7 @@ export function OwnerRequestInfoModalFooter({
         disabled={!showComposer || !message.trim()}
         onClick={() => void run(handleSend)}
       >
-        Send request
+        Send email
       </Button>
     </>
   );

@@ -75,7 +75,8 @@ export function usePaginationState<
   const [error, setError] = useState<unknown>(null);
   const requestSequence = useRef(0);
   const { isLoading, execute } = useAsync(true);
-  const debouncedQuery = useDebounce(query, queryDebounceMs);
+  const delayedQuery = useDebounce(query, queryDebounceMs);
+  const debouncedQuery = query.trim() ? delayedQuery : "";
   const pageCount = Math.max(1, Math.ceil(total / effectivePageSize));
   const sort = useMemo<PaginationSort<TSortKey>>(() => {
     const [activeSort] = sortingState;
@@ -86,6 +87,7 @@ export function usePaginationState<
   }, [sortingState]);
 
   useEffect(() => {
+    console.log("debouncedQuery", debouncedQuery);
     const request = ++requestSequence.current;
 
     setError(null);
@@ -152,6 +154,15 @@ export function usePaginationState<
     setPageState(1);
   }, []);
 
+  const resetQueryAndFilters = useCallback(
+    (nextFilters: SetStateAction<TFilters>) => {
+      setQueryState("");
+      setFiltersState(nextFilters);
+      setPageState(1);
+    },
+    [],
+  );
+
   const refresh = useCallback(() => {
     setRefreshKey((current) => current + 1);
   }, []);
@@ -172,6 +183,7 @@ export function usePaginationState<
     setQuery,
     setSortState,
     setFilters,
+    resetQueryAndFilters,
     refresh,
   };
 }
