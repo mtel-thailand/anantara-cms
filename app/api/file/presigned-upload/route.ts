@@ -10,19 +10,11 @@ import {
   buildStoragePrefix,
   normalizeStorageFolder,
 } from "@/src/lib/s3/key";
+import { ACCEPTED_FILE_TYPES } from "@/src/lib/s3/presigned-upload.constants";
 import type { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 
 const MAX_FILE_SIZE_MB = 100;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
-const ACCEPTED_FILE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/jpg",
-  "image/webp",
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-] as const;
 
 const schemas = {
   body: z
@@ -39,9 +31,12 @@ const schemas = {
             !key.split("/").includes("."),
           "Invalid S3 key.",
         ),
-      contentType: z.enum(ACCEPTED_FILE_TYPES, {
-        error: "Unsupported file type.",
-      }),
+      contentType: z
+        .string()
+        .refine(
+          (contentType) => ACCEPTED_FILE_TYPES.includes(contentType),
+          "Unsupported file type.",
+        ),
       fileName: z.string().trim().min(1).max(255),
       scope: z.array(z.string().min(1).max(128)).max(12).default([]),
       size: z
