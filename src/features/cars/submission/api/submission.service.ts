@@ -13,12 +13,12 @@ import {
   toCarSubmissionListItem,
 } from "@/src/features/cars/submission/api/submission.serializer";
 import type { StorageFile } from "@/src/lib/s3/client";
-import { UploadResponseSchema } from "@/src/schema/storage-file.schema";
+import { uploadFileWithPresignedUrl } from "@/src/lib/s3/presigned-upload-client";
 import {
   submissionUploadScope,
   type SubmissionUploadKind,
 } from "./submission-upload";
-import { encodeStorageScope, type StorageScope } from "@/src/lib/s3/scope";
+import type { StorageScope } from "@/src/lib/s3/scope";
 
 export type CarSubmissionListSortKey =
   | "owner"
@@ -63,34 +63,23 @@ async function uploadSubmissionFileKind(
 ): Promise<StorageFile[]> {
   if (!files.length) return [];
 
-  const formData = new FormData();
-  files.forEach((file) => formData.append("files", file));
-
   const scope = submissionUploadScope(formId, submissionId, kind);
-  const query = new URLSearchParams({ scope: encodeStorageScope(scope) });
-  const response = await fetch(`/api/file?${query}`, {
-    method: "POST",
-    body: formData,
-    credentials: "include",
-  });
+  const results = await Promise.allSettled(
+    files.map((file, index) =>
+      uploadFileWithPresignedUrl(file, { scope, sequence: index + 1 }),
+    ),
+  );
+  const uploadedFiles = results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value] : [],
+  );
+  const failedUpload = results.find((result) => result.status === "rejected");
 
-  const json = await response.json().catch(() => null);
-
-  const parsed = UploadResponseSchema.safeParse(json);
-
-  if (!parsed.success) {
-    throw new Error("Upload API returned an invalid response.");
+  if (failedUpload?.status === "rejected") {
+    await deleteUploadedFiles(uploadedFiles, scope);
+    throw failedUpload.reason;
   }
 
-  const result = parsed.data;
-
-  if (!response.ok) {
-    throw new Error(
-      result.message ?? `Upload failed with status ${response.status}`,
-    );
-  }
-
-  return Array.isArray(result.src) ? result.src : [result.src];
+  return uploadedFiles;
 }
 
 async function deleteUploadedFiles(files: StorageFile[], scope: StorageScope) {

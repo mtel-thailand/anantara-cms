@@ -16,6 +16,7 @@ import {
   type CarSubmission,
 } from "@/src/features/cars/submission/submission.types";
 import type { SubmissionReviewFormValues } from "../submission-review.schema";
+import { SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES } from "../submission-review.constants";
 import { useTranslations } from "next-intl";
 
 function FieldDivider() {
@@ -61,6 +62,7 @@ export function CarDetailsCard({
       <div className="flex flex-col gap-1.5">
         <CarImageManager
           images={draft.images}
+          maxSize={SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES}
           name={submissionVehicleName(draft)}
           required
           compact

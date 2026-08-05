@@ -182,14 +182,17 @@ const DraggableTableComponent = <TData extends { id: string }>({
                               header.column.columnDef.header,
                               header.getContext(),
                             )}
-                        {canSort &&
-                          (header.column.getIsSorted() === "desc" ? (
+
+                        {canSort ? (
+                          header.column.getIsSorted() === "desc" ? (
                             <ArrowDown className="size-3.5" />
-                          ) : header.column.getIsSorted() === "asc" ? (
+                          ) : canSort &&
+                            header.column.getIsSorted() === "asc" ? (
                             <ArrowUp className="size-3.5" />
                           ) : (
-                            <ChevronsUpDown className="size-3.5" />
-                          ))}
+                            canSort && <ChevronsUpDown className="size-3.5" />
+                          )
+                        ) : null}
                       </div>
                     </th>
                   );

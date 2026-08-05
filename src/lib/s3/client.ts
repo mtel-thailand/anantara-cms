@@ -261,6 +261,7 @@ export type PresignedUpload = {
   };
   key: string;
   method: "PUT";
+  publicUrl: string;
   url: string;
 };
 
@@ -269,15 +270,21 @@ const PRESIGNED_UPLOAD_EXPIRY_SECONDS = 60;
 export async function storageAdaptorGetUploadUrl({
   key,
   contentType,
+  fileName,
+  scope = [],
   size,
+  uploadedBy,
 }: {
   key: string;
   contentType: string;
+  fileName?: string;
+  scope?: readonly string[];
   size: number;
+  uploadedBy?: string;
 }): Promise<PresignedUpload> {
   assertAllowedStorageKey(key);
 
-  const fileName = key.split("/").at(-1) || "file";
+  const originalFileName = fileName || key.split("/").at(-1) || "file";
 
   const url = await getSignedUrl(
     presignedUploadClient,
@@ -289,8 +296,11 @@ export async function storageAdaptorGetUploadUrl({
       ContentType: contentType,
       IfNoneMatch: "*",
       Metadata: {
-        originalfilename: encodeURIComponent(fileName),
-        uploadscope: encodeURIComponent(JSON.stringify([])),
+        originalfilename: encodeURIComponent(originalFileName),
+        uploadscope: encodeURIComponent(JSON.stringify(scope)),
+        ...(uploadedBy
+          ? { uploadedby: encodeURIComponent(uploadedBy) }
+          : {}),
       },
     }),
     { expiresIn: PRESIGNED_UPLOAD_EXPIRY_SECONDS },
@@ -306,6 +316,7 @@ export async function storageAdaptorGetUploadUrl({
     },
     key,
     method: "PUT",
+    publicUrl: buildStoragePublicUrl(key),
     url,
   };
 }

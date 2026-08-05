@@ -13,7 +13,10 @@ import { Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { memo, useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { AgendaEventState, AgendaState } from "@/src/features/agenda/agenda.types";
+import {
+  AgendaEventState,
+  AgendaState,
+} from "@/src/features/agenda/agenda.types";
 import { useAgendaItemModal } from "@/src/features/agenda/components/agenda-item-modals";
 import { AgendaIconGlyph } from "@/src/features/agenda/components/agenda-icon";
 import {
@@ -161,6 +164,7 @@ const AgendaTable = memo(function AgendaTable({
       {
         accessorKey: "time",
         header: t("time"),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="whitespace-nowrap tabular-nums text-muted-foreground">
             {row.original.time}
@@ -170,6 +174,7 @@ const AgendaTable = memo(function AgendaTable({
       {
         accessorKey: "icon",
         header: t("icon"),
+        enableSorting: false,
         cell: ({ row }) =>
           isAgendaIcon(row.original.icon) ? (
             <AgendaIconGlyph
@@ -183,6 +188,7 @@ const AgendaTable = memo(function AgendaTable({
       {
         accessorKey: "title",
         header: t("title"),
+        enableSorting: false,
         cell: ({ row }) => (
           <div className="flex flex-wrap items-center gap-2">
             <span
@@ -207,6 +213,7 @@ const AgendaTable = memo(function AgendaTable({
       {
         accessorKey: "location",
         header: t("location"),
+        enableSorting: false,
         cell: ({ row }) => (
           <span className="text-muted-foreground">{row.original.location}</span>
         ),
@@ -214,6 +221,7 @@ const AgendaTable = memo(function AgendaTable({
       {
         accessorKey: "languages",
         header: t("languages"),
+        enableSorting: false,
         cell: ({ row }) => (
           <div className="flex gap-1">
             {(["en", "it"] as const).map((locale) => (
@@ -236,6 +244,7 @@ const AgendaTable = memo(function AgendaTable({
       {
         id: "actions",
         header: "",
+        enableSorting: false,
         cell: ({ row }) => {
           const event = row.original.event;
 
@@ -299,14 +308,7 @@ const AgendaTable = memo(function AgendaTable({
         },
       },
     ],
-    [
-      agenda.id,
-      agenda.removed,
-      commonT,
-      openAgendaItemModal,
-      removeItem,
-      t,
-    ],
+    [agenda.id, agenda.removed, commonT, openAgendaItemModal, removeItem, t],
   );
 
   const handleReorder = useCallback(() => {}, []);
@@ -355,15 +357,7 @@ const AgendaTable = memo(function AgendaTable({
         </>
       ),
     });
-  }, [
-    agenda.date,
-    agenda.id,
-    closeModal,
-    commonT,
-    currentLocale,
-    modal,
-    t,
-  ]);
+  }, [agenda.date, agenda.id, closeModal, commonT, currentLocale, modal, t]);
 
   const dateLabel = formatLongDate(
     toISODate(agenda.date ?? agenda.createdAt),

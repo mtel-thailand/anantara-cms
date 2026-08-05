@@ -36,11 +36,11 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { SubmissionImage } from "@/src/features/cars/submission/submission.types";
+import { SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES } from "@/src/features/cars/submission/review/submission-review.constants";
 import { normalizedFileName } from "@/src/lib/string";
 
 const MIN_IMAGES = 4;
 const MAX_IMAGES = 10;
-const MAX_BYTES = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png"];
 
 function ImagePreview({
@@ -226,6 +226,7 @@ function GalleryImage({
 
 export function CarImageManager({
   images,
+  maxSize = SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES,
   name,
   onChange,
   onFilesAdded,
@@ -235,6 +236,7 @@ export function CarImageManager({
   disabled = false,
 }: {
   images: SubmissionImage[];
+  maxSize?: number;
   name: string;
   onChange: (images: SubmissionImage[]) => void;
   onFilesAdded?: (files: Array<{ id: string; file: File }>) => void;
@@ -252,6 +254,7 @@ export function CarImageManager({
   const mainImage = images[0];
   const supportingImages = images.slice(1);
   const imageCount = images.length;
+  const maxSizeMb = maxSize / 1024 / 1024;
 
   function openPreview(initialIndex: number) {
     modal.open({
@@ -333,7 +336,7 @@ export function CarImageManager({
         break;
       }
 
-      if (!ACCEPTED_TYPES.includes(file.type) || file.size > MAX_BYTES) {
+      if (!ACCEPTED_TYPES.includes(file.type) || file.size > maxSize) {
         rejected += 1;
         continue;
       }
@@ -366,7 +369,7 @@ export function CarImageManager({
 
     if (rejected) {
       toast.error(t("filesSkipped", { count: rejected }), {
-        description: t("fileRequirements"),
+        description: t("fileRequirements", { maxSize: maxSizeMb }),
       });
     }
 
@@ -507,6 +510,7 @@ export function CarImageManager({
         {t("requirements", {
           count: imageCount,
           maximum: MAX_IMAGES,
+          maxSize: maxSizeMb,
           minimum: MIN_IMAGES,
         })}
       </div>

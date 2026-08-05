@@ -289,7 +289,7 @@
           "preview": "Preview",
           "noImages": "No images yet",
           "reorderDescription": "Drag supporting images to reorder, or use the menu to preview, promote, or remove.",
-          "requirements": "{count} of {minimum}-{maximum} images. JPG or PNG, maximum 10MB each.",
+          "requirements": "{count} of {minimum}-{maximum} images. JPG or PNG, maximum {maxSize}MB each.",
           "imageAlt": "Image {index} of {name}",
           "mainImageAlt": "Main image of {name}",
           "supportingImageAlt": "Supporting image of {name}",
@@ -307,7 +307,7 @@
           "added": "{count, plural, one {Image added} other {Images added}}",
           "addedDescription": "{count, plural, one {# preview added} other {# previews added}} to the draft.",
           "filesSkipped": "{count, plural, one {# file skipped} other {# files skipped}}",
-          "fileRequirements": "Use JPG or PNG files up to 10MB each.",
+          "fileRequirements": "Use JPG or PNG files up to {maxSize}MB each.",
           "duplicatesSkipped": "{count, plural, one {# duplicate file skipped} other {# duplicate files skipped}}"
         }
       },
