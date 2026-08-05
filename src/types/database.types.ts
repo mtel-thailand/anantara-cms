@@ -161,6 +161,258 @@ export type Database = {
         }
         Relationships: []
       }
+      car_entry_form_status_events: {
+        Row: {
+          admin_id: string | null
+          car_entry_form_id: string
+          from_status:
+            | Database["public"]["Enums"]["car_entry_form_status"]
+            | null
+          id: number
+          metadata: Json
+          occurred_at: string
+          to_status: Database["public"]["Enums"]["car_entry_form_status"]
+        }
+        Insert: {
+          admin_id?: string | null
+          car_entry_form_id: string
+          from_status?:
+            | Database["public"]["Enums"]["car_entry_form_status"]
+            | null
+          id?: never
+          metadata?: Json
+          occurred_at?: string
+          to_status: Database["public"]["Enums"]["car_entry_form_status"]
+        }
+        Update: {
+          admin_id?: string | null
+          car_entry_form_id?: string
+          from_status?:
+            | Database["public"]["Enums"]["car_entry_form_status"]
+            | null
+          id?: never
+          metadata?: Json
+          occurred_at?: string
+          to_status?: Database["public"]["Enums"]["car_entry_form_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_entry_form_status_events_car_entry_form_id_fkey"
+            columns: ["car_entry_form_id"]
+            isOneToOne: false
+            referencedRelation: "car_entry_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      car_entry_form_technicians: {
+        Row: {
+          address: string | null
+          car_entry_form_id: string
+          country: string | null
+          created_at: string
+          email: string | null
+          forename: string
+          id: string
+          phone_number: string | null
+          sequence: number
+          surname: string
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          car_entry_form_id: string
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          forename: string
+          id?: string
+          phone_number?: string | null
+          sequence: number
+          surname: string
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          car_entry_form_id?: string
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          forename?: string
+          id?: string
+          phone_number?: string | null
+          sequence?: number
+          surname?: string
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_entry_form_technicians_car_entry_form_id_fkey"
+            columns: ["car_entry_form_id"]
+            isOneToOne: false
+            referencedRelation: "car_entry_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      car_entry_forms: {
+        Row: {
+          accepts_event_communications: boolean
+          accepts_legal_terms: boolean
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          deleted_at: string | null
+          detailing_preference:
+            | Database["public"]["Enums"]["detailing_preference"]
+            | null
+          engine_capacity: string | null
+          engine_configuration: string | null
+          engine_make: string | null
+          enter_for_judging: boolean | null
+          extra_tickets_needed: number
+          has_dedicated_personnel: boolean
+          height_mm: number | null
+          hide_owner_name: boolean
+          high_resolution_photos_link: string | null
+          id: string
+          is_coachwork_original: boolean | null
+          is_engine_original: boolean | null
+          is_licensed_for_public_highway: boolean | null
+          is_non_runner: boolean | null
+          length_mm: number | null
+          number_of_cylinders: number | null
+          owner_collection_name: string | null
+          received_at: string | null
+          registration_certificate_documents: Json
+          registration_plate_number: string | null
+          request_note: Json
+          requested_at: string | null
+          seen: boolean
+          special_requirements: string | null
+          status: Database["public"]["Enums"]["car_entry_form_status"]
+          submission_vehicle_id: string
+          trailer_registration_number: string | null
+          transport_company_name: string | null
+          transport_contact_email: string | null
+          transport_contact_name: string | null
+          transport_contact_phone: string | null
+          transport_method:
+            | Database["public"]["Enums"]["transport_method"]
+            | null
+          unable_to_provide_registration_certificate: boolean
+          updated_at: string
+          width_mm: number | null
+        }
+        Insert: {
+          accepts_event_communications?: boolean
+          accepts_legal_terms?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          detailing_preference?:
+            | Database["public"]["Enums"]["detailing_preference"]
+            | null
+          engine_capacity?: string | null
+          engine_configuration?: string | null
+          engine_make?: string | null
+          enter_for_judging?: boolean | null
+          extra_tickets_needed?: number
+          has_dedicated_personnel?: boolean
+          height_mm?: number | null
+          hide_owner_name?: boolean
+          high_resolution_photos_link?: string | null
+          id?: string
+          is_coachwork_original?: boolean | null
+          is_engine_original?: boolean | null
+          is_licensed_for_public_highway?: boolean | null
+          is_non_runner?: boolean | null
+          length_mm?: number | null
+          number_of_cylinders?: number | null
+          owner_collection_name?: string | null
+          received_at?: string | null
+          registration_certificate_documents?: Json
+          registration_plate_number?: string | null
+          request_note?: Json
+          requested_at?: string | null
+          seen?: boolean
+          special_requirements?: string | null
+          status?: Database["public"]["Enums"]["car_entry_form_status"]
+          submission_vehicle_id: string
+          trailer_registration_number?: string | null
+          transport_company_name?: string | null
+          transport_contact_email?: string | null
+          transport_contact_name?: string | null
+          transport_contact_phone?: string | null
+          transport_method?:
+            | Database["public"]["Enums"]["transport_method"]
+            | null
+          unable_to_provide_registration_certificate?: boolean
+          updated_at?: string
+          width_mm?: number | null
+        }
+        Update: {
+          accepts_event_communications?: boolean
+          accepts_legal_terms?: boolean
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          detailing_preference?:
+            | Database["public"]["Enums"]["detailing_preference"]
+            | null
+          engine_capacity?: string | null
+          engine_configuration?: string | null
+          engine_make?: string | null
+          enter_for_judging?: boolean | null
+          extra_tickets_needed?: number
+          has_dedicated_personnel?: boolean
+          height_mm?: number | null
+          hide_owner_name?: boolean
+          high_resolution_photos_link?: string | null
+          id?: string
+          is_coachwork_original?: boolean | null
+          is_engine_original?: boolean | null
+          is_licensed_for_public_highway?: boolean | null
+          is_non_runner?: boolean | null
+          length_mm?: number | null
+          number_of_cylinders?: number | null
+          owner_collection_name?: string | null
+          received_at?: string | null
+          registration_certificate_documents?: Json
+          registration_plate_number?: string | null
+          request_note?: Json
+          requested_at?: string | null
+          seen?: boolean
+          special_requirements?: string | null
+          status?: Database["public"]["Enums"]["car_entry_form_status"]
+          submission_vehicle_id?: string
+          trailer_registration_number?: string | null
+          transport_company_name?: string | null
+          transport_contact_email?: string | null
+          transport_contact_name?: string | null
+          transport_contact_phone?: string | null
+          transport_method?:
+            | Database["public"]["Enums"]["transport_method"]
+            | null
+          unable_to_provide_registration_certificate?: boolean
+          updated_at?: string
+          width_mm?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "car_entry_forms_submission_vehicle_id_fkey"
+            columns: ["submission_vehicle_id"]
+            isOneToOne: true
+            referencedRelation: "car_submission_vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       car_submission_vehicles: {
         Row: {
           additional_photo_link: string | null
@@ -1233,7 +1485,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      clear_owner_reservation_forms: { Args: never; Returns: Json }
       append_my_submission_vehicles: {
         Args: { p_access_token: string; p_vehicles: Json }
         Returns: Json
@@ -1242,7 +1493,12 @@ export type Database = {
         Args: { p_email: string }
         Returns: boolean
       }
+      clear_owner_reservation_forms: { Args: never; Returns: Json }
       gen_ref: { Args: { length: number; prefix: string }; Returns: string }
+      get_car_entry_form: {
+        Args: { p_access_token: string; p_vehicle_id: string }
+        Returns: Json
+      }
       get_car_submissions_list: {
         Args: {
           p_excluded_statuses?: Database["public"]["Enums"]["submission_status"][]
@@ -1290,6 +1546,10 @@ export type Database = {
         Args: { p_submission: Json; p_vehicles: Json }
         Returns: string
       }
+      submit_car_entry_form: {
+        Args: { p_access_token: string; p_form: Json; p_vehicle_id: string }
+        Returns: Json
+      }
       submit_owner_registration: {
         Args: { p_access_token: string; p_registration: Json }
         Returns: Json
@@ -1300,6 +1560,8 @@ export type Database = {
       }
     }
     Enums: {
+      car_entry_form_status: "required" | "requested" | "received" | "approved"
+      detailing_preference: "no_cleaning" | "dried_and_lightly_dusted"
       invoice_recipient: "owner" | "company"
       owner_reservation_status:
         | "required"
@@ -1316,6 +1578,10 @@ export type Database = {
         | "finalized"
         | "archived"
         | "info_received"
+      transport_method:
+        | "drive_to_piazza"
+        | "self_transport"
+        | "transport_company"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1443,6 +1709,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      car_entry_form_status: ["required", "requested", "received", "approved"],
+      detailing_preference: ["no_cleaning", "dried_and_lightly_dusted"],
       invoice_recipient: ["owner", "company"],
       owner_reservation_status: [
         "required",
@@ -1460,6 +1728,11 @@ export const Constants = {
         "finalized",
         "archived",
         "info_received",
+      ],
+      transport_method: [
+        "drive_to_piazza",
+        "self_transport",
+        "transport_company",
       ],
     },
   },
