@@ -16,6 +16,8 @@ type PresignedUploadOptions = {
   signal?: AbortSignal;
 };
 
+const MAX_ERROR_RESPONSE_BODY_LENGTH = 2_000;
+
 async function responseError(response: Response, fallback: string) {
   const responseBody = await response.text().catch(() => "");
 
@@ -27,11 +29,13 @@ async function responseError(response: Response, fallback: string) {
   } catch {
     logger.warn("S3", "Failed to parse response body as JSON", {
       status: response.status,
-      body: responseBody.slice(0, 2_000),
+      body: responseBody.slice(0, MAX_ERROR_RESPONSE_BODY_LENGTH),
     });
   }
 
-  return responseBody.trim().slice(0, 2_000) || fallback;
+  return (
+    responseBody.trim().slice(0, MAX_ERROR_RESPONSE_BODY_LENGTH) || fallback
+  );
 }
 
 export async function uploadFileWithPresignedUrl(
