@@ -18,7 +18,6 @@ import { logger } from "@/src/lib/logger";
 import { cn } from "@/src/lib/utils";
 import {
   FORM_STATUS_BADGE,
-  FORM_STATUS_LABELS,
 } from "../list/components/form-status-stepper";
 import { downloadOwnerReservation } from "../list/owner-reservation-download";
 import {
@@ -38,6 +37,7 @@ function ownerName(reservation: OwnerReservationDetail) {
 
 export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
   const t = useTranslations("cars.reservation.review");
+  const listT = useTranslations("cars.reservation.list");
   const commonT = useTranslations("common");
   const router = useRouter();
   const modal = useModal();
@@ -93,8 +93,12 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
           {
             description:
               action === "approve"
-                ? t("approvedDescription")
-                : t("undoDescription"),
+                ? t("approvedDescription", {
+                    name: ownerName(reservation) || t("unknownOwner"),
+                  })
+                : t("undoDescription", {
+                    name: ownerName(reservation) || t("unknownOwner"),
+                  }),
           },
         );
       }
@@ -199,7 +203,7 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
             variant="outline"
             className={cn(FORM_STATUS_BADGE[reservation.status])}
           >
-            {FORM_STATUS_LABELS[reservation.status]}
+            {listT(`status.${reservation.status}`)}
           </Badge>
         }
       >
@@ -221,7 +225,7 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
               variant="outline"
               className={cn(FORM_STATUS_BADGE[reservation.status])}
             >
-              {FORM_STATUS_LABELS[reservation.status]}
+              {listT(`status.${reservation.status}`)}
             </Badge>
           </div>
         </div>

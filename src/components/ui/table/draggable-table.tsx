@@ -127,7 +127,6 @@ const DraggableTableComponent = <TData extends { id: string }>({
     },
     [data, ids, onReorder],
   );
-  console.log("table render");
   return (
     <DndContext
       sensors={sensors}

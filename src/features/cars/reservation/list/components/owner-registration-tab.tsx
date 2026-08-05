@@ -7,6 +7,7 @@ import type {
   VisibilityState,
 } from "@tanstack/react-table";
 import { Search, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { memo, useCallback } from "react";
 
 import { Card } from "@/src/components/ui/card";
@@ -55,13 +56,6 @@ function OwnerTableSkeleton() {
 }
 
 const OWNER_TABLE_SKELETON = <OwnerTableSkeleton />;
-const OWNER_TABLE_EMPTY = (
-  <div className="flex h-32 items-center justify-center px-4 text-center text-sm text-muted-foreground">
-    No owners yet — owners appear here once their car is approved from
-    Submissions.
-  </div>
-);
-
 const OwnerReservationTab = memo(function OwnerReservationTab({
   columns,
   columnVisibility,
@@ -97,13 +91,20 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
   total: number;
   currentFilter?: OwnerReservationFilter;
 }) {
+  const locale = useLocale();
+  const t = useTranslations("cars.reservation.list");
   const ignoreOwnerReorder = useCallback(() => {}, []);
+  const emptyRow = (
+    <div className="flex h-32 items-center justify-center px-4 text-center text-sm text-muted-foreground">
+      {t("empty")}
+    </div>
+  );
 
   return (
     <div className="flex min-w-0 flex-col gap-4 pt-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <FilterToggleGroup
-          ariaLabel="Filter owner reservations by status"
+          ariaLabel={t("filterAria")}
           items={filterItems}
           value={currentFilter}
           onValueChange={onFilterChange}
@@ -116,18 +117,18 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
               className="w-fit text-muted-foreground"
               onClick={onClearFilters}
             >
-              <X className="size-3.5" /> Clear filters
+              <X className="size-3.5" /> {t("clearFilters")}
             </Button>
           ) : null}
           <Input
-            aria-label="Search owners"
+            aria-label={t("searchAria")}
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Search by name or email..."
+            placeholder={t("searchPlaceholder")}
             className="bg-card min-w-60"
             leftButton={{
               icon: Search,
-              label: "Search owners",
+              label: t("searchAria"),
               disabled: true,
             }}
           />
@@ -136,6 +137,7 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
 
       <Card className="w-full min-w-0 overflow-hidden rounded-lg shadow-none">
         <ClientSideDraggableTable<OwnerReservationListItem>
+          key={locale}
           data={isLoading ? [] : data}
           columns={columns}
           columnSorting={sortingState}
@@ -148,7 +150,7 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
           bodyClassName="bg-card"
           enableColumnSorting
           enabledRowSorting={false}
-          emptyRow={isLoading ? OWNER_TABLE_SKELETON : OWNER_TABLE_EMPTY}
+          emptyRow={isLoading ? OWNER_TABLE_SKELETON : emptyRow}
         />
       </Card>
 

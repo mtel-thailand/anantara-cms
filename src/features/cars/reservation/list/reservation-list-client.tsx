@@ -133,6 +133,7 @@ function ClearSubmissionFormConfirmation({
 export function ReservationFormListClient({ type }: { type?: "deleted" }) {
   const router = useRouter();
   const t = useTranslations("cars.submission.list");
+  const reservationT = useTranslations("cars.reservation.list");
   const commonT = useTranslations("common");
   const locale = useLocale() as Locale;
   const isDeleted = type === "deleted";
@@ -160,8 +161,13 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     pageSize: PAGE_SIZE,
     filters: { status: null, hasDeletedAt: isDeleted },
   });
+
+  const preventToastRefresh = useRef<boolean>(false);
+
   useEffect(() => {
-    if (isDeleted) return;
+    const isPrevented = preventToastRefresh.current;
+    preventToastRefresh.current = false;
+    if (isDeleted || isPrevented) return;
     const seenCountChanged =
       previousReservationSeenCount.current !== reservationSeenCount;
     const reservationCountChanged =
@@ -251,11 +257,12 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
             header: (
               <div className="pr-8">
                 <Text.FormTitle size="xl">
-                  Request info — {ownerName(owner)}
+                  {reservationT("requestDialogTitle", {
+                    name: ownerName(owner),
+                  })}
                 </Text.FormTitle>
                 <Text size="sm" color="muted-foreground">
-                  Email the owner a request to fill in the owners’ registration
-                  form.
+                  {reservationT("requestDialogDescription")}
                 </Text>
               </div>
             ),
@@ -288,7 +295,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
         },
       });
     },
-    [modal, refresh],
+    [modal, refresh, reservationT],
   );
 
   const handleRestoreOwner = useCallback(
@@ -380,7 +387,8 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
               <span className="font-medium">{ownerName(row.original)}</span>
               {!row.original.seen ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
-                  <span className="size-1.5 rounded-full bg-primary" /> New
+                  <span className="size-1.5 rounded-full bg-primary" />
+                  {reservationT("new")}
                 </span>
               ) : null}
             </div>
@@ -393,7 +401,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
       {
         id: "approvedCars",
         accessorKey: "approvedVehicleCount",
-        header: "Approved cars (Not Finalized)",
+        header: "Approved Cars (Not Finalized)",
         enableSorting: false,
         enableHiding: true,
         cell: ({ row }) => (
@@ -495,22 +503,24 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
                   disabled={isDeleted || row.original.status === "approved"}
                   onClick={() => void handleOwnerRequestInfo(row.original)}
                 >
-                  <Mail className="size-3.5" /> Request info
+                  <Mail className="size-3.5" /> {reservationT("requestInfo")}
                 </Button>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/app/cars/forms/owners/${row.original.id}`}>
-                    <SquarePen className="size-3.5" /> Review
+                    <SquarePen className="size-3.5" /> {reservationT("review")}
                   </Link>
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={`Download registration for ${ownerName(row.original)}`}
+                  aria-label={reservationT("downloadAria", {
+                    name: ownerName(row.original),
+                  })}
                   title={
                     row.original.status === "received" ||
                     row.original.status === "approved"
-                      ? "Download owner registration"
-                      : "Enabled once the owner registration has been received"
+                      ? undefined
+                      : reservationT("downloadDisabled")
                   }
                   disabled={
                     isDeleted ||
@@ -533,6 +543,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
       isDeleted,
       locale,
       onRestoreOwner,
+      reservationT,
       t,
     ],
   );
@@ -551,10 +562,12 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     });
 
     if (!result) return false;
-
-    toast.success("Car and reservation forms cleared", {
-      description: `${result.owner_reservation_count} owner registrations and ${result.approved_vehicle_count} approved cars moved to delete history.`,
+    preventToastRefresh.current = true;
+    toast.success("Forms cleared", {
+      description:
+        "All cars and owner registration entries moved to the delete history. You can restore them from there.",
     });
+
     refresh();
     return true;
   }
@@ -600,7 +613,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
         title={!isDeleted ? "Car & reservation forms" : "Delete history"}
         description={
           !isDeleted
-            ? "Post-approval paperwork for accepted cars: request, review and approve each owner's registration and every car's entry form & certificate. Changes save immediately — approving both unlocks ‘Finalize car’."
+            ? "Post-approval paperwork for accepted cars: request, review and approve each owner's registration and every car's entry form & certificate. Changes save immediately — approving both unlocks “Finalize car”."
             : "Cleared owner registrations and car entry forms. Restore any one to move it back onto the Car & reservation forms page."
         }
         viewport={!isDeleted ? ["desktop", "mobile"] : undefined}
@@ -646,12 +659,13 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
               <div className="flex items-center gap-1.5">
                 <CountBadge count={total} />
                 <Text size="xs" color="primary">
-                  Owner registration
+                  {reservationT("ownerRegistration")}
                 </Text>
               </div>
             ),
             children: (
               <OwnerReservationTab
+                key={locale}
                 data={owners}
                 filterItems={filterItems}
                 columns={columns}

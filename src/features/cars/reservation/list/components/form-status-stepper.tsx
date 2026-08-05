@@ -4,7 +4,7 @@ import {
 } from "../owner-reservation-list.types";
 import { cn } from "@/src/lib/utils";
 
-export const FORM_STATUS_LABELS: Record<OwnerFormStatus, string> = {
+const FORM_STATUS_LABELS: Record<OwnerFormStatus, string> = {
   required: "Required",
   requested: "Requested",
   received: "Received",
