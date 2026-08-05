@@ -21,6 +21,7 @@ import {
   resolveSubmissionReviewStatus,
 } from "./submission-review.payload";
 import {
+  ensureOwnerReservationForApprovedSubmission,
   getCanonicalSubmission,
   saveSubmissionReview,
 } from "./submission-review.persistence";
@@ -38,7 +39,7 @@ export async function saveCarSubmissionAction(
   const validationT = await getTranslations("cars.submission.validation");
   const { expectedUpdatedAt, formId, uploads, values } =
     parseSubmissionReviewPayload(payload, validationT);
-  const supabase = await createAuthenticatedClient();
+  const { supabase } = await createAuthenticatedClient();
 
   const uploadedKeys = uploadedSubmissionKeys(uploads, formId, id);
   let submissionSaved = false;
@@ -81,6 +82,13 @@ export async function saveCarSubmissionAction(
       submission,
     });
     submissionSaved = true;
+
+    if (finalStatus === "approved") {
+      await ensureOwnerReservationForApprovedSubmission(
+        supabase,
+        submission.formId,
+      );
+    }
 
     const saved = await getCanonicalSubmission(supabase, id);
     const obsoleteKeys = removedSubmissionKeys(

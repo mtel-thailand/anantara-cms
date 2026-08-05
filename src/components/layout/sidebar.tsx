@@ -22,14 +22,7 @@ import useAsync from "@/src/hooks/use-async";
 import { useModal } from "@/src/components/providers/modal-provider";
 import Text from "@/src/components/ui/text";
 import { useNotificationContext } from "@/src/components/providers/notification-provider";
-
-function CountBadge({ count }: { count: number }) {
-  return (
-    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-primary px-1 text-[11px] font-semibold tabular-nums text-primary-foreground">
-      {count}
-    </span>
-  );
-}
+import CountBadge from "../count-badge";
 
 function NavChildItem({ child, count }: { child: NavChild; count: number }) {
   const t = useTranslations("menu");
@@ -226,10 +219,11 @@ export default function Sidebar({ menu }: { menu: NavItem[] }) {
 
   const sidebarWidth = useSidebarStore(selectWidth);
   const setSidebarWidth = useSidebarStore(selectSetSidebarWidth);
-  const { submissionCount } = useNotificationContext();
+  const { reservationSeenCount, submissionSeenCount } = useNotificationContext();
 
   const navCounts: Record<string, number> = {
-    "/app/cars/submissions": submissionCount,
+    "/app/cars/submissions": submissionSeenCount,
+    "/app/cars/forms": reservationSeenCount,
   };
 
   const startResize = (event: ReactMouseEvent<HTMLButtonElement>) => {

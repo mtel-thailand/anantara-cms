@@ -53,5 +53,5 @@ export async function createAuthenticatedClient() {
     throw new Error("Unauthorized");
   }
 
-  return supabase;
+  return { supabase, user };
 }

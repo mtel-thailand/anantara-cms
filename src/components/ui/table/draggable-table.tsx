@@ -16,6 +16,7 @@ import {
   OnChangeFn,
   Row,
   SortingState,
+  VisibilityState,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -47,6 +48,7 @@ export type DraggableTableProps<TData extends { id: string }> = {
   columns: ColumnDef<TData, unknown>[];
   onReorder: (data: TData[]) => void;
   columnSorting?: SortingState;
+  columnVisibility?: VisibilityState;
   onColumnSortingChange?: OnChangeFn<SortingState>;
   className?: string;
   tableClassName?: string;
@@ -78,6 +80,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
   getRowClassName,
   canDragRow,
   columnSorting,
+  columnVisibility,
   onColumnSortingChange,
 }: DraggableTableProps<TData>) => {
   const sensors = useSensors(
@@ -100,6 +103,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
     enableMultiSort: false,
     state: {
       sorting: columnSorting,
+      columnVisibility,
     },
     onSortingChange: onColumnSortingChange,
   });
@@ -143,47 +147,53 @@ const DraggableTableComponent = <TData extends { id: string }>({
               <tr key={headerGroup.id} className="border-b">
                 {enabledRowSorting && <th className="w-10 p-2"></th>}
 
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="p-2 text-left"
-                    colSpan={header.colSpan}
-                  >
-                    <div
-                      className={cn(
-                        "inline-flex items-center gap-1 font-medium text-muted-foreground transition-colors",
-                        header.column.getCanSort() ? "hover:text-foreground cursor-pointer" : "text-foreground",
-                        {
-                          "hover:text-foreground cursor-pointer":
-                            header.column.getCanSort(),
-                        },
-                      )}
-                      onClick={header.column.getToggleSortingHandler()}
-                      title={
-                        header.column.getCanSort()
-                          ? header.column.getNextSortingOrder() === "asc"
-                            ? "Sort ascending"
-                            : header.column.getNextSortingOrder() === "desc"
-                              ? "Sort descending"
-                              : "Clear sort"
-                          : undefined
-                      }
+                {headerGroup.headers.map((header) => {
+                  const canSort = header.column.getCanSort();
+                  return (
+                    <th
+                      key={header.id}
+                      className="p-2 text-left"
+                      colSpan={header.colSpan}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
+                      <div
+                        className={cn(
+                          "inline-flex items-center gap-1 font-medium text-muted-foreground transition-colors",
+                          canSort
+                            ? "hover:text-foreground cursor-pointer"
+                            : "text-foreground",
+                          {
+                            "hover:text-foreground cursor-pointer": canSort,
+                          },
                         )}
-                      {header.column.getCanSort() &&
-                        (header.column.getIsSorted() === "desc" ? (
-                          <ArrowDown className="size-3.5" />
-                        ) : header.column.getIsSorted() === "asc" ? (
-                          <ArrowUp className="size-3.5" />
-                        ) : <ChevronsUpDown className="size-3.5" />)}
-                    </div>
-                  </th>
-                ))}
+                        onClick={header.column.getToggleSortingHandler()}
+                        title={
+                          canSort
+                            ? header.column.getNextSortingOrder() === "asc"
+                              ? "Sort ascending"
+                              : header.column.getNextSortingOrder() === "desc"
+                                ? "Sort descending"
+                                : "Clear sort"
+                            : undefined
+                        }
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                        {canSort &&
+                          (header.column.getIsSorted() === "desc" ? (
+                            <ArrowDown className="size-3.5" />
+                          ) : header.column.getIsSorted() === "asc" ? (
+                            <ArrowUp className="size-3.5" />
+                          ) : (
+                            <ChevronsUpDown className="size-3.5" />
+                          ))}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -236,6 +246,7 @@ function arePropsEqual<TData extends { id: string }>(
     oldProps.columns === newProps.columns &&
     oldProps.onReorder === newProps.onReorder &&
     oldProps.columnSorting === newProps.columnSorting &&
+    oldProps.columnVisibility === newProps.columnVisibility &&
     oldProps.onColumnSortingChange === newProps.onColumnSortingChange &&
     oldProps.enableColumnSorting === newProps.enableColumnSorting &&
     oldProps.enabledRowSorting === newProps.enabledRowSorting &&

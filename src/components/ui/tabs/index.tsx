@@ -159,7 +159,11 @@ export function Tabs<T extends string>({
       </div>
 
       {activeTab?.children !== undefined ? (
-        <div key={activeTab.value} role="tabpanel" className={activeTab.className}>
+        <div
+          key={activeTab.value}
+          role="tabpanel"
+          className={activeTab.className}
+        >
           {activeTab.children}
         </div>
       ) : null}

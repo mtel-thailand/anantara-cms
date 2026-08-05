@@ -21,8 +21,9 @@ export type MenuTranslationKey =
   | "agenda"
   | "cars.root"
   | "cars.submissions"
+  | "cars.forms"
+  | "cars.finalized"
   | "cars.classes"
-  | "cars.list"
   | "cars.contentField"
   | "awards.root"
   | "awards.bestOfShow"
@@ -78,8 +79,9 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Car,
     children: [
       { titleKey: "cars.submissions", href: "/app/cars/submissions" },
+      { titleKey: "cars.forms", href: "/app/cars/forms" },
+      { titleKey: "cars.finalized", href: "/app/cars/finalized" },
       { titleKey: "cars.classes", href: "/app/cars/classes" },
-      { titleKey: "cars.list", href: "/app/cars/list" },
       {
         titleKey: "cars.contentField",
         href: "/app/cars/website-description",
