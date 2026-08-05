@@ -1,5 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
-import { recordOwnerReservationStatusEvent } from "../owner-reservation-status-events.persistence";
+import { recordOwnerReservationStatusEvent } from "@/src/features/cars/reservation/owner-reservation-status-events.persistence";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 

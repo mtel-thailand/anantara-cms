@@ -25,34 +25,34 @@ import { capitalize } from "@/src/lib/string";
 import { cn } from "@/src/lib/utils";
 import type { Locale } from "@/src/types/locale";
 
-import { useOwnerReservationList } from "./hooks/use-owner-reservation-list";
+import { useOwnerReservationList } from "@/src/features/cars/reservation/list/hooks/use-owner-reservation-list";
 import {
   OWNER_RESERVATION_STATUSES,
   OwnerReservationFilter,
   type OwnerReservationListItem,
-} from "./owner-reservation-list.types";
-import { FormStatusChip } from "./components/form-status-stepper";
+} from "@/src/features/cars/reservation/list/owner-reservation-list.types";
+import { FormStatusChip } from "@/src/features/cars/reservation/list/components/form-status-stepper";
 import { useModal } from "@/src/components/providers/modal-provider";
 import useAsync from "@/src/hooks/use-async";
 import CountBadge from "@/src/components/count-badge";
 import NavigationButton from "@/src/components/navigation-button";
-import OwnerReservationTab from "./components/owner-registration-tab";
+import OwnerReservationTab from "@/src/features/cars/reservation/list/components/owner-registration-tab";
 import { Badge } from "@/src/components/ui/badge";
 import { toast } from "sonner";
 import { logger } from "@/src/lib/logger";
 import { runAsyncTask } from "@/src/lib/async";
-import { getOwnerReservation } from "./owner-reservation-list.service";
+import { getOwnerReservation } from "@/src/features/cars/reservation/list/owner-reservation-list.service";
 import {
   clearOwnerReservationFormsAction,
   requestOwnerReservationInformationAction,
   restoreOwnerReservationAction,
-} from "./owner-reservation-list.actions";
-import { downloadOwnerReservation } from "./owner-reservation-download";
+} from "@/src/features/cars/reservation/list/owner-reservation-list.actions";
+import { downloadOwnerReservation } from "@/src/features/cars/reservation/list/owner-reservation-download";
 import {
   createOwnerRequestInfoModalStore,
   OwnerRequestInfoModal,
   OwnerRequestInfoModalFooter,
-} from "./components/owner-request-info-modal";
+} from "@/src/features/cars/reservation/list/components/owner-request-info-modal";
 import { useNotificationContext } from "@/src/components/providers/notification-provider";
 
 const PAGE_SIZE = 10;

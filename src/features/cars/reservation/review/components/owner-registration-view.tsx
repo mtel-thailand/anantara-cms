@@ -1,12 +1,12 @@
 import { useTranslations } from "next-intl";
 
-import type { OwnerReservationDetail } from "../../list/owner-reservation-list.types";
+import type { OwnerReservationDetail } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 import { formatDate } from "@/src/lib/date";
 import {
   ReviewBool,
   ReviewField,
   ReviewSection,
-} from "./reservation-review-fields";
+} from "@/src/features/cars/reservation/review/components/reservation-review-fields";
 
 export function OwnerRegistrationView({
   reservation,

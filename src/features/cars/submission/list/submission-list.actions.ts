@@ -18,7 +18,7 @@ const clearableStatusesSchema = z
   .min(1);
 
 export async function restoreSubmissionVehicle(vehicleId: string) {
-  const supabase = await createAuthenticatedClient();
+  const { supabase } = await createAuthenticatedClient();
 
   await supabase
     .from("car_submission_vehicles")
@@ -28,7 +28,7 @@ export async function restoreSubmissionVehicle(vehicleId: string) {
 }
 
 export async function clearSubmissionVehicle(statuses: unknown) {
-  const supabase = await createAuthenticatedClient();
+  const { supabase } = await createAuthenticatedClient();
   const parsedStatuses = clearableStatusesSchema.parse(statuses);
   const { data, error } = await supabase.rpc(
     "mark_car_submission_vehicles_deleted_by_statuses",

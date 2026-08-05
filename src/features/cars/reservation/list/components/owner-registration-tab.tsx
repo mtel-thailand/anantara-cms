@@ -23,7 +23,7 @@ import {
 import {
   OwnerReservationFilter,
   OwnerReservationListItem,
-} from "../owner-reservation-list.types";
+} from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 import { Button } from "@/src/components/ui/button";
 
 const PAGE_SIZE = 10;

@@ -1,8 +1,8 @@
 import type { Json } from "@/src/types/database.types";
 import { createClient } from "@/src/lib/supabase/server";
-import { recordOwnerReservationStatusEvent } from "../owner-reservation-status-events.persistence";
-import { ownerReservationInformationRequests } from "./owner-reservation-list.helpers";
-import type { OwnerReservationInformationRequest } from "./owner-reservation-list.types";
+import { recordOwnerReservationStatusEvent } from "@/src/features/cars/reservation/owner-reservation-status-events.persistence";
+import { ownerReservationInformationRequests } from "@/src/features/cars/reservation/list/owner-reservation-list.helpers";
+import type { OwnerReservationInformationRequest } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 

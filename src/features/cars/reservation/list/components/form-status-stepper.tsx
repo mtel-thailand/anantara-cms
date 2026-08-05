@@ -1,7 +1,7 @@
 import {
   OWNER_RESERVATION_STATUSES,
   OwnerFormStatus,
-} from "../owner-reservation-list.types";
+} from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 import { cn } from "@/src/lib/utils";
 
 const FORM_STATUS_LABELS: Record<OwnerFormStatus, string> = {

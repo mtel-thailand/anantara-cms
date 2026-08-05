@@ -1,5 +1,5 @@
 import type { Json } from "@/src/types/database.types";
-import type { OwnerReservationInformationRequest } from "./owner-reservation-list.types";
+import type { OwnerReservationInformationRequest } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 
 function isInformationRequest(
   value: Json,

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { OWNER_RESERVATION_STATUSES } from "./owner-reservation-list.types";
+import { OWNER_RESERVATION_STATUSES } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 
 export const OwnerReservationListRpcSchema = z
   .object({

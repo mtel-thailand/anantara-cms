@@ -39,7 +39,7 @@ export async function saveCarSubmissionAction(
   const validationT = await getTranslations("cars.submission.validation");
   const { expectedUpdatedAt, formId, uploads, values } =
     parseSubmissionReviewPayload(payload, validationT);
-  const supabase = await createAuthenticatedClient();
+  const { supabase } = await createAuthenticatedClient();
 
   const uploadedKeys = uploadedSubmissionKeys(uploads, formId, id);
   let submissionSaved = false;

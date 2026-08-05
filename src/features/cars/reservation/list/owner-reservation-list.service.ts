@@ -4,15 +4,15 @@ import { unwrap } from "@/src/lib/supabase/unwrap";
 import {
   OwnerReservationListRpcSchema,
   type OwnerReservationListRpc,
-} from "./owner-reservation-list.schema";
+} from "@/src/features/cars/reservation/list/owner-reservation-list.schema";
 import type {
   OwnerReservationDetail,
   OwnerReservationListItem,
   OwnerReservationListParams,
   OwnerReservationListResult,
-} from "./owner-reservation-list.types";
+} from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 import type { Database } from "@/src/types/database.types";
-import { ownerReservationInformationRequests } from "./owner-reservation-list.helpers";
+import { ownerReservationInformationRequests } from "@/src/features/cars/reservation/list/owner-reservation-list.helpers";
 
 type OwnerReservationRow =
   Database["public"]["Tables"]["owner_reservations"]["Row"];

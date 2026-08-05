@@ -1,6 +1,6 @@
 import { logger } from "@/src/lib/logger";
 import { EmailTemplate, sendEmail } from "@/src/lib/ses/email";
-import type { OwnerRegistrationNotificationContext } from "./reservation-review.persistence";
+import type { OwnerRegistrationNotificationContext } from "@/src/features/cars/reservation/review/reservation-review.persistence";
 
 export async function sendOwnerRegistrationCompleteNotification({
   context,

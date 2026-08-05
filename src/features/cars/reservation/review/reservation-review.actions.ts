@@ -3,8 +3,8 @@
 import { z } from "zod";
 
 import { createAuthenticatedClient } from "@/src/lib/supabase/server";
-import { sendOwnerRegistrationCompleteNotification } from "./reservation-review.notifications";
-import { updateOwnerReservationApproval } from "./reservation-review.persistence";
+import { sendOwnerRegistrationCompleteNotification } from "@/src/features/cars/reservation/review/reservation-review.notifications";
+import { updateOwnerReservationApproval } from "@/src/features/cars/reservation/review/reservation-review.persistence";
 
 const inputSchema = z.object({
   id: z.string().uuid(),
@@ -14,15 +14,13 @@ const inputSchema = z.object({
 
 export async function updateOwnerReservationApprovalAction(input: unknown) {
   const { action, expectedUpdatedAt, id } = inputSchema.parse(input);
-  const supabase = await createAuthenticatedClient();
-  const { data: authData, error: userError } = await supabase.auth.getUser();
-  if (userError || !authData.user) throw new Error("Unauthorized");
+  const { supabase, user } = await createAuthenticatedClient();
 
   const notificationContext = await updateOwnerReservationApproval(supabase, {
     action,
     expectedUpdatedAt,
     id,
-    reviewerId: authData.user.id,
+    reviewerId: user.id,
   });
   const emailSent = notificationContext
     ? await sendOwnerRegistrationCompleteNotification({

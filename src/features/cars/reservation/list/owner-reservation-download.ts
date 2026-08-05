@@ -1,6 +1,6 @@
 "use client";
 
-import type { OwnerReservationDetail } from "./owner-reservation-list.types";
+import type { OwnerReservationDetail } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 import { formatDate } from "@/src/lib/date";
 
 function csvCell(value: string) {

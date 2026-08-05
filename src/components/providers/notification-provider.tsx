@@ -34,7 +34,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       submissionTrigger,
     ],
   );
-  console.log("reservationSeenCount", reservationSeenCount);
+
   return (
     <NotificationContext.Provider value={value}>
       {children}

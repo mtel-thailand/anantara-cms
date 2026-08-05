@@ -18,15 +18,15 @@ import { logger } from "@/src/lib/logger";
 import { cn } from "@/src/lib/utils";
 import {
   FORM_STATUS_BADGE,
-} from "../list/components/form-status-stepper";
-import { downloadOwnerReservation } from "../list/owner-reservation-download";
+} from "@/src/features/cars/reservation/list/components/form-status-stepper";
+import { downloadOwnerReservation } from "@/src/features/cars/reservation/list/owner-reservation-download";
 import {
   getOwnerReservation,
   markOwnerReservationSeen,
-} from "../list/owner-reservation-list.service";
-import type { OwnerReservationDetail } from "../list/owner-reservation-list.types";
-import { updateOwnerReservationApprovalAction } from "./reservation-review.actions";
-import { OwnerRegistrationView } from "./components/owner-registration-view";
+} from "@/src/features/cars/reservation/list/owner-reservation-list.service";
+import type { OwnerReservationDetail } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
+import { updateOwnerReservationApprovalAction } from "@/src/features/cars/reservation/review/reservation-review.actions";
+import { OwnerRegistrationView } from "@/src/features/cars/reservation/review/components/owner-registration-view";
 
 function ownerName(reservation: OwnerReservationDetail) {
   return [reservation.owner_forenames, reservation.owner_surname]

@@ -18,7 +18,7 @@ import { Textarea } from "@/src/components/ui/textarea";
 import Text from "@/src/components/ui/text";
 import { formatDate } from "@/src/lib/date";
 import { logger } from "@/src/lib/logger";
-import type { OwnerReservationDetail } from "../owner-reservation-list.types";
+import type { OwnerReservationDetail } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 
 type OwnerRequestInfoModalState = {
   composerOpen: boolean;

@@ -3,12 +3,12 @@
 import { usePaginationState } from "@/src/hooks/use-pagination-state";
 import type { PaginationSort } from "@/src/hooks/use-pagination-state";
 
-import { getOwnerReservations } from "../owner-reservation-list.service";
+import { getOwnerReservations } from "@/src/features/cars/reservation/list/owner-reservation-list.service";
 import type {
   OwnerReservationListData,
   OwnerReservationListFilters,
   OwnerReservationListSortKey,
-} from "../owner-reservation-list.types";
+} from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 
 const DEFAULT_SORT = {
   key: "updated",
