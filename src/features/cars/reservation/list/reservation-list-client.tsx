@@ -496,11 +496,14 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
               </>
             ) : (
               <>
-                {" "}
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={isDeleted || row.original.status === "approved"}
+                  disabled={
+                    isDeleted ||
+                    row.original.status === "approved" ||
+                    row.original.status === "requested"
+                  }
                   onClick={() => void handleOwnerRequestInfo(row.original)}
                 >
                   <Mail className="size-3.5" /> {reservationT("requestInfo")}

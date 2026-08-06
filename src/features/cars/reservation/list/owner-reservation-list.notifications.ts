@@ -18,6 +18,7 @@ export async function sendOwnerReservationRequestNotification({
       template: EmailTemplate.OwnerRegistrationRequired,
       params: {
         accessToken: context.accessToken,
+        action: context.action,
         message,
       },
     });
