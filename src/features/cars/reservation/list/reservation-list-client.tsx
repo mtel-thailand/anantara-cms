@@ -94,13 +94,10 @@ function ClearSubmissionFormConfirmation({
     <>
       <div className="space-y-2 p-4">
         <Text.FormTitle size="base" className="font-medium">
-          Clear all car & reservation forms?
+          {t("clearFormsConfirmTitle")}
         </Text.FormTitle>
         <Text size="sm" color="muted-foreground">
-          This clears both tabs on this page — every car in the forms queue and
-          its owner registration entries. Submitted owner registration details
-          remain viewable on their finalized and archived cars. Cleared items
-          move to the delete history, where they can be restored.
+          {t("clearFormsConfirmDescription")}
         </Text>
         <Text size="sm" color="muted-foreground" className="pt-2">
           {t.rich("clearConfirmInstruction", {
@@ -110,6 +107,7 @@ function ClearSubmissionFormConfirmation({
           })}
         </Text>
         <Input
+          aria-label={t("clearConfirmInputAria")}
           value={value}
           onChange={(event) => setValue(event.target.value)}
         />
@@ -558,17 +556,16 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
         logger.error("OWNER-RESERVATIONS", "Failed to clear form data", {
           error: error instanceof Error ? error.message : String(error),
         });
-        toast.error("Couldn’t clear car and reservation forms", {
-          description: "Please try again.",
+        toast.error(t("clearFormsError"), {
+          description: t("tryAgain"),
         });
       },
     });
 
     if (!result) return false;
     preventToastRefresh.current = true;
-    toast.success("Forms cleared", {
-      description:
-        "All cars and owner registration entries moved to the delete history. You can restore them from there.",
+    toast.success(t("clearFormsSuccess"), {
+      description: t("clearFormsSuccessDescription"),
     });
 
     refresh();
