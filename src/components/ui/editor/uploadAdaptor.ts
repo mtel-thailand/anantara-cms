@@ -1,6 +1,7 @@
 import { FileLoader, UploadResponse } from "ckeditor5";
 import { logger } from "@/src/lib/logger";
 import { eventEmitter } from "@/src/lib/events";
+import { uploadFileWithPresignedUrl } from "@/src/lib/s3/presigned-upload-client";
 
 const IMAGE_PUBLIC_BASE_URL =
   process.env.NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL?.trim() || "";
@@ -38,6 +39,7 @@ export class CkEditorUploadAdapter {
   loader: FileLoader;
   private uploadedKey: string | null = null;
   private abortRequested = false;
+  private abortController: AbortController | null = null;
   private uploadPromise: Promise<UploadResponse> | null = null;
 
   constructor(loader: FileLoader) {
@@ -66,27 +68,11 @@ export class CkEditorUploadAdapter {
         size: file.size,
       });
 
-      const formData = new FormData();
-      formData.append("files", file);
-
-      const response = await fetch("/api/file", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
+      this.abortController = new AbortController();
+      const uploadedFile = await uploadFileWithPresignedUrl(file, {
+        signal: this.abortController.signal,
+        scope: ["editor-upload"],
       });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed with status ${response.status}`);
-      }
-
-      const result = (await response.json()) as {
-        src?: Array<{ url: string; publicUrl?: string }>;
-      };
-      const uploadedFile = result.src?.[0];
-
-      if (!uploadedFile?.url) {
-        throw new Error("Upload response did not include an S3 key");
-      }
 
       this.uploadedKey = uploadedFile.url;
 
@@ -98,7 +84,7 @@ export class CkEditorUploadAdapter {
       logger.success("EDITOR_UPLOAD", "upload completed", {
         key: uploadedFile.url,
       });
-      const url = new URL(uploadedFile.url, IMAGE_PUBLIC_BASE_URL).toString();
+      const url = uploadedFile.publicUrl;
       eventEmitter.emit("image-uploaded", url);
       return {
         default: url,
@@ -126,6 +112,7 @@ export class CkEditorUploadAdapter {
   // Aborts the upload process.
   abort() {
     this.abortRequested = true;
+    this.abortController?.abort();
     logger.warn("EDITOR_UPLOAD", "upload aborted");
 
     if (this.uploadedKey) {

@@ -87,7 +87,6 @@ export function usePaginationState<
   }, [sortingState]);
 
   useEffect(() => {
-    console.log("debouncedQuery", debouncedQuery);
     const request = ++requestSequence.current;
 
     setError(null);

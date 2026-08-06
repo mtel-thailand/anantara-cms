@@ -289,7 +289,7 @@
           "preview": "Anteprima",
           "noImages": "Nessuna immagine",
           "reorderDescription": "Trascina le immagini di supporto per riordinarle oppure usa il menu per visualizzarle, promuoverle o rimuoverle.",
-          "requirements": "{count} di {minimum}-{maximum} immagini. JPG o PNG, massimo 10 MB ciascuna.",
+          "requirements": "{count} di {minimum}-{maximum} immagini. JPG o PNG, massimo {maxSize} MB ciascuna.",
           "imageAlt": "Immagine {index} di {name}",
           "mainImageAlt": "Immagine principale di {name}",
           "supportingImageAlt": "Immagine di supporto di {name}",
@@ -307,7 +307,7 @@
           "added": "{count, plural, one {Immagine aggiunta} other {Immagini aggiunte}}",
           "addedDescription": "{count, plural, one {# anteprima aggiunta} other {# anteprime aggiunte}} alla bozza.",
           "filesSkipped": "{count, plural, one {# file ignorato} other {# file ignorati}}",
-          "fileRequirements": "Usa file JPG o PNG di massimo 10 MB ciascuno.",
+          "fileRequirements": "Usa file JPG o PNG di massimo {maxSize} MB ciascuno.",
           "duplicatesSkipped": "{count, plural, one {# file duplicato ignorato} other {# file duplicati ignorati}}"
         }
       },

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import type { ApiContext } from "@/src/lib/api/types";
 import { withApiLogger } from "@/src/lib/api/with-api-logger";
+import { withAuth } from "@/src/lib/api/with-auth";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { storageAdaptorGetUploadUrl } from "@/src/lib/s3/client";
 import {
@@ -14,7 +15,6 @@ import type { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 
 const MAX_FILE_SIZE_MB = 100;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
-const CLIENT_UPLOAD_PREFIX = `${buildStoragePrefix([], "client")}/`;
 
 const schemas = {
   body: z
@@ -37,6 +37,8 @@ const schemas = {
           (contentType) => ACCEPTED_FILE_TYPES.includes(contentType),
           "Unsupported file type.",
         ),
+      fileName: z.string().trim().min(1).max(255),
+      scope: z.array(z.string().min(1).max(128)).max(12).default([]),
       size: z
         .number()
         .int()
@@ -49,15 +51,23 @@ const schemas = {
 type Context = ApiContext & InferSchemas<typeof schemas>;
 
 async function handler(request: NextRequest, context: Context) {
+  if (!context.user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
   const normalizedKey = normalizeStorageFolder(context.body.key);
-  const key = normalizedKey.startsWith(CLIENT_UPLOAD_PREFIX)
+  const scopedUploadPrefix = `${buildStoragePrefix(context.body.scope)}/`;
+  const key = normalizedKey.startsWith(scopedUploadPrefix)
     ? normalizedKey
-    : `${CLIENT_UPLOAD_PREFIX}${normalizedKey}`;
+    : `${scopedUploadPrefix}${normalizedKey}`;
 
   const upload = await storageAdaptorGetUploadUrl({
     key,
     contentType: context.body.contentType,
+    fileName: context.body.fileName,
+    scope: context.body.scope,
     size: context.body.size,
+    uploadedBy: context.user.id,
   });
 
   return NextResponse.json(upload, {
@@ -66,4 +76,4 @@ async function handler(request: NextRequest, context: Context) {
 }
 
 const validated = withValidate<typeof schemas, ApiContext>(schemas, handler);
-export const POST = withApiLogger(validated);
+export const POST = withApiLogger(withAuth(validated));

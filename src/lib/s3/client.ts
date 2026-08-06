@@ -261,6 +261,7 @@ export type PresignedUpload = {
   };
   key: string;
   method: "PUT";
+  publicUrl: string;
   url: string;
 };
 
@@ -269,45 +270,67 @@ const PRESIGNED_UPLOAD_EXPIRY_SECONDS = 60;
 export async function storageAdaptorGetUploadUrl({
   key,
   contentType,
+  fileName,
+  scope = [],
   size,
+  uploadedBy,
 }: {
   key: string;
   contentType: string;
+  fileName?: string;
+  scope?: readonly string[];
   size: number;
+  uploadedBy?: string;
 }): Promise<PresignedUpload> {
-  assertAllowedStorageKey(key);
+  try {
+    assertAllowedStorageKey(key);
 
-  const fileName = key.split("/").at(-1) || "file";
+    const originalFileName = fileName || key.split("/").at(-1) || "file";
+    const url = await getSignedUrl(
+      presignedUploadClient,
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        ContentDisposition: "inline",
+        ContentLength: size,
+        ContentType: contentType,
+        IfNoneMatch: "*",
+        Metadata: {
+          originalfilename: encodeURIComponent(originalFileName),
+          uploadscope: encodeURIComponent(JSON.stringify(scope)),
+          ...(uploadedBy ? { uploadedby: encodeURIComponent(uploadedBy) } : {}),
+        },
+      }),
+      { expiresIn: PRESIGNED_UPLOAD_EXPIRY_SECONDS },
+    );
 
-  const url = await getSignedUrl(
-    presignedUploadClient,
-    new PutObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-      ContentDisposition: "inline",
-      ContentLength: size,
-      ContentType: contentType,
-      IfNoneMatch: "*",
-      Metadata: {
-        originalfilename: encodeURIComponent(fileName),
-        uploadscope: encodeURIComponent(JSON.stringify([])),
+    logger.success("S3", "presigned upload URL created", {
+      key,
+      size: formatBytes(size),
+    });
+
+    return {
+      expiresIn: PRESIGNED_UPLOAD_EXPIRY_SECONDS,
+      headers: {
+        "Content-Disposition": "inline",
+        "Content-Length": String(size),
+        "Content-Type": contentType,
+        "If-None-Match": "*",
       },
-    }),
-    { expiresIn: PRESIGNED_UPLOAD_EXPIRY_SECONDS },
-  );
+      key,
+      method: "PUT",
+      publicUrl: buildStoragePublicUrl(key),
+      url,
+    };
+  } catch (error) {
+    logger.error("S3", "presigned upload URL creation failed", {
+      key,
+      size: formatBytes(size),
+      error: error instanceof Error ? error.message : String(error),
+    });
 
-  return {
-    expiresIn: PRESIGNED_UPLOAD_EXPIRY_SECONDS,
-    headers: {
-      "Content-Disposition": "inline",
-      "Content-Length": String(size),
-      "Content-Type": contentType,
-      "If-None-Match": "*",
-    },
-    key,
-    method: "PUT",
-    url,
-  };
+    throw error;
+  }
 }
 
 export async function storageAdaptorGetFile(key: string) {

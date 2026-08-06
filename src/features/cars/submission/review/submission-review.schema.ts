@@ -3,10 +3,10 @@ import { z } from "zod";
 import { SUBMISSION_STATUSES } from "@/src/features/cars/submission/submission.types";
 import { normalizedFileName } from "@/src/lib/string";
 import type { Translator } from "@/src/types/translation";
+import { SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES } from "@/src/features/cars/submission/review/submission-review.constants";
 
 const optionalString = z.string();
 const currentYear = new Date().getFullYear();
-const maxDocumentBytes = 10 * 1024 * 1024;
 const documentTypes = new Set([
   "application/pdf",
   "application/msword",
@@ -23,7 +23,7 @@ function getDocumentFileSchema(t: Translator) {
     t("documentType"),
   )
   .refine(
-    (file) => file.size <= maxDocumentBytes,
+    (file) => file.size <= SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES,
     t("documentSize"),
   );
 }

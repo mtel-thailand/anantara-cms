@@ -20,6 +20,7 @@ import {
 } from "../api/submission-upload";
 import type { SubmissionReviewFormValues } from "./submission-review.schema";
 import type { SubmissionUploads } from "./submission-review.types";
+import { SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES } from "./submission-review.constants";
 
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
 const DOCUMENT_TYPES = new Set([
@@ -27,13 +28,13 @@ const DOCUMENT_TYPES = new Set([
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
-const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_TOTAL_UPLOAD_BYTES = 100 * 1024 * 1024;
 
 async function validateStoredFiles<TFile extends StorageFile>(
   files: TFile[],
   formId: string,
   kind: SubmissionUploadKind,
+  maxSize: number,
   submissionId: string,
 ) {
   const expectedScope = submissionUploadScope(formId, submissionId, kind);
@@ -50,8 +51,10 @@ async function validateStoredFiles<TFile extends StorageFile>(
         throw new Error("An uploaded file has an invalid storage scope.");
       }
 
-      if (storedFile.size > MAX_FILE_BYTES) {
-        throw new Error("An uploaded file is larger than 10MB.");
+      if (storedFile.size > maxSize) {
+        throw new Error(
+          `An uploaded file is larger than ${maxSize / 1024 / 1024}MB.`,
+        );
       }
 
       if (kind === "images" && !IMAGE_TYPES.has(storedFile.contentType)) {
@@ -174,12 +177,14 @@ export async function prepareSubmissionMedia({
     uploads.images,
     formId,
     "images",
+    SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES,
     submissionId,
   );
   const uploadedDocuments = await validateStoredFiles(
     uploads.documents,
     formId,
     "documents",
+    SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES,
     submissionId,
   );
   const tempImages = values.images.filter((image) =>

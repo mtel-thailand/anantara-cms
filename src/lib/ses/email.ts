@@ -25,6 +25,7 @@ export type EmailTemplateParams = {
   };
   [EmailTemplate.OwnerRegistrationRequired]: {
     accessToken: string;
+    action: "owner-registration-create" | "owner-registration-edit";
     message: string;
   };
   [EmailTemplate.SubmissionConfirm]: {
@@ -210,10 +211,11 @@ const EMAIL_TEMPLATES = {
   [EmailTemplate.OwnerRegistrationRequired]: {
     file: "owner-registration-required.html",
     subject: "Action required: complete your Owner Registration",
-    resolveParams: ({ accessToken, message }) => ({
+    resolveParams: ({ accessToken, action, message }) => ({
       message,
-      formUrl: createClientUrl("/en/my-submission", {
+      formUrl: createClientUrl("/en/my-submission/", {
         token: accessToken,
+        action,
       }),
     }),
   },

@@ -8,6 +8,7 @@ type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
 export type OwnerReservationRequestEmailContext = {
   accessToken: string;
+  action: "owner-registration-create" | "owner-registration-edit";
   recipientEmail: string;
 };
 
@@ -28,7 +29,7 @@ export async function saveOwnerReservationInformationRequest(
   const { data: current, error: currentError } = await supabase
     .from("owner_reservations")
     .select(
-      "id, owner_email, request_note, status, updated_at, car_submissions_form!inner(access_token, email)",
+      "id, owner_email, received_at, request_note, status, updated_at, car_submissions_form!inner(access_token, email)",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -73,6 +74,10 @@ export async function saveOwnerReservationInformationRequest(
 
   return {
     accessToken: current.car_submissions_form.access_token ?? "",
+    action:
+      current.received_at === null
+        ? "owner-registration-create"
+        : "owner-registration-edit",
     recipientEmail:
       current.owner_email ?? current.car_submissions_form.email ?? "",
   };
