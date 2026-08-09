@@ -291,6 +291,7 @@ export type Database = {
           registration_plate_number: string | null
           request_note: Json
           requested_at: string | null
+          second_car_details: string | null
           seen: boolean
           special_requirements: string | null
           status: Database["public"]["Enums"]["car_entry_form_status"]
@@ -339,6 +340,7 @@ export type Database = {
           registration_plate_number?: string | null
           request_note?: Json
           requested_at?: string | null
+          second_car_details?: string | null
           seen?: boolean
           special_requirements?: string | null
           status?: Database["public"]["Enums"]["car_entry_form_status"]
@@ -387,6 +389,7 @@ export type Database = {
           registration_plate_number?: string | null
           request_note?: Json
           requested_at?: string | null
+          second_car_details?: string | null
           seen?: boolean
           special_requirements?: string | null
           status?: Database["public"]["Enums"]["car_entry_form_status"]
@@ -416,6 +419,7 @@ export type Database = {
       car_submission_vehicles: {
         Row: {
           additional_photo_link: string | null
+          approved_at: string | null
           archived_at: string | null
           body_style: string | null
           chassis_no: string | null
@@ -445,6 +449,7 @@ export type Database = {
         }
         Insert: {
           additional_photo_link?: string | null
+          approved_at?: string | null
           archived_at?: string | null
           body_style?: string | null
           chassis_no?: string | null
@@ -474,6 +479,7 @@ export type Database = {
         }
         Update: {
           additional_photo_link?: string | null
+          approved_at?: string | null
           archived_at?: string | null
           body_style?: string | null
           chassis_no?: string | null
@@ -1493,11 +1499,27 @@ export type Database = {
         Args: { p_email: string }
         Returns: boolean
       }
-      clear_owner_reservation_forms: { Args: never; Returns: Json }
+      clear_car_and_reservation_forms: { Args: never; Returns: Json }
       gen_ref: { Args: { length: number; prefix: string }; Returns: string }
       get_car_entry_form: {
         Args: { p_access_token: string; p_vehicle_id: string }
         Returns: Json
+      }
+      get_car_entry_forms_list: {
+        Args: {
+          p_has_deleted_at?: boolean
+          p_page?: number
+          p_page_size?: number
+          p_query?: string
+          p_sort_desc?: boolean
+          p_sort_key?: string
+          p_status?: Database["public"]["Enums"]["car_entry_form_status"]
+        }
+        Returns: Json
+      }
+      finalize_car_entry_form_vehicle: {
+        Args: { p_submission_vehicle_id: string }
+        Returns: boolean
       }
       get_car_submissions_list: {
         Args: {

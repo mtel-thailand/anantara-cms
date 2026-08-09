@@ -21,6 +21,7 @@ import {
   resolveSubmissionReviewStatus,
 } from "./submission-review.payload";
 import {
+  ensureCarEntryFormForApprovedSubmission,
   ensureOwnerReservationForApprovedSubmission,
   getCanonicalSubmission,
   saveSubmissionReview,
@@ -84,10 +85,13 @@ export async function saveCarSubmissionAction(
     submissionSaved = true;
 
     if (finalStatus === "approved") {
-      await ensureOwnerReservationForApprovedSubmission(
-        supabase,
-        submission.formId,
-      );
+      await Promise.all([
+        ensureOwnerReservationForApprovedSubmission(
+          supabase,
+          submission.formId,
+        ),
+        ensureCarEntryFormForApprovedSubmission(supabase, submission.id),
+      ]);
     }
 
     const saved = await getCanonicalSubmission(supabase, id);

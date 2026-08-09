@@ -10,56 +10,50 @@ import { Search, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { memo } from "react";
 
+import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
-import { Input } from "@/src/components/ui/input";
-import { Pagination } from "@/src/components/ui/pagination";
-import { Skeleton } from "@/src/components/ui/skeleton";
-import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
 import {
   FilterToggleGroup,
   type FilterToggleGroupItem,
 } from "@/src/components/ui/filter-toggle-group";
-
-import {
-  OwnerReservationFilter,
-  OwnerReservationListItem,
-} from "@/src/features/cars/reservation/list/owner-reservation-list.types";
-import { Button } from "@/src/components/ui/button";
+import { Input } from "@/src/components/ui/input";
+import { Pagination } from "@/src/components/ui/pagination";
+import { Skeleton } from "@/src/components/ui/skeleton";
+import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
+import type {
+  CarEntryFormFilter,
+  CarEntryFormListItem,
+} from "@/src/features/cars/reservation/list/car-entry-form-list.types";
 
 const PAGE_SIZE = 10;
 
-function OwnerTableSkeleton() {
+function CarTableSkeleton() {
   return (
     <div className="min-w-[850px]">
       {Array.from({ length: PAGE_SIZE }, (_, index) => (
         <div
           key={index}
-          className="grid min-h-14 grid-cols-[minmax(12rem,2fr)_minmax(7rem,1fr)_minmax(6rem,1fr)_minmax(8rem,1fr)_minmax(7rem,1fr)_minmax(14rem,2fr)] items-center gap-4 border-b px-2 py-2"
+          className="grid min-h-16 grid-cols-[5rem_minmax(12rem,2fr)_minmax(8rem,1fr)_minmax(8rem,1fr)_minmax(7rem,1fr)_minmax(9rem,1fr)] items-center gap-4 border-b px-2 py-2"
         >
+          <Skeleton className="size-12 rounded-md" />
           <div className="space-y-2">
             <Skeleton className="h-4 w-36" />
             <Skeleton className="h-3 w-44" />
           </div>
-          <Skeleton className="mx-auto h-4 w-8" />
-          <Skeleton className="mx-auto h-4 w-8" />
+          <Skeleton className="h-4 w-24" />
           <Skeleton className="h-6 w-24 rounded-full" />
           <Skeleton className="h-4 w-24" />
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="h-8 w-20" />
-            <Skeleton className="size-8" />
-          </div>
+          <Skeleton className="h-8 w-28" />
         </div>
       ))}
     </div>
   );
 }
 
-const OWNER_TABLE_SKELETON = <OwnerTableSkeleton />;
+const CAR_TABLE_SKELETON = <CarTableSkeleton />;
+const ignoreCarReorder = () => {};
 
-const ignoreOwnerReorder = () => {};
-
-const OwnerReservationResults = memo(function OwnerReservationResults({
+const CarEntryFormResults = memo(function CarEntryFormResults({
   columns,
   columnVisibility,
   data,
@@ -71,9 +65,9 @@ const OwnerReservationResults = memo(function OwnerReservationResults({
   sortingState,
   total,
 }: {
-  columns: ColumnDef<OwnerReservationListItem, unknown>[];
+  columns: ColumnDef<CarEntryFormListItem, unknown>[];
   columnVisibility: VisibilityState;
-  data: OwnerReservationListItem[];
+  data: CarEntryFormListItem[];
   isLoading: boolean;
   onColumnSortingChange: OnChangeFn<SortingState>;
   onPageChange: (page: number) => void;
@@ -89,14 +83,14 @@ const OwnerReservationResults = memo(function OwnerReservationResults({
   return (
     <>
       <Card className="w-full min-w-0 overflow-hidden rounded-lg shadow-none">
-        <ClientSideDraggableTable<OwnerReservationListItem>
+        <ClientSideDraggableTable<CarEntryFormListItem>
           key={locale}
           data={data}
           columns={columns}
           columnSorting={sortingState}
           columnVisibility={columnVisibility}
           onColumnSortingChange={onColumnSortingChange}
-          onReorder={ignoreOwnerReorder}
+          onReorder={ignoreCarReorder}
           className="max-h-none overflow-x-auto overflow-y-visible"
           tableClassName="min-w-[850px] text-sm"
           headerClassName="bg-muted/35"
@@ -105,16 +99,15 @@ const OwnerReservationResults = memo(function OwnerReservationResults({
           enabledRowSorting={false}
           emptyRow={
             showSkeleton ? (
-              OWNER_TABLE_SKELETON
+              CAR_TABLE_SKELETON
             ) : (
               <div className="flex h-32 items-center justify-center px-4 text-center text-sm text-muted-foreground">
-                {t("empty")}
+                {t("carEmpty")}
               </div>
             )
           }
         />
       </Card>
-
       <Pagination
         page={page}
         pageCount={pageCount}
@@ -126,9 +119,10 @@ const OwnerReservationResults = memo(function OwnerReservationResults({
   );
 });
 
-const OwnerReservationTab = memo(function OwnerReservationTab({
+const CarEntryFormTab = memo(function CarEntryFormTab({
   columns,
   columnVisibility,
+  currentFilter = "all",
   data,
   filterItems,
   isLoading,
@@ -142,16 +136,16 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
   query,
   sortingState,
   total,
-  currentFilter = "all",
 }: {
-  columns: ColumnDef<OwnerReservationListItem, unknown>[];
+  columns: ColumnDef<CarEntryFormListItem, unknown>[];
   columnVisibility: VisibilityState;
-  data: OwnerReservationListItem[];
-  filterItems: readonly FilterToggleGroupItem<OwnerReservationFilter>[];
+  currentFilter?: CarEntryFormFilter;
+  data: CarEntryFormListItem[];
+  filterItems: readonly FilterToggleGroupItem<CarEntryFormFilter>[];
   isLoading: boolean;
   onColumnSortingChange: OnChangeFn<SortingState>;
   onClearFilters: () => void;
-  onFilterChange: (filter: OwnerReservationFilter) => void;
+  onFilterChange: (filter: CarEntryFormFilter) => void;
   onPageChange: (page: number) => void;
   onQueryChange: (query: string) => void;
   page: number;
@@ -159,15 +153,14 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
   query: string;
   sortingState: SortingState;
   total: number;
-  currentFilter?: OwnerReservationFilter;
 }) {
   const t = useTranslations("cars.reservation.list");
 
   return (
     <div className="flex min-w-0 flex-col gap-4 pt-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <FilterToggleGroup
-          ariaLabel={t("filterAria")}
+          ariaLabel={t("carFilterAria")}
           items={filterItems}
           value={currentFilter}
           onValueChange={onFilterChange}
@@ -184,21 +177,20 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
             </Button>
           ) : null}
           <Input
-            aria-label={t("searchAria")}
+            aria-label={t("carSearchAria")}
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
-            placeholder={t("searchPlaceholder")}
-            className="bg-card min-w-60"
+            placeholder={t("carSearchPlaceholder")}
+            className="min-w-60 bg-card"
             leftButton={{
               icon: Search,
-              label: t("searchAria"),
+              label: t("carSearchAria"),
               disabled: true,
             }}
           />
         </div>
       </div>
-
-      <OwnerReservationResults
+      <CarEntryFormResults
         columns={columns}
         columnVisibility={columnVisibility}
         data={data}
@@ -214,4 +206,4 @@ const OwnerReservationTab = memo(function OwnerReservationTab({
   );
 });
 
-export default OwnerReservationTab;
+export default CarEntryFormTab;

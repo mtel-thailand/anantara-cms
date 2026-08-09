@@ -76,7 +76,7 @@ export function usePaginationState<
   const requestSequence = useRef(0);
   const { isLoading, execute } = useAsync(true);
   const delayedQuery = useDebounce(query, queryDebounceMs);
-  const debouncedQuery = query.trim() ? delayedQuery : "";
+  const debouncedQuery = delayedQuery.trim();
   const pageCount = Math.max(1, Math.ceil(total / effectivePageSize));
   const sort = useMemo<PaginationSort<TSortKey>>(() => {
     const [activeSort] = sortingState;

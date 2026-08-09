@@ -41,6 +41,7 @@ export type OwnerReservationListItem = {
   seen: boolean;
   createdAt: string;
   updatedAt: string;
+  hasCarsMovedBackToPreApproval: boolean;
   approvedVehicleCount: number;
   finalizedVehicleCount: number;
 };

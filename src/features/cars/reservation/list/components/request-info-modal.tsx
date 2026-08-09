@@ -18,21 +18,26 @@ import { Textarea } from "@/src/components/ui/textarea";
 import Text from "@/src/components/ui/text";
 import { formatDate } from "@/src/lib/date";
 import { logger } from "@/src/lib/logger";
-import type { OwnerReservationDetail } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
+import type { OwnerReservationInformationRequest } from "@/src/features/cars/reservation/list/owner-reservation-list.types";
 
-type OwnerRequestInfoModalState = {
+type RequestInfoRecord = {
+  id: string;
+  infoRequests: OwnerReservationInformationRequest[];
+};
+
+type RequestInfoModalState = {
   composerOpen: boolean;
   message: string;
 };
 
-export function createOwnerRequestInfoModalStore() {
-  let state: OwnerRequestInfoModalState = {
+export function createRequestInfoModalStore() {
+  let state: RequestInfoModalState = {
     composerOpen: false,
     message: "",
   };
   const listeners = new Set<() => void>();
 
-  function update(nextState: Partial<OwnerRequestInfoModalState>) {
+  function update(nextState: Partial<RequestInfoModalState>) {
     state = { ...state, ...nextState };
     listeners.forEach((listener) => listener());
   }
@@ -48,11 +53,11 @@ export function createOwnerRequestInfoModalStore() {
   };
 }
 
-export type OwnerRequestInfoModalStore = ReturnType<
-  typeof createOwnerRequestInfoModalStore
+export type RequestInfoModalStore = ReturnType<
+  typeof createRequestInfoModalStore
 >;
 
-function useOwnerRequestInfoModalState(store: OwnerRequestInfoModalStore) {
+function useRequestInfoModalState(store: RequestInfoModalStore) {
   return useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
@@ -60,20 +65,20 @@ function useOwnerRequestInfoModalState(store: OwnerRequestInfoModalStore) {
   );
 }
 
-export function OwnerRequestInfoModal({
-  reservation,
+export function RequestInfoModal({
+  record,
   store,
 }: {
-  reservation: OwnerReservationDetail;
-  store: OwnerRequestInfoModalStore;
+  record: RequestInfoRecord;
+  store: RequestInfoModalStore;
 }) {
   const t = useTranslations("cars.reservation.list");
-  const { composerOpen, message } = useOwnerRequestInfoModalState(store);
-  const showComposer = reservation.infoRequests.length === 0 || composerOpen;
+  const { composerOpen, message } = useRequestInfoModalState(store);
+  const showComposer = record.infoRequests.length === 0 || composerOpen;
 
   return (
     <div className="flex max-h-[50vh] flex-col gap-3 overflow-y-auto px-4 pb-4">
-      {reservation.infoRequests.map((request) => (
+      {record.infoRequests.map((request) => (
         <div key={request.id} className="flex flex-col gap-1">
           <Textarea
             value={request.message}
@@ -90,7 +95,7 @@ export function OwnerRequestInfoModal({
       {showComposer ? (
         <div className="flex flex-col gap-1.5">
           <Textarea
-            label={reservation.infoRequests.length ? t("newMessage") : undefined}
+            label={record.infoRequests.length ? t("newMessage") : undefined}
             value={message}
             onChange={(event) => store.setMessage(event.target.value)}
             rows={5}
@@ -114,26 +119,28 @@ export function OwnerRequestInfoModal({
   );
 }
 
-export function OwnerRequestInfoModalFooter({
+export function RequestInfoModalFooter({
   close,
   loading,
   onSend,
-  reservation,
+  record,
   run,
+  requestKind = "owner",
   store,
 }: {
   close: () => void;
   loading: boolean;
   onSend: (message: string) => Promise<{ emailSent: boolean }>;
-  reservation: OwnerReservationDetail;
+  record: RequestInfoRecord;
   run: (action: () => void | Promise<void>) => Promise<void>;
-  store: OwnerRequestInfoModalStore;
+  requestKind?: "owner" | "car";
+  store: RequestInfoModalStore;
 }) {
   const t = useTranslations("cars.reservation.list");
   const commonT = useTranslations("common");
   const [confirmationOpen, setConfirmationOpen] = useState(false);
-  const { composerOpen, message } = useOwnerRequestInfoModalState(store);
-  const showComposer = reservation.infoRequests.length === 0 || composerOpen;
+  const { composerOpen, message } = useRequestInfoModalState(store);
+  const showComposer = record.infoRequests.length === 0 || composerOpen;
 
   async function handleSend() {
     const nextMessage = message.trim();
@@ -142,9 +149,12 @@ export function OwnerRequestInfoModalFooter({
     try {
       const { emailSent } = await onSend(nextMessage);
       if (emailSent) {
-        toast.success(t("requestSuccess"), {
-          description: t("requestSuccessDescription"),
-        });
+        toast.success(
+          t(requestKind === "car" ? "carRequestSuccess" : "requestSuccess"),
+          {
+            description: t("requestSuccessDescription"),
+          },
+        );
       } else {
         toast.warning(t("requestWarning"), {
           description: t("requestWarningDescription"),
@@ -153,10 +163,14 @@ export function OwnerRequestInfoModalFooter({
       setConfirmationOpen(false);
       close();
     } catch (error) {
-      logger.error("OWNER-RESERVATIONS", "Failed to request information", {
+      logger.error(
+        requestKind === "car" ? "CAR-ENTRY-FORMS" : "OWNER-RESERVATIONS",
+        "Failed to request information",
+        {
         error: error instanceof Error ? error.message : String(error),
-        reservationId: reservation.id,
-      });
+        recordId: record.id,
+        },
+      );
       toast.error(t("requestError"), {
         description: t("tryAgain"),
       });

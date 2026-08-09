@@ -13,6 +13,7 @@ import { Label } from "./label";
 export interface InputProps extends ComponentProps<"input"> {
   containerClassName?: string;
   label?: string;
+  labelClassName?: string;
   htmlFor?: string;
   required?: boolean;
   error?: {
@@ -37,6 +38,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       className,
+      labelClassName,
       containerClassName,
       type,
       label,
@@ -56,7 +58,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className={cn("flex flex-col gap-2", containerClassName)}>
         <div className="flex flex-col gap-2">
           {label && (
-            <Label htmlFor={htmlFor}>
+            <Label htmlFor={htmlFor} className={labelClassName}>
               {label} {required && <span className="text-destructive">*</span>}
             </Label>
           )}

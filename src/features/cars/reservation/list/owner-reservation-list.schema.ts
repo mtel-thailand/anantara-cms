@@ -17,6 +17,7 @@ export const OwnerReservationListRpcSchema = z
           seen: z.boolean(),
           created_at: z.string(),
           updated_at: z.string(),
+          has_cars_moved_back_to_pre_approval: z.boolean(),
           approved_vehicle_count: z.number().int().nonnegative(),
           finalized_vehicle_count: z.number().int().nonnegative(),
         })

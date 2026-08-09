@@ -35,7 +35,13 @@ function ownerName(reservation: OwnerReservationDetail) {
     .join(" ");
 }
 
-export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
+export function ReservationFormReviewClient({
+  embedded = false,
+  ownerId,
+}: {
+  embedded?: boolean;
+  ownerId: string;
+}) {
   const t = useTranslations("cars.reservation.review");
   const listT = useTranslations("cars.reservation.list");
   const commonT = useTranslations("common");
@@ -153,10 +159,10 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
   if (isLoading) {
     return (
       <>
-        <NavigationButton
+        {!embedded ? <NavigationButton
           text={t("back")}
           onClick={() => router.push("/app/cars/forms")}
-        />
+        /> : null}
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
           {t("loading")}
         </Card>
@@ -167,10 +173,10 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
   if (!reservation) {
     return (
       <>
-        <NavigationButton
+        {!embedded ? <NavigationButton
           text={t("back")}
           onClick={() => router.push("/app/cars/forms")}
-        />
+        /> : null}
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
           {t("notFound")}
         </Card>
@@ -191,11 +197,11 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
     : t("descriptionNoCars", { email: reservation.owner_email ?? "" });
   return (
     <>
-      <NavigationButton
+      {!embedded ? <NavigationButton
         text={backLabel}
         onClick={() => router.push(backHref)}
-      />
-      <PageHeader
+      /> : null}
+      {!embedded ? <PageHeader
         title={name || reservation.owner_email || t("unknownOwner")}
         description={carDescription}
         titleAccessory={
@@ -215,7 +221,7 @@ export function ReservationFormReviewClient({ ownerId }: { ownerId: string }) {
         >
           <Download className="size-4" /> {t("downloadCsv")}
         </Button>
-      </PageHeader>
+      </PageHeader> : null}
 
       <Card className="flex flex-col gap-6 p-5 shadow-none">
         <div className="flex flex-wrap items-center justify-between gap-3">

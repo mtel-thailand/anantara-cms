@@ -223,6 +223,7 @@ export function toCarSubmissionListItem(
 ): SubmissionVehicleWithFormState {
   return {
     additionalPhotoLink: row.additional_photo_link,
+    approvedAt: row.approved_at,
     images: row.images,
     vehicleDocuments: row.vehicle_documents,
     seen: !!row.seen,
@@ -324,6 +325,7 @@ export function submissionFormPayload(
 
 export function vehiclePayload(submission: CarSubmission) {
   const images = submission.images.map(storedImage) satisfies Json[];
+  const status = statusToDb[submission.status];
   const additionalPhotoLink = submission.documents.find(
     (document) => document.additionalPhotoLink,
   );
@@ -333,6 +335,9 @@ export function vehiclePayload(submission: CarSubmission) {
 
   return {
     additional_photo_link: additionalPhotoLink?.url || null,
+    ...(status === "approved"
+      ? { approved_at: new Date().toISOString() }
+      : {}),
     body_style: submission.vehicle.bodyStyle || null,
     chassis_no: submission.vehicle.chassisNumber || null,
     coachbuilder: submission.vehicle.coachbuilder || null,
@@ -345,7 +350,7 @@ export function vehiclePayload(submission: CarSubmission) {
     model: submission.vehicle.model,
     review_note: submission.infoRequests as unknown as Json,
     reviewed_at: new Date().toISOString(),
-    status: statusToDb[submission.status],
+    status,
     updated_at: new Date().toISOString(),
     vehicle_documents: documents,
     vehicle_history_en: submission.history.en || null,
