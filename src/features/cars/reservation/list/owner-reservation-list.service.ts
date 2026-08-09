@@ -52,6 +52,8 @@ function toOwnerReservationListItem(
     seen: row.seen,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    hasCarsMovedBackToPreApproval:
+      row.has_cars_moved_back_to_pre_approval,
     approvedVehicleCount: row.approved_vehicle_count,
     finalizedVehicleCount: row.finalized_vehicle_count,
   };

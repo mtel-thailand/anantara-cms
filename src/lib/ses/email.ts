@@ -5,6 +5,8 @@ import { sendSesEmail } from "@/src/lib/ses/client";
 import Handlebars from "handlebars";
 
 export enum EmailTemplate {
+  CarEntryFormComplete = "car-entry-form-complete",
+  CarEntryFormRequired = "car-entry-form-required",
   OwnerRegistrationComplete = "owner-registration-complete",
   OwnerRegistrationRequired = "owner-registration-required",
   SubmissionConfirm = "submission-confirm",
@@ -19,7 +21,34 @@ export type SubmissionEmailStatus =
   | "under_review"
   | "waitlist";
 
+export type CarEntryFormRequestAction =
+  | "car-entry-create"
+  | "car-entry-edit";
+
 export type EmailTemplateParams = {
+  [EmailTemplate.CarEntryFormComplete]: {
+    accessToken: string;
+    vehicle: {
+      bodyStyle: string;
+      imageUrl: string;
+      name: string;
+      reference: string;
+      year: string;
+    };
+  };
+  [EmailTemplate.CarEntryFormRequired]: {
+    accessToken: string;
+    action: CarEntryFormRequestAction;
+    message: string;
+    submissionVehicleId: string;
+    vehicle: {
+      bodyStyle: string;
+      imageUrl: string;
+      name: string;
+      reference: string;
+      year: string;
+    };
+  };
   [EmailTemplate.OwnerRegistrationComplete]: {
     accessToken: string;
   };
@@ -199,6 +228,42 @@ const STATUS_CONTENT: Record<
 };
 
 const EMAIL_TEMPLATES = {
+  [EmailTemplate.CarEntryFormComplete]: {
+    file: "car-entry-form.html",
+    subject: "Your Car Entry Form is complete",
+    resolveParams: ({ accessToken, vehicle }) => ({
+      buttonLabel: "View My Submission",
+      buttonUrl: createClientUrl("/en/my-submission", {
+        token: accessToken,
+      }),
+      complete: true,
+      message: "",
+      required: false,
+      vehicle,
+    }),
+  },
+  [EmailTemplate.CarEntryFormRequired]: {
+    file: "car-entry-form.html",
+    subject: "Action required: complete your Car Entry Form",
+    resolveParams: ({
+      accessToken,
+      action,
+      message,
+      submissionVehicleId,
+      vehicle,
+    }) => ({
+      buttonLabel: "Review Car Entry Form",
+      buttonUrl: createClientUrl("/en/my-submission/", {
+        token: accessToken,
+        action,
+        vehicle: submissionVehicleId,
+      }),
+      complete: false,
+      message,
+      required: true,
+      vehicle,
+    }),
+  },
   [EmailTemplate.OwnerRegistrationComplete]: {
     file: "owner-registration-complete.html",
     subject: "Your Owner Registration is complete",
@@ -212,6 +277,10 @@ const EMAIL_TEMPLATES = {
     file: "owner-registration-required.html",
     subject: "Action required: complete your Owner Registration",
     resolveParams: ({ accessToken, action, message }) => ({
+      buttonLabel: "Review Owner Registration",
+      formDescription:
+        "Please review your Owner Registration and complete any required information to continue your registration.",
+      formTitle: "Owner Registration",
       message,
       formUrl: createClientUrl("/en/my-submission/", {
         token: accessToken,

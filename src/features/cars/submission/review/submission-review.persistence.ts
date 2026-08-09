@@ -49,6 +49,33 @@ export async function ensureOwnerReservationForApprovedSubmission(
   }
 }
 
+export async function ensureCarEntryFormForApprovedSubmission(
+  supabase: ServerSupabaseClient,
+  submissionVehicleId: string,
+) {
+  const { error: formError } = await supabase.from("car_entry_forms").upsert(
+    {
+      status: "required",
+      submission_vehicle_id: submissionVehicleId,
+    },
+    {
+      ignoreDuplicates: true,
+      onConflict: "submission_vehicle_id",
+    },
+  );
+
+  if (formError) throw formError;
+
+  const { data: form, error: formLookupError } = await supabase
+    .from("car_entry_forms")
+    .select("id")
+    .eq("submission_vehicle_id", submissionVehicleId)
+    .maybeSingle();
+
+  if (formLookupError) throw formLookupError;
+  if (!form) throw new Error("The car entry form could not be created.");
+}
+
 export async function getCanonicalSubmission(
   supabase: ServerSupabaseClient,
   id: string,

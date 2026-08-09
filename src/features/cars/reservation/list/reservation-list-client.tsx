@@ -2,8 +2,10 @@
 
 import type { ColumnDef, VisibilityState } from "@tanstack/react-table";
 import {
+  CircleAlert,
   Download,
   Eye,
+  Flag,
   History,
   Mail,
   RotateCcw,
@@ -43,17 +45,38 @@ import { logger } from "@/src/lib/logger";
 import { runAsyncTask } from "@/src/lib/async";
 import { getOwnerReservation } from "@/src/features/cars/reservation/list/owner-reservation-list.service";
 import {
-  clearOwnerReservationFormsAction,
+  clearCarAndReservationFormsAction,
   requestOwnerReservationInformationAction,
   restoreOwnerReservationAction,
 } from "@/src/features/cars/reservation/list/owner-reservation-list.actions";
 import { downloadOwnerReservation } from "@/src/features/cars/reservation/list/owner-reservation-download";
 import {
-  createOwnerRequestInfoModalStore,
-  OwnerRequestInfoModal,
-  OwnerRequestInfoModalFooter,
-} from "@/src/features/cars/reservation/list/components/owner-request-info-modal";
+  createRequestInfoModalStore,
+  RequestInfoModal,
+  RequestInfoModalFooter,
+} from "@/src/features/cars/reservation/list/components/request-info-modal";
 import { useNotificationContext } from "@/src/components/providers/notification-provider";
+import Image from "next/image";
+import CarEntryFormTab from "@/src/features/cars/reservation/list/components/car-entry-form-tab";
+import { useCarEntryFormList } from "@/src/features/cars/reservation/list/hooks/use-car-entry-form-list";
+import {
+  CAR_ENTRY_FORM_STATUSES,
+  type CarEntryFormFilter,
+  type CarEntryFormListItem,
+} from "@/src/features/cars/reservation/list/car-entry-form-list.types";
+import { getCarEntryFormRequestDetail } from "@/src/features/cars/reservation/list/car-entry-form-list.service";
+import {
+  finalizeCarEntryFormVehicleAction,
+  requestCarEntryFormInformationAction,
+  restoreCarEntryFormVehicleAction,
+} from "@/src/features/cars/reservation/list/car-entry-form-list.actions";
+import { FORM_STATUS_BADGE } from "@/src/features/cars/reservation/list/components/form-status-stepper";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/src/components/ui/tooltip";
 
 const PAGE_SIZE = 10;
 const RESERVATION_UPDATE_TOAST_ID = "owner-reservation-list-update";
@@ -64,6 +87,10 @@ const DELETED_OWNER_COLUMN_VISIBILITY: VisibilityState = {
 };
 
 const OWNER_FILTER_VALUES = ["all", ...OWNER_RESERVATION_STATUSES] as const;
+const CAR_FILTER_VALUES = ["all", ...CAR_ENTRY_FORM_STATUSES] as const;
+const DEFAULT_CAR_COLUMN_VISIBILITY: VisibilityState = { deleted: false };
+const EMPTY_OWNER_ITEMS: OwnerReservationListItem[] = [];
+const EMPTY_CAR_ITEMS: CarEntryFormListItem[] = [];
 
 function ownerName(owner: OwnerReservationListItem) {
   return [owner.ownerForenames, owner.ownerSurname].filter(Boolean).join(" ");
@@ -128,7 +155,13 @@ function ClearSubmissionFormConfirmation({
   );
 }
 
-export function ReservationFormListClient({ type }: { type?: "deleted" }) {
+export function ReservationFormListClient({
+  initialTab = "owner",
+  type,
+}: {
+  initialTab?: "owner" | "car";
+  type?: "deleted";
+}) {
   const router = useRouter();
   const t = useTranslations("cars.submission.list");
   const reservationT = useTranslations("cars.reservation.list");
@@ -139,7 +172,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
   const previousReservationSeenCount = useRef(reservationSeenCount);
   const previousReservationTrigger = useRef(reservationTrigger);
   const modal = useModal();
-  const [currentTab, setCurrentTab] = useState<"owner" | "car">("owner");
+  const [currentTab, setCurrentTab] = useState<"owner" | "car">(initialTab);
   const {
     data,
     total,
@@ -156,6 +189,25 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     resetQueryAndFilters,
     refresh,
   } = useOwnerReservationList({
+    pageSize: PAGE_SIZE,
+    filters: { status: null, hasDeletedAt: isDeleted },
+  });
+  const {
+    data: carData,
+    total: carTotal,
+    pageCount: carPageCount,
+    page: carPage,
+    isLoading: isCarLoading,
+    query: carQuery,
+    sortingState: carSortingState,
+    filters: carFilters,
+    setPage: setCarPage,
+    setQuery: setCarQuery,
+    setSortState: setCarSortState,
+    setFilters: setCarFilters,
+    resetQueryAndFilters: resetCarQueryAndFilters,
+    refresh: refreshCars,
+  } = useCarEntryFormList({
     pageSize: PAGE_SIZE,
     filters: { status: null, hasDeletedAt: isDeleted },
   });
@@ -204,7 +256,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     t,
   ]);
 
-  const owners = data?.items ?? [];
+  const owners = data?.items ?? EMPTY_OWNER_ITEMS;
   const filterItems = useMemo(
     () =>
       OWNER_FILTER_VALUES.map(
@@ -215,6 +267,81 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
         }),
       ),
     [data?.statusCounts],
+  );
+  const cars = carData?.items ?? EMPTY_CAR_ITEMS;
+  const carFilterItems = useMemo(
+    () =>
+      CAR_FILTER_VALUES.map(
+        (status): FilterToggleGroupItem<CarEntryFormFilter> => ({
+          value: status,
+          label: capitalize(status),
+          count: carData?.statusCounts[status] ?? 0,
+        }),
+      ),
+    [carData?.statusCounts],
+  );
+
+  const handleCarRequestInfo = useCallback(
+    async (car: CarEntryFormListItem) => {
+      await runAsyncTask<void>({
+        action: async () => {
+          const form = await getCarEntryFormRequestDetail(
+            car.submissionVehicleId,
+          );
+          const requestInfoStore = createRequestInfoModalStore();
+          const sendRequest = async (message: string) => {
+            const result = await requestCarEntryFormInformationAction({
+              message,
+              submissionVehicleId: car.submissionVehicleId,
+            });
+            refreshCars();
+            return result;
+          };
+
+          modal.handleShowShowCloseButton();
+          modal.disableBackdropClose();
+          modal.open({
+            headerClassName: "border-b-0 px-4 !py-0 !pt-4",
+            header: (
+              <div className="pr-8">
+                <Text.FormTitle size="xl">
+                  {reservationT("carRequestDialogTitle", {
+                    car: [car.make, car.model].filter(Boolean).join(" "),
+                  })}
+                </Text.FormTitle>
+                <Text size="sm" color="muted-foreground">
+                  {reservationT("carRequestDialogDescription")}
+                </Text>
+              </div>
+            ),
+            content: (
+              <RequestInfoModal record={form} store={requestInfoStore} />
+            ),
+            footer: ({ loading, close, run }) => (
+              <RequestInfoModalFooter
+                close={close}
+                loading={loading}
+                onSend={sendRequest}
+                record={form}
+                requestKind="car"
+                run={run}
+                store={requestInfoStore}
+              />
+            ),
+          });
+        },
+        onError: (error) => {
+          logger.error("CAR-ENTRY-FORMS", "Failed to load request history", {
+            error: error instanceof Error ? error.message : String(error),
+            submissionVehicleId: car.submissionVehicleId,
+          });
+          toast.error(reservationT("requestLoadError"), {
+            description: reservationT("tryAgain"),
+          });
+        },
+      });
+    },
+    [modal, refreshCars, reservationT],
   );
 
   const handleOwnerDownload = useCallback(
@@ -239,7 +366,7 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
       await runAsyncTask<void>({
         action: async () => {
           const reservation = await getOwnerReservation(owner.id);
-          const requestInfoStore = createOwnerRequestInfoModalStore();
+          const requestInfoStore = createRequestInfoModalStore();
           const sendRequest = async (message: string) => {
             const result = await requestOwnerReservationInformationAction({
               id: owner.id,
@@ -265,17 +392,14 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
               </div>
             ),
             content: (
-              <OwnerRequestInfoModal
-                reservation={reservation}
-                store={requestInfoStore}
-              />
+              <RequestInfoModal record={reservation} store={requestInfoStore} />
             ),
             footer: ({ loading, close, run }) => (
-              <OwnerRequestInfoModalFooter
+              <RequestInfoModalFooter
                 close={close}
                 loading={loading}
                 onSend={sendRequest}
-                reservation={reservation}
+                record={reservation}
                 run={run}
                 store={requestInfoStore}
               />
@@ -383,6 +507,24 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
           >
             <div className="flex items-center gap-2">
               <span className="font-medium">{ownerName(row.original)}</span>
+              {row.original.hasCarsMovedBackToPreApproval ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span
+                        className="inline-flex shrink-0 text-amber-500 focus-visible:outline-none"
+                        tabIndex={0}
+                        aria-label={reservationT("carsMovedBackToPreApproval")}
+                      >
+                        <CircleAlert className="size-4" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {reservationT("carsMovedBackToPreApproval")}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : null}
               {!row.original.seen ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
                   <span className="size-1.5 rounded-full bg-primary" />
@@ -549,9 +691,317 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
     ],
   );
 
+  const carColumns = useMemo<ColumnDef<CarEntryFormListItem, unknown>[]>(
+    () => [
+      {
+        id: "image",
+        accessorKey: "imageUrl",
+        header: reservationT("image"),
+        enableSorting: false,
+        cell: ({ row }) => {
+          return row.original.imageUrl ? (
+            <Link href={`/app/cars/forms/${row.original.submissionVehicleId}`}>
+              <Image
+                src={row.original.imageUrl}
+                alt={[row.original.make, row.original.model]
+                  .filter(Boolean)
+                  .join(" ")}
+                width={48}
+                height={48}
+                className={cn("size-12 rounded-md object-cover", {
+                  "opacity-60": isDeleted,
+                })}
+              />
+            </Link>
+          ) : (
+            <div className="size-12 rounded-md bg-muted" />
+          );
+        },
+      },
+      {
+        id: "owner",
+        accessorFn: (car) =>
+          [car.ownerForenames, car.ownerSurname].filter(Boolean).join(" "),
+        header: reservationT("owner"),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div
+            className={cn("flex min-w-48 flex-col", {
+              "opacity-60": isDeleted,
+            })}
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-medium">
+                {[row.original.ownerForenames, row.original.ownerSurname]
+                  .filter(Boolean)
+                  .join(" ")}
+              </span>
+              {!row.original.seen ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+                  <span className="size-1.5 rounded-full bg-primary" />
+                  {reservationT("new")}
+                </span>
+              ) : null}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {[row.original.make, row.original.model]
+                .filter(Boolean)
+                .join(" ")}
+            </span>
+          </div>
+        ),
+      },
+      {
+        id: "reference",
+        accessorKey: "vehicleRef",
+        header: reservationT("reference"),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">
+            {row.original.vehicleRef || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: reservationT("formStatus"),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <div className={cn({ "opacity-60": isDeleted })}>
+            <FormStatusChip status={row.original.status} />
+          </div>
+        ),
+      },
+      {
+        id: "photos",
+        accessorKey: "highResolutionPhotosLink",
+        header: reservationT("highQualityImageLink"),
+        enableSorting: false,
+        cell: ({ row }) => {
+          const formSubmitted =
+            row.original.status === "received" ||
+            row.original.status === "approved";
+          const received =
+            formSubmitted &&
+            Boolean(row.original.highResolutionPhotosLink?.trim());
+          const photoStatus = received ? "received" : "required";
+          return (
+            <Badge
+              variant="outline"
+              className={cn(
+                FORM_STATUS_BADGE[photoStatus],
+                "whitespace-nowrap",
+              )}
+            >
+              {reservationT(
+                received ? "photoLinkReceived" : "photoLinkRequired",
+              )}
+            </Badge>
+          );
+        },
+      },
+      {
+        id: "updated",
+        accessorKey: "updatedAt",
+        header: reservationT("lastUpdated"),
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span
+            className={cn("whitespace-nowrap text-muted-foreground", {
+              "opacity-60": isDeleted,
+            })}
+          >
+            {formatDate(row.original.updatedAt, locale)}
+          </span>
+        ),
+      },
+      {
+        id: "deleted",
+        accessorKey: "deletedAt",
+        header: reservationT("deleted"),
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap text-muted-foreground opacity-60">
+            {row.original.deletedAt
+              ? formatDate(row.original.deletedAt, locale)
+              : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "action",
+        header: reservationT("action"),
+        enableSorting: false,
+        cell: ({ row }) =>
+          isDeleted ? (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="icon-sm">
+                <Link
+                  href={`/app/cars/forms/${row.original.submissionVehicleId}`}
+                >
+                  <Eye className="size-3.5" />
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const car = row.original;
+                  modal.open({
+                    headerClassName: "border-0 px-4 pt-4",
+                    header: (
+                      <Text.FormTitle size="base">
+                        {reservationT("restoreCarTitle", {
+                          car: [car.make, car.model].filter(Boolean).join(" "),
+                        })}
+                      </Text.FormTitle>
+                    ),
+                    contentClassName: "px-4",
+                    content: (
+                      <Text size="sm" color="muted-foreground">
+                        {reservationT("restoreCarDescription")}
+                      </Text>
+                    ),
+                    footer: ({ loading, close, run }) => (
+                      <>
+                        <Button
+                          variant="outline"
+                          disabled={loading}
+                          onClick={close}
+                        >
+                          {commonT("cancel")}
+                        </Button>
+                        <Button
+                          loading={loading}
+                          onClick={() =>
+                            void run(async () => {
+                              await restoreCarEntryFormVehicleAction(
+                                car.submissionVehicleId,
+                              );
+                              refreshCars();
+                              close();
+                              toast.success(reservationT("carRestored"));
+                            })
+                          }
+                        >
+                          <RotateCcw className="size-3.5" />{" "}
+                          {t("restoreAction")}
+                        </Button>
+                      </>
+                    ),
+                  });
+                }}
+              >
+                <RotateCcw className="size-3.5" /> {t("restoreAction")}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={
+                  row.original.status === "approved" ||
+                  row.original.status === "requested"
+                }
+                onClick={() => void handleCarRequestInfo(row.original)}
+              >
+                <Mail className="size-3.5" /> {reservationT("requestInfo")}
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link
+                  href={`/app/cars/forms/${row.original.submissionVehicleId}`}
+                >
+                  <SquarePen className="size-3.5" /> {reservationT("review")}
+                </Link>
+              </Button>
+              <Button
+                size="sm"
+                disabled={!row.original.canFinalize}
+                title={
+                  !row.original.canFinalize
+                    ? reservationT("finalizeUnavailable")
+                    : undefined
+                }
+                onClick={() => {
+                  const car = row.original;
+                  modal.open({
+                    headerClassName: "border-0 px-4 pt-4",
+                    header: (
+                      <Text.FormTitle size="base">
+                        {reservationT("finalizeTitle", {
+                          car: [car.make, car.model].filter(Boolean).join(" "),
+                        })}
+                      </Text.FormTitle>
+                    ),
+                    contentClassName: "px-4",
+                    content: (
+                      <Text size="sm" color="muted-foreground">
+                        {reservationT("finalizeDescription")}
+                      </Text>
+                    ),
+                    footer: ({ loading, close, run }) => (
+                      <>
+                        <Button
+                          variant="outline"
+                          disabled={loading}
+                          onClick={close}
+                        >
+                          {commonT("cancel")}
+                        </Button>
+                        <Button
+                          loading={loading}
+                          onClick={() =>
+                            void run(async () => {
+                              await finalizeCarEntryFormVehicleAction(
+                                car.submissionVehicleId,
+                              );
+                              refreshCars();
+                              close();
+                              toast.success(
+                                reservationT("finalized", {
+                                  car: [car.make, car.model]
+                                    .filter(Boolean)
+                                    .join(" "),
+                                }),
+                                {
+                                  description: reservationT(
+                                    "finalizedDescription",
+                                  ),
+                                },
+                              );
+                            })
+                          }
+                        >
+                          {reservationT("finalizeCar")}
+                        </Button>
+                      </>
+                    ),
+                  });
+                }}
+              >
+                <Flag className="size-3.5" /> {reservationT("finalizeCar")}
+              </Button>
+            </div>
+          ),
+      },
+    ],
+    [
+      commonT,
+      handleCarRequestInfo,
+      isDeleted,
+      locale,
+      modal,
+      refreshCars,
+      reservationT,
+      t,
+    ],
+  );
+
   async function clearSubmissionForm() {
     const result = await runAsyncTask({
-      action: clearOwnerReservationFormsAction,
+      action: clearCarAndReservationFormsAction,
       onError: (error) => {
         logger.error("OWNER-RESERVATIONS", "Failed to clear form data", {
           error: error instanceof Error ? error.message : String(error),
@@ -568,7 +1018,10 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
       description: t("clearFormsSuccessDescription"),
     });
 
+    setPage(1);
+    setCarPage(1);
     refresh();
+    refreshCars();
     return true;
   }
 
@@ -588,6 +1041,20 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
       status: null,
     }));
   }, [resetQueryAndFilters]);
+
+  const handleCarFilterChange = useCallback(
+    (filter: CarEntryFormFilter) => {
+      setCarFilters((current) => ({
+        ...current,
+        status: filter === "all" ? null : filter,
+      }));
+    },
+    [setCarFilters],
+  );
+
+  const handleClearCarFilters = useCallback(() => {
+    resetCarQueryAndFilters((current) => ({ ...current, status: null }));
+  }, [resetCarQueryAndFilters]);
 
   function requestClearSubmissionForm() {
     modal.handleHideShowCloseButton();
@@ -640,7 +1107,12 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
             </Button>
             <Button
               variant="outline"
-              disabled={owners.length === 0}
+              disabled={
+                owners.length === 0 ||
+                isLoading ||
+                cars.length === 0 ||
+                isCarLoading
+              }
               onClick={requestClearSubmissionForm}
             >
               <Trash2 className="size-4" />
@@ -691,12 +1163,34 @@ export function ReservationFormListClient({ type }: { type?: "deleted" }) {
           },
           {
             value: "car",
-            label: "Car forms",
-            disabled: true,
-            children: (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                Car forms table is not implemented yet.
+            label: (
+              <div className="flex items-center gap-1.5">
+                <CountBadge count={carTotal} />
+                <Text size="xs" color="primary">
+                  {reservationT("carForms")}
+                </Text>
               </div>
+            ),
+            children: (
+              <CarEntryFormTab
+                key={locale}
+                data={cars}
+                filterItems={carFilterItems}
+                columns={carColumns}
+                columnVisibility={DEFAULT_CAR_COLUMN_VISIBILITY}
+                sortingState={carSortingState}
+                onColumnSortingChange={setCarSortState}
+                onClearFilters={handleClearCarFilters}
+                onFilterChange={handleCarFilterChange}
+                onPageChange={setCarPage}
+                onQueryChange={setCarQuery}
+                page={carPage}
+                pageCount={carPageCount}
+                query={carQuery}
+                total={carTotal}
+                isLoading={isCarLoading}
+                currentFilter={carFilters.status ?? "all"}
+              />
             ),
           },
         ]}

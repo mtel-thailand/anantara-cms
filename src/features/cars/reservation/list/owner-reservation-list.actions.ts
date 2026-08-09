@@ -18,18 +18,20 @@ const requestInformationSchema = z
   .strict();
 
 const reservationIdSchema = z.string().uuid();
-const clearOwnerReservationFormsResultSchema = z
+const clearCarAndReservationFormsResultSchema = z
   .object({
     approved_vehicle_count: z.number().int().nonnegative(),
     owner_reservation_count: z.number().int().nonnegative(),
   })
   .strict();
 
-export async function clearOwnerReservationFormsAction() {
+export async function clearCarAndReservationFormsAction() {
   const { supabase } = await createAuthenticatedClient();
-  const { data, error } = await supabase.rpc("clear_owner_reservation_forms");
+  const { data, error } = await supabase.rpc(
+    "clear_car_and_reservation_forms",
+  );
 
-  return clearOwnerReservationFormsResultSchema.parse(unwrap(data, error));
+  return clearCarAndReservationFormsResultSchema.parse(unwrap(data, error));
 }
 
 export async function restoreOwnerReservationAction(input: unknown) {

@@ -72,7 +72,13 @@ function pendingImageFiles(
   });
 }
 
-export function SubmissionReviewClient({ carId }: { carId: string }) {
+export function SubmissionReviewClient({
+  carId,
+  embedded = false,
+}: {
+  carId: string;
+  embedded?: boolean;
+}) {
   const locale = useLocale() as Locale;
   const validationT = useTranslations("cars.submission.validation");
   const t = useTranslations("cars.submission.review");
@@ -159,11 +165,11 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
   if (isLoading) {
     return (
       <>
-        <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
+        {!embedded ? <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
           <Link href="/app/cars/submissions">
             <ChevronLeft className="size-4" /> {t("back")}
           </Link>
-        </Button>
+        </Button> : null}
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
           {t("loading")}
         </Card>
@@ -174,11 +180,11 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
   if (!submission) {
     return (
       <>
-        <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
+        {!embedded ? <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
           <Link href="/app/cars/submissions">
             <ChevronLeft className="size-4" /> {t("back")}
           </Link>
-        </Button>
+        </Button> : null}
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
           {t("notFound")}
         </Card>
@@ -389,7 +395,11 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
             <Button
               variant="destructive"
               onClick={() => {
-                router.push("/app/cars/submissions");
+                router.push(
+                  embedded
+                    ? "/app/cars/forms?tab=car"
+                    : "/app/cars/submissions",
+                );
                 modal.close();
               }}
             >
@@ -399,8 +409,11 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
         ),
       });
     } else {
-      const redirectUrl =
-        submission.deletedAt !== null
+      const redirectUrl = embedded
+        ? submission.deletedAt !== null
+          ? "/app/cars/forms/deleted?tab=car"
+          : "/app/cars/forms?tab=car"
+        : submission.deletedAt !== null
           ? "/app/cars/submissions/deleted"
           : "/app/cars/submissions";
       router.push(redirectUrl);
@@ -409,9 +422,9 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
 
   return (
     <>
-      <NavigationButton text={t("back")} onClick={hancleConfirmCancel} />
+      {!embedded ? <NavigationButton text={t("back")} onClick={hancleConfirmCancel} /> : null}
 
-      <PageHeader
+      {!embedded ? <PageHeader
         title={submissionVehicleName(submission)}
         description={`${submission.vehicleRef} · ${commonT(
           "submittedLastUpdate",
@@ -434,7 +447,7 @@ export function SubmissionReviewClient({ carId }: { carId: string }) {
           {!isDownloading && <Download className="size-4" />}
           {commonT("downloadPdf")}
         </Button>
-      </PageHeader>
+      </PageHeader> : null}
 
       <div className="flex flex-col gap-6">
         <ReviewDecisionCard

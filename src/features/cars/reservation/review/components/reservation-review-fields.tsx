@@ -1,7 +1,8 @@
-import { Check, Minus } from "lucide-react";
+import { Check } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Input } from "@/src/components/ui/input";
+import { Textarea } from "@/src/components/ui/textarea";
 import { cn } from "@/src/lib/utils";
 
 export function ReviewField({ className, label, value }: {
@@ -12,6 +13,7 @@ export function ReviewField({ className, label, value }: {
   return (
     <Input
       label={label}
+      labelClassName="text-xs text-muted-foreground"
       value={value}
       disabled
       readOnly
@@ -21,16 +23,29 @@ export function ReviewField({ className, label, value }: {
   );
 }
 
+export function ReviewTextarea({ label, value }: { label: string; value: string }) {
+  return (
+    <Textarea
+      label={label}
+      value={value}
+      rows={4}
+      disabled
+      readOnly
+      className="resize-none disabled:cursor-default disabled:opacity-100"
+    />
+  );
+}
+
 export function ReviewBool({ label, value }: { label: string; value: boolean | null }) {
   return (
     <div className="flex items-center gap-2.5 py-0.5">
       <span aria-hidden className={cn(
-        "flex size-4 shrink-0 items-center justify-center rounded-sm border",
+        "flex size-4 shrink-0 items-center justify-center rounded-full border",
         value
           ? "border-primary bg-primary text-primary-foreground"
           : "border-input bg-muted/40 text-muted-foreground",
       )}>
-        {value ? <Check className="size-3" /> : value === null ? <Minus className="size-3 opacity-50" /> : null}
+        {value ? <Check className="size-3" /> : null}
       </span>
       <span className={cn("text-sm", value ? "text-foreground" : "text-muted-foreground")}>{label}</span>
     </div>
