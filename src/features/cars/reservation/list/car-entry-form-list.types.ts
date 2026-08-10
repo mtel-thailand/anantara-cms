@@ -15,7 +15,13 @@ export const CAR_ENTRY_FORM_STATUSES = [
 
 export type CarEntryFormStatus = (typeof CAR_ENTRY_FORM_STATUSES)[number];
 export type CarEntryFormFilter = CarEntryFormStatus | "all";
-export type CarEntryFormListSortKey = "status" | "updated";
+export type CarEntryFormListSortKey =
+  | "deleted"
+  | "name"
+  | "photos"
+  | "reference"
+  | "status"
+  | "updated";
 export type CarEntryFormListFilters = {
   status: CarEntryFormStatus | null;
   hasDeletedAt: boolean;

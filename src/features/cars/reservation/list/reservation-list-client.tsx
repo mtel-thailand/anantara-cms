@@ -71,6 +71,8 @@ import {
   restoreCarEntryFormVehicleAction,
 } from "@/src/features/cars/reservation/list/car-entry-form-list.actions";
 import { FORM_STATUS_BADGE } from "@/src/features/cars/reservation/list/components/form-status-stepper";
+import { downloadCarEntryForm } from "@/src/features/cars/reservation/review/car-entry-form-download";
+import { getCarEntryFormReview } from "@/src/features/cars/reservation/review/car-entry-form-review.service";
 import {
   Tooltip,
   TooltipContent,
@@ -80,15 +82,24 @@ import {
 
 const PAGE_SIZE = 10;
 const RESERVATION_UPDATE_TOAST_ID = "owner-reservation-list-update";
+const CAR_FORM_UPDATE_TOAST_ID = "car-entry-form-list-update";
 const DEFAULT_OWNER_COLUMN_VISIBILITY: VisibilityState = { deleted: false };
 const DELETED_OWNER_COLUMN_VISIBILITY: VisibilityState = {
   approvedCars: false,
+  updated: true,
   finalizedCars: false,
 };
 
 const OWNER_FILTER_VALUES = ["all", ...OWNER_RESERVATION_STATUSES] as const;
 const CAR_FILTER_VALUES = ["all", ...CAR_ENTRY_FORM_STATUSES] as const;
 const DEFAULT_CAR_COLUMN_VISIBILITY: VisibilityState = { deleted: false };
+const DELETED_CAR_COLUMN_VISIBILITY: VisibilityState = {
+  updated: false,
+};
+const DELETED_CAR_INITIAL_SORT = {
+  key: "deleted",
+  descending: true,
+} as const;
 const EMPTY_OWNER_ITEMS: OwnerReservationListItem[] = [];
 const EMPTY_CAR_ITEMS: CarEntryFormListItem[] = [];
 
@@ -168,9 +179,16 @@ export function ReservationFormListClient({
   const commonT = useTranslations("common");
   const locale = useLocale() as Locale;
   const isDeleted = type === "deleted";
-  const { reservationSeenCount, reservationTrigger } = useNotificationContext();
-  const previousReservationSeenCount = useRef(reservationSeenCount);
-  const previousReservationTrigger = useRef(reservationTrigger);
+  const {
+    carFormSeenCount,
+    carFormTrigger,
+    ownerReservationSeenCount,
+    ownerReservationTrigger,
+  } = useNotificationContext();
+  const previousOwnerSeenCount = useRef(ownerReservationSeenCount);
+  const previousOwnerTrigger = useRef(ownerReservationTrigger);
+  const previousCarFormSeenCount = useRef(carFormSeenCount);
+  const previousCarFormTrigger = useRef(carFormTrigger);
   const modal = useModal();
   const [currentTab, setCurrentTab] = useState<"owner" | "car">(initialTab);
   const {
@@ -210,25 +228,41 @@ export function ReservationFormListClient({
   } = useCarEntryFormList({
     pageSize: PAGE_SIZE,
     filters: { status: null, hasDeletedAt: isDeleted },
+    initialSort: isDeleted ? DELETED_CAR_INITIAL_SORT : undefined,
   });
-
   const preventToastRefresh = useRef<boolean>(false);
 
   useEffect(() => {
     const isPrevented = preventToastRefresh.current;
     preventToastRefresh.current = false;
-    if (isDeleted || isPrevented) return;
-    const seenCountChanged =
-      previousReservationSeenCount.current !== reservationSeenCount;
-    const reservationCountChanged =
-      previousReservationTrigger.current !== reservationTrigger;
+    if (isDeleted) return;
+    const ownerSeenChanged =
+      previousOwnerSeenCount.current !== ownerReservationSeenCount;
+    const ownerCountChanged =
+      previousOwnerTrigger.current !== ownerReservationTrigger;
+    const carFormSeenChanged =
+      previousCarFormSeenCount.current !== carFormSeenCount;
+    const carFormCountChanged =
+      previousCarFormTrigger.current !== carFormTrigger;
 
-    previousReservationSeenCount.current = reservationSeenCount;
+    if (isPrevented) {
+      previousOwnerSeenCount.current = ownerReservationSeenCount;
+      previousOwnerTrigger.current = ownerReservationTrigger;
+      previousCarFormSeenCount.current = carFormSeenCount;
+      previousCarFormTrigger.current = carFormTrigger;
+      return;
+    }
 
-    if (reservationCountChanged) {
-      if (currentTab !== "owner") return;
+    if (currentTab === "owner") {
+      previousOwnerSeenCount.current = ownerReservationSeenCount;
+      previousOwnerTrigger.current = ownerReservationTrigger;
 
-      previousReservationTrigger.current = reservationTrigger;
+      if (!ownerCountChanged && ownerSeenChanged) {
+        refresh();
+        return;
+      }
+      if (!ownerCountChanged) return;
+
       toast.info(t("reservationListChanged"), {
         id: RESERVATION_UPDATE_TOAST_ID,
         description: t("reservationListChangedDescription"),
@@ -244,15 +278,36 @@ export function ReservationFormListClient({
       return;
     }
 
-    if (seenCountChanged) {
-      refresh();
+    previousCarFormSeenCount.current = carFormSeenCount;
+    previousCarFormTrigger.current = carFormTrigger;
+
+    if (!carFormCountChanged && carFormSeenChanged) {
+      refreshCars();
+      return;
+    }
+    if (carFormCountChanged) {
+      toast.info(t("carFormListChanged"), {
+        id: CAR_FORM_UPDATE_TOAST_ID,
+        description: t("carFormListChangedDescription"),
+        duration: Infinity,
+        action: {
+          label: t("refreshReservations"),
+          onClick: () => {
+            refreshCars();
+            toast.dismiss(CAR_FORM_UPDATE_TOAST_ID);
+          },
+        },
+      });
     }
   }, [
+    carFormSeenCount,
+    carFormTrigger,
     currentTab,
     isDeleted,
+    ownerReservationSeenCount,
+    ownerReservationTrigger,
     refresh,
-    reservationSeenCount,
-    reservationTrigger,
+    refreshCars,
     t,
   ]);
 
@@ -353,12 +408,39 @@ export function ReservationFormListClient({
           error: error instanceof Error ? error.message : String(error),
           reservationId: owner.id,
         });
-        toast.error("Couldn’t prepare the download", {
-          description: "Please try again.",
+        toast.error(reservationT("downloadError"), {
+          description: reservationT("tryAgain"),
         });
       }
     },
-    [],
+    [reservationT],
+  );
+
+  const handleCarDownload = useCallback(
+    async (car: CarEntryFormListItem) => {
+      try {
+        await downloadCarEntryForm(
+          await getCarEntryFormReview(car.submissionVehicleId),
+          {
+            make: car.make,
+            model: car.model,
+            ownerName: [car.ownerForenames, car.ownerSurname]
+              .filter(Boolean)
+              .join(" "),
+            vehicleRef: car.vehicleRef,
+          },
+        );
+      } catch (error) {
+        logger.error("CAR-ENTRY-FORMS", "Failed to download car entry form", {
+          error: error instanceof Error ? error.message : String(error),
+          submissionVehicleId: car.submissionVehicleId,
+        });
+        toast.error(reservationT("downloadError"), {
+          description: reservationT("tryAgain"),
+        });
+      }
+    },
+    [reservationT],
   );
 
   const handleOwnerRequestInfo = useCallback(
@@ -411,8 +493,8 @@ export function ReservationFormListClient({
             error: error instanceof Error ? error.message : String(error),
             reservationId: owner.id,
           });
-          toast.error("Couldn’t load the information requests", {
-            description: "Please try again.",
+          toast.error(reservationT("requestLoadError"), {
+            description: reservationT("tryAgain"),
           });
         },
       });
@@ -427,10 +509,11 @@ export function ReservationFormListClient({
           await restoreOwnerReservationAction(owner.id);
           refresh();
           toast.success(
-            `${ownerName(owner) || "Owner registration"} restored`,
+            reservationT("ownerRestored", {
+              name: ownerName(owner) || reservationT("ownerRegistration"),
+            }),
             {
-              description:
-                "The owner registration is back on the reservation forms page.",
+              description: reservationT("ownerRestoredDescription"),
             },
           );
           return true;
@@ -440,34 +523,33 @@ export function ReservationFormListClient({
             error: error instanceof Error ? error.message : String(error),
             reservationId: owner.id,
           });
-          toast.error("Couldn’t restore the owner registration", {
-            description: "Please try again.",
+          toast.error(reservationT("restoreOwnerError"), {
+            description: reservationT("tryAgain"),
           });
         },
       });
 
       return restored === true;
     },
-    [refresh],
+    [refresh, reservationT],
   );
 
   const onRestoreOwner = useCallback(
     (owner: OwnerReservationListItem) => {
-      const name = ownerName(owner) || "owner registration";
+      const name = ownerName(owner) || reservationT("ownerRegistration");
 
       modal.open({
         className: "gap-0 w-fit",
         headerClassName: "border-b-0 px-4 pt-4 pb-3",
         header: (
           <Text.FormTitle size="base" weight="medium">
-            Restore {name}?
+            {reservationT("restoreOwnerTitle", { name })}
           </Text.FormTitle>
         ),
         contentClassName: "px-4 pb-4",
         content: (
           <Text size="sm" color="muted-foreground">
-            This owner registration will move back onto the reservation forms
-            page.
+            {reservationT("restoreOwnerDescription")}
           </Text>
         ),
         footer: ({ loading, close, run }) => (
@@ -489,7 +571,7 @@ export function ReservationFormListClient({
         ),
       });
     },
-    [commonT, handleRestoreOwner, modal, t],
+    [commonT, handleRestoreOwner, modal, reservationT, t],
   );
 
   const columns = useMemo<ColumnDef<OwnerReservationListItem, unknown>[]>(
@@ -507,7 +589,7 @@ export function ReservationFormListClient({
           >
             <div className="flex items-center gap-2">
               <span className="font-medium">{ownerName(row.original)}</span>
-              {row.original.hasCarsMovedBackToPreApproval ? (
+              {!isDeleted && row.original.hasCarsMovedBackToPreApproval ? (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -525,7 +607,7 @@ export function ReservationFormListClient({
                   </Tooltip>
                 </TooltipProvider>
               ) : null}
-              {!row.original.seen ? (
+              {!isDeleted && !row.original.seen ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
                   <span className="size-1.5 rounded-full bg-primary" />
                   {reservationT("new")}
@@ -600,7 +682,6 @@ export function ReservationFormListClient({
         id: "deleted",
         accessorKey: "deletedAt",
         header: "Deleted",
-
         enableSorting: true,
         cell: ({ row }) => (
           <span
@@ -608,7 +689,9 @@ export function ReservationFormListClient({
               "opacity-60": isDeleted,
             })}
           >
-            {formatDate(row.original.updatedAt, locale)}
+            {row.original.deletedAt
+              ? formatDate(row.original.deletedAt, locale)
+              : "—"}
           </span>
         ),
       },
@@ -719,11 +802,11 @@ export function ReservationFormListClient({
         },
       },
       {
-        id: "owner",
+        id: "name",
         accessorFn: (car) =>
           [car.ownerForenames, car.ownerSurname].filter(Boolean).join(" "),
         header: reservationT("owner"),
-        enableSorting: false,
+        enableSorting: true,
         cell: ({ row }) => (
           <div
             className={cn("flex min-w-48 flex-col", {
@@ -736,7 +819,7 @@ export function ReservationFormListClient({
                   .filter(Boolean)
                   .join(" ")}
               </span>
-              {!row.original.seen ? (
+              {!isDeleted && !row.original.seen ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
                   <span className="size-1.5 rounded-full bg-primary" />
                   {reservationT("new")}
@@ -755,7 +838,7 @@ export function ReservationFormListClient({
         id: "reference",
         accessorKey: "vehicleRef",
         header: reservationT("reference"),
-        enableSorting: false,
+        enableSorting: true,
         cell: ({ row }) => (
           <span className="text-xs text-muted-foreground">
             {row.original.vehicleRef || "—"}
@@ -775,9 +858,10 @@ export function ReservationFormListClient({
       },
       {
         id: "photos",
-        accessorKey: "highResolutionPhotosLink",
+        accessorFn: (car) => car.highResolutionPhotosLink ?? "",
         header: reservationT("highQualityImageLink"),
-        enableSorting: false,
+        enableSorting: true,
+        sortDescFirst: false,
         cell: ({ row }) => {
           const formSubmitted =
             row.original.status === "received" ||
@@ -820,7 +904,7 @@ export function ReservationFormListClient({
         id: "deleted",
         accessorKey: "deletedAt",
         header: reservationT("deleted"),
-        enableSorting: false,
+        enableSorting: true,
         cell: ({ row }) => (
           <span className="whitespace-nowrap text-muted-foreground opacity-60">
             {row.original.deletedAt
@@ -876,12 +960,30 @@ export function ReservationFormListClient({
                           loading={loading}
                           onClick={() =>
                             void run(async () => {
-                              await restoreCarEntryFormVehicleAction(
-                                car.submissionVehicleId,
-                              );
-                              refreshCars();
-                              close();
-                              toast.success(reservationT("carRestored"));
+                              try {
+                                await restoreCarEntryFormVehicleAction(
+                                  car.submissionVehicleId,
+                                );
+                                refreshCars();
+                                close();
+                                toast.success(reservationT("carRestored"));
+                              } catch (error) {
+                                logger.error(
+                                  "CAR-ENTRY-FORMS",
+                                  "Failed to restore car entry form",
+                                  {
+                                    error:
+                                      error instanceof Error
+                                        ? error.message
+                                        : String(error),
+                                    submissionVehicleId:
+                                      car.submissionVehicleId,
+                                  },
+                                );
+                                toast.error(reservationT("restoreCarError"), {
+                                  description: reservationT("tryAgain"),
+                                });
+                              }
                             })
                           }
                         >
@@ -927,7 +1029,7 @@ export function ReservationFormListClient({
                 onClick={() => {
                   const car = row.original;
                   modal.open({
-                    headerClassName: "border-0 px-4 pt-4",
+                    headerClassName: "border-0 px-4 py-0 pt-4",
                     header: (
                       <Text.FormTitle size="base">
                         {reservationT("finalizeTitle", {
@@ -954,23 +1056,43 @@ export function ReservationFormListClient({
                           loading={loading}
                           onClick={() =>
                             void run(async () => {
-                              await finalizeCarEntryFormVehicleAction(
-                                car.submissionVehicleId,
-                              );
-                              refreshCars();
-                              close();
-                              toast.success(
-                                reservationT("finalized", {
-                                  car: [car.make, car.model]
-                                    .filter(Boolean)
-                                    .join(" "),
-                                }),
-                                {
-                                  description: reservationT(
-                                    "finalizedDescription",
-                                  ),
-                                },
-                              );
+                              try {
+                                preventToastRefresh.current = true;
+                                await finalizeCarEntryFormVehicleAction(
+                                  car.submissionVehicleId,
+                                );
+                                refreshCars();
+                                close();
+                                toast.success(
+                                  reservationT("finalized", {
+                                    car: [car.make, car.model]
+                                      .filter(Boolean)
+                                      .join(" "),
+                                  }),
+                                  {
+                                    description: reservationT(
+                                      "finalizedDescription",
+                                    ),
+                                  },
+                                );
+                              } catch (error) {
+                                preventToastRefresh.current = false;
+                                logger.error(
+                                  "CAR-ENTRY-FORMS",
+                                  "Failed to finalize car",
+                                  {
+                                    error:
+                                      error instanceof Error
+                                        ? error.message
+                                        : String(error),
+                                    submissionVehicleId:
+                                      car.submissionVehicleId,
+                                  },
+                                );
+                                toast.error(reservationT("finalizeError"), {
+                                  description: reservationT("tryAgain"),
+                                });
+                              }
                             })
                           }
                         >
@@ -983,12 +1105,36 @@ export function ReservationFormListClient({
               >
                 <Flag className="size-3.5" /> {reservationT("finalizeCar")}
               </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground disabled:opacity-40"
+                aria-label={reservationT("carDownloadAria", {
+                  vehicle: [row.original.make, row.original.model]
+                    .filter(Boolean)
+                    .join(" "),
+                })}
+                disabled={
+                  row.original.status !== "received" &&
+                  row.original.status !== "approved"
+                }
+                title={
+                  row.original.status === "received" ||
+                  row.original.status === "approved"
+                    ? undefined
+                    : reservationT("carDownloadDisabled")
+                }
+                onClick={() => void handleCarDownload(row.original)}
+              >
+                <Download className="size-4" />
+              </Button>
             </div>
           ),
       },
     ],
     [
       commonT,
+      handleCarDownload,
       handleCarRequestInfo,
       isDeleted,
       locale,
@@ -1177,7 +1323,11 @@ export function ReservationFormListClient({
                 data={cars}
                 filterItems={carFilterItems}
                 columns={carColumns}
-                columnVisibility={DEFAULT_CAR_COLUMN_VISIBILITY}
+                columnVisibility={
+                  isDeleted
+                    ? DELETED_CAR_COLUMN_VISIBILITY
+                    : DEFAULT_CAR_COLUMN_VISIBILITY
+                }
                 sortingState={carSortingState}
                 onColumnSortingChange={setCarSortState}
                 onClearFilters={handleClearCarFilters}

@@ -2,11 +2,14 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
+import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 import NavigationButton from "@/src/components/navigation-button";
 import { PageHeader } from "@/src/components/page-header";
 import { Badge } from "@/src/components/ui/badge";
 import { Card } from "@/src/components/ui/card";
+import { Button } from "@/src/components/ui/button";
 import { Tabs } from "@/src/components/ui/tabs";
 import { useRouter } from "@/src/i18n/navigation";
 import { formatDate } from "@/src/lib/date";
@@ -17,8 +20,12 @@ import useAsync from "@/src/hooks/use-async";
 import { FORM_STATUS_BADGE } from "@/src/features/cars/reservation/list/components/form-status-stepper";
 import { ReservationFormReviewClient } from "@/src/features/cars/reservation/review/reservation-review-client";
 import { CarEntryFormReviewClient } from "@/src/features/cars/reservation/review/car-entry-form-review-client";
-import { getCarFormsReviewShell } from "@/src/features/cars/reservation/review/car-entry-form-review.service";
+import {
+  getCarEntryFormReview,
+  getCarFormsReviewShell,
+} from "@/src/features/cars/reservation/review/car-entry-form-review.service";
 import type { CarFormsReviewShell } from "@/src/features/cars/reservation/review/car-entry-form-review.types";
+import { downloadCarEntryForm } from "@/src/features/cars/reservation/review/car-entry-form-download";
 import { SubmissionReviewClient } from "@/src/features/cars/submission/review/submission-review-client";
 
 type ReviewTab = "basic" | "owner" | "car";
@@ -65,13 +72,31 @@ export function CarFormsReviewClient({ carId }: { carId: string }) {
   }
 
   const isDeleted = detail.vehicle.deletedAt !== null;
+  const vehicle = detail.vehicle;
   const status = detail.form?.status ?? "required";
-  const vehicleName = [detail.vehicle.make, detail.vehicle.model]
+  const vehicleName = [vehicle.make, vehicle.model]
     .filter(Boolean)
     .join(" ");
   const backHref = isDeleted
     ? "/app/cars/forms/deleted?tab=car"
     : "/app/cars/forms?tab=car";
+  const canDownload = status === "received" || status === "approved";
+
+  async function handleDownload() {
+    try {
+      await downloadCarEntryForm(await getCarEntryFormReview(carId), {
+        make: vehicle.make,
+        model: vehicle.model,
+        vehicleRef: vehicle.vehicleRef,
+      });
+    } catch (error) {
+      logger.error("CAR-FORMS-REVIEW", "Failed to download car entry form", {
+        carId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      toast.error(t("downloadError"), { description: t("tryAgain") });
+    }
+  }
 
   return (
     <>
@@ -94,7 +119,16 @@ export function CarFormsReviewClient({ carId }: { carId: string }) {
             {listT(`status.${status}`)}
           </Badge>
         }
-      />
+      >
+        <Button
+          variant="outline"
+          disabled={!canDownload}
+          title={!canDownload ? t("downloadDisabled") : undefined}
+          onClick={() => void handleDownload()}
+        >
+          <Download className="size-4" /> {t("downloadPdf")}
+        </Button>
+      </PageHeader>
 
       <Tabs<ReviewTab>
         aria-label={t("reviewTabsAria")}

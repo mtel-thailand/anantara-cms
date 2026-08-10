@@ -6,9 +6,11 @@ import { useUnseenSubmissionCount } from "@/src/features/cars/submission/hooks/u
 import { useUnseenReservationFormCount } from "@/src/features/cars/reservation/list/hooks/use-unseen-reservation-form-count";
 
 type NotificationContextValue = {
-  reservationSeenCount: number;
+  carFormSeenCount: number;
+  carFormTrigger: number;
+  ownerReservationSeenCount: number;
+  ownerReservationTrigger: number;
   submissionSeenCount: number;
-  reservationTrigger: number;
   submissionTrigger: number;
 };
 
@@ -18,18 +20,26 @@ const NotificationContext = createContext<NotificationContextValue | null>(
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { submissionSeenCount, submissionTrigger } = useUnseenSubmissionCount();
-  const { reservationSeenCount, reservationTrigger } =
-    useUnseenReservationFormCount();
+  const {
+    carFormSeenCount,
+    carFormTrigger,
+    ownerReservationSeenCount,
+    ownerReservationTrigger,
+  } = useUnseenReservationFormCount();
   const value = useMemo(
     () => ({
-      reservationSeenCount,
-      reservationTrigger,
+      carFormSeenCount,
+      carFormTrigger,
+      ownerReservationSeenCount,
+      ownerReservationTrigger,
       submissionSeenCount,
       submissionTrigger,
     }),
     [
-      reservationSeenCount,
-      reservationTrigger,
+      carFormSeenCount,
+      carFormTrigger,
+      ownerReservationSeenCount,
+      ownerReservationTrigger,
       submissionSeenCount,
       submissionTrigger,
     ],

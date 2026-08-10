@@ -1491,6 +1491,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      archive_finalized_cars: { Args: never; Returns: number }
       append_my_submission_vehicles: {
         Args: { p_access_token: string; p_vehicles: Json }
         Returns: Json
@@ -1514,6 +1515,19 @@ export type Database = {
           p_sort_desc?: boolean
           p_sort_key?: string
           p_status?: Database["public"]["Enums"]["car_entry_form_status"]
+        }
+        Returns: Json
+      }
+      get_finalized_cars_list: {
+        Args: {
+          p_page?: number
+          p_page_size?: number
+          p_class_id?: number
+          p_query?: string
+          p_sort_desc?: boolean
+          p_sort_key?: string
+          p_status?: Database["public"]["Enums"]["submission_status"]
+          p_unassigned?: boolean
         }
         Returns: Json
       }
@@ -1542,6 +1556,10 @@ export type Database = {
       }
       get_owner_registration: {
         Args: { p_access_token: string }
+        Returns: Json
+      }
+      get_reservation_form_notification_counts: {
+        Args: never
         Returns: Json
       }
       get_owner_reservations_list: {

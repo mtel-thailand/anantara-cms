@@ -55,6 +55,7 @@ export type DraggableTableProps<TData extends { id: string }> = {
   headerClassName?: string;
   bodyClassName?: string;
   enableColumnSorting?: boolean;
+  serverSideSorting?: boolean;
   enabledRowSorting?: boolean;
   emptyRow?: ReactNode;
   getRowClassName?: (data: TData) => string | undefined;
@@ -75,6 +76,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
   headerClassName,
   bodyClassName,
   enableColumnSorting,
+  serverSideSorting,
   enabledRowSorting,
   emptyRow,
   getRowClassName,
@@ -101,6 +103,8 @@ const DraggableTableComponent = <TData extends { id: string }>({
     getSortedRowModel: getSortedRowModel(),
     enableSorting: enableColumnSorting,
     enableMultiSort: false,
+    enableSortingRemoval: true,
+    manualSorting: serverSideSorting,
     state: {
       sorting: columnSorting,
       columnVisibility,
@@ -127,8 +131,6 @@ const DraggableTableComponent = <TData extends { id: string }>({
     },
     [data, ids, onReorder],
   );
-
-  console.log("table render");
 
   return (
     <DndContext
@@ -255,6 +257,7 @@ function arePropsEqual<TData extends { id: string }>(
     oldProps.columnVisibility === newProps.columnVisibility &&
     oldProps.onColumnSortingChange === newProps.onColumnSortingChange &&
     oldProps.enableColumnSorting === newProps.enableColumnSorting &&
+    oldProps.serverSideSorting === newProps.serverSideSorting &&
     oldProps.enabledRowSorting === newProps.enabledRowSorting &&
     oldProps.tableClassName === newProps.tableClassName &&
     oldProps.headerClassName === newProps.headerClassName &&

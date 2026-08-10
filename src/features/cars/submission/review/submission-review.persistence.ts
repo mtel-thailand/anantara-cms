@@ -79,19 +79,24 @@ export async function ensureCarEntryFormForApprovedSubmission(
 export async function getCanonicalSubmission(
   supabase: ServerSupabaseClient,
   id: string,
+  { includeArchived = false }: { includeArchived?: boolean } = {},
 ): Promise<CanonicalSubmission> {
-  const [{ data, error }, { data: car, error: carError }] = await Promise.all([
-    supabase
-      .from("car_submission_vehicles")
-      .select(
-        `
+  let vehicleQuery = supabase
+    .from("car_submission_vehicles")
+    .select(
+      `
         *,
         car_submissions_form!inner (*)
       `,
-      )
-      .eq("id", id)
-      .is("archived_at", null)
-      .maybeSingle(),
+    )
+    .eq("id", id);
+
+  if (!includeArchived) {
+    vehicleQuery = vehicleQuery.is("archived_at", null);
+  }
+
+  const [{ data, error }, { data: car, error: carError }] = await Promise.all([
+    vehicleQuery.maybeSingle(),
     supabase
       .from("cars")
       .select("category_id")

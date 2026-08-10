@@ -38,9 +38,11 @@ function ownerName(reservation: OwnerReservationDetail) {
 export function ReservationFormReviewClient({
   embedded = false,
   ownerId,
+  readOnly = false,
 }: {
   embedded?: boolean;
   ownerId: string;
+  readOnly?: boolean;
 }) {
   const t = useTranslations("cars.reservation.review");
   const listT = useTranslations("cars.reservation.list");
@@ -187,7 +189,7 @@ export function ReservationFormReviewClient({
   const name = ownerName(reservation);
   const returned =
     reservation.status === "received" || reservation.status === "approved";
-  const readOnly = reservation.deletedAt !== null;
+  const isReadOnly = readOnly || reservation.deletedAt !== null;
   const carDescription = reservation.carNames.length
     ? t("description", {
         count: reservation.carNames.length,
@@ -215,8 +217,8 @@ export function ReservationFormReviewClient({
       >
         <Button
           variant="outline"
-          disabled={readOnly || !returned}
-          title={!returned && !readOnly ? t("downloadDisabled") : undefined}
+          disabled={isReadOnly || !returned}
+          title={!returned && !isReadOnly ? t("downloadDisabled") : undefined}
           onClick={() => downloadOwnerReservation(reservation)}
         >
           <Download className="size-4" /> {t("downloadCsv")}
@@ -243,7 +245,7 @@ export function ReservationFormReviewClient({
       </Card>
 
       {!readOnly ? (
-        <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur">
+        <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/40 backdrop-blur">
           <div className="flex flex-wrap items-center justify-end gap-2 py-4">
             <Button
               variant="outline"
@@ -252,22 +254,26 @@ export function ReservationFormReviewClient({
             >
               {commonT("cancel")}
             </Button>
-            {reservation.status === "approved" ? (
-              <Button
-                variant="outline"
-                disabled={isSaving}
-                onClick={() => requestApprovalChange("undo")}
-              >
-                {t("undoApproval")}
-              </Button>
-            ) : (
-              <Button
-                disabled={isSaving || reservation.status !== "received"}
-                onClick={() => requestApprovalChange("approve")}
-              >
-                {t("approve")}
-              </Button>
-            )}
+            {!isReadOnly ? (
+              <>
+                {reservation.status === "approved" ? (
+                  <Button
+                    variant="outline"
+                    disabled={isSaving}
+                    onClick={() => requestApprovalChange("undo")}
+                  >
+                    {t("undoApproval")}
+                  </Button>
+                ) : (
+                  <Button
+                    disabled={isSaving || reservation.status !== "received"}
+                    onClick={() => requestApprovalChange("approve")}
+                  >
+                    {t("approve")}
+                  </Button>
+                )}
+              </>
+            ) : null}
           </div>
         </div>
       ) : null}

@@ -6,6 +6,19 @@ export type CarEntryFormTechnicianRow = Database["public"]["Tables"]["car_entry_
 export type CarEntryFormReviewDetail = {
   form: CarEntryFormRow;
   technicians: CarEntryFormTechnicianRow[];
+  vehicle: Pick<
+    Database["public"]["Tables"]["car_submission_vehicles"]["Row"],
+    | "body_style"
+    | "chassis_no"
+    | "coachbuilder"
+    | "engine_no"
+    | "exterior_colour"
+    | "interior_colour"
+    | "make_of_vehicle"
+    | "model"
+    | "vehicle_history_en"
+    | "year_of_manufacture"
+  >;
 };
 
 export type CarFormsReviewShell = {

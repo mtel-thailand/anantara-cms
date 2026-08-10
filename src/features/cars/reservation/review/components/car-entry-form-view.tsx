@@ -7,40 +7,10 @@ import {
   ReviewSection,
 } from "@/src/features/cars/reservation/review/components/reservation-review-fields";
 import type { CarEntryFormReviewDetail } from "@/src/features/cars/reservation/review/car-entry-form-review.types";
-
-type DocumentLink = { key?: string; name: string; url: string };
-
-function documentDownloadUrl(document: DocumentLink) {
-  return document.key
-    ? `/api/file?${new URLSearchParams({
-        key: document.key,
-        response: "content",
-      })}`
-    : document.url;
-}
-
-function documentLinks(value: unknown): DocumentLink[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((item, index) => {
-    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
-    const document = item as Record<string, unknown>;
-    const publicUrl =
-      typeof document.publicUrl === "string" ? document.publicUrl : "";
-    const storedUrl = typeof document.url === "string" ? document.url : "";
-    const url = publicUrl || storedUrl;
-    if (!url) return [];
-    return [
-      {
-        key: publicUrl && storedUrl ? storedUrl : undefined,
-        name:
-          typeof document.name === "string"
-            ? document.name
-            : `Document ${index + 1}`,
-        url,
-      },
-    ];
-  });
-}
+import {
+  carEntryFormDocuments,
+  carEntryFormDocumentUrl,
+} from "@/src/features/cars/reservation/review/car-entry-form-documents";
 
 export function CarEntryFormView({
   detail,
@@ -48,14 +18,16 @@ export function CarEntryFormView({
   detail: CarEntryFormReviewDetail;
 }) {
   const t = useTranslations("cars.reservation.carReview");
-  const { form, technicians } = detail;
+  const { form, technicians, vehicle } = detail;
   const returned =
     form.status === "received" ||
     form.status === "approved" ||
     (form.status === "requested" && form.received_at !== null);
   const text = (value: string | number | null | undefined) =>
     returned && value !== null && value !== undefined ? String(value) : "";
-  const documents = documentLinks(form.registration_certificate_documents);
+  const documents = carEntryFormDocuments(
+    form.registration_certificate_documents,
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -80,15 +52,47 @@ export function CarEntryFormView({
 
       <div className="border-t" />
       <ReviewSection title={t("vehicleInformation")}>
-        <ReviewField
-          label={t("registrationNumber")}
-          value={text(form.registration_plate_number)}
-        />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <ReviewField label={t("make")} value={text(vehicle.make_of_vehicle)} />
+          <ReviewField label={t("model")} value={text(vehicle.model)} />
+          <ReviewField
+            label={t("bodyStyle")}
+            value={text(vehicle.body_style)}
+          />
+          <ReviewField
+            label={t("coachbuilder")}
+            value={text(vehicle.coachbuilder)}
+          />
+          <ReviewField
+            label={t("year")}
+            value={text(vehicle.year_of_manufacture)}
+          />
+          <ReviewField
+            label={t("exteriorColour")}
+            value={text(vehicle.exterior_colour)}
+          />
+          <ReviewField
+            label={t("interiorColour")}
+            value={text(vehicle.interior_colour)}
+          />
+          <ReviewField
+            label={t("registrationNumber")}
+            value={text(form.registration_plate_number)}
+          />
+        </div>
       </ReviewSection>
 
       <div className="border-t" />
       <ReviewSection title={t("technicalDetails")}>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <ReviewField
+            label={t("chassisNumber")}
+            value={text(vehicle.chassis_no)}
+          />
+          <ReviewField
+            label={t("engineNumber")}
+            value={text(vehicle.engine_no)}
+          />
           <ReviewField label={t("engineMake")} value={text(form.engine_make)} />
           <ReviewField
             label={t("engineCapacity")}
@@ -128,6 +132,14 @@ export function CarEntryFormView({
       </ReviewSection>
 
       <div className="border-t" />
+      <ReviewSection title={t("vehicleHistory")}>
+        <ReviewField
+          label={t("briefHistory")}
+          value={text(vehicle.vehicle_history_en)}
+        />
+      </ReviewSection>
+
+      <div className="border-t" />
       <ReviewSection title={t("images")}>
         <ReviewField
           label={t("highResolutionPhotos")}
@@ -141,7 +153,7 @@ export function CarEntryFormView({
           {documents.map((document) => (
             <a
               key={document.url}
-              href={documentDownloadUrl(document)}
+              href={carEntryFormDocumentUrl(document)}
               download={document.name}
               className="flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2.5 text-sm hover:bg-muted/60"
             >

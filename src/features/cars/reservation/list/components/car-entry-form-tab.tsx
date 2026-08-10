@@ -96,6 +96,7 @@ const CarEntryFormResults = memo(function CarEntryFormResults({
           headerClassName="bg-muted/35"
           bodyClassName="bg-card"
           enableColumnSorting
+          serverSideSorting
           enabledRowSorting={false}
           emptyRow={
             showSkeleton ? (
@@ -181,7 +182,7 @@ const CarEntryFormTab = memo(function CarEntryFormTab({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder={t("carSearchPlaceholder")}
-            className="min-w-60 bg-card"
+            className="min-w-80 bg-card"
             leftButton={{
               icon: Search,
               label: t("carSearchAria"),

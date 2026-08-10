@@ -46,19 +46,29 @@ import { CarDetailsCard } from "@/src/features/cars/submission/review/components
 import { InternalCommentsCard } from "@/src/features/cars/submission/review/components/internal-comments-card";
 import { ReviewDecisionCard } from "@/src/features/cars/submission/review/components/review-decision-card";
 import { saveCarSubmissionAction } from "./submission-review.actions";
-import type { SubmissionUploads } from "./submission-review.types";
+import type {
+  SubmissionReviewDraft,
+  SubmissionUploads,
+} from "./submission-review.types";
 import NavigationButton from "@/src/components/navigation-button";
 import Text from "@/src/components/ui/text";
 import { downloadSubmissionForm } from "../submission-download";
 
 function documentsForSave(values: SubmissionReviewFormValues) {
+  const stagedNames = new Set(
+    values.documents
+      .filter((document) => document.id.startsWith("temp-document-"))
+      .map((document) => document.name),
+  );
   return [
     ...values.documents,
-    ...values.documentFiles.map((file) => ({
-      id: `temp-document-${crypto.randomUUID()}`,
-      name: file.name,
-      url: "pending-upload",
-    })),
+    ...values.documentFiles
+      .filter((file) => !stagedNames.has(file.name))
+      .map((file) => ({
+        id: `temp-document-${crypto.randomUUID()}`,
+        name: file.name,
+        url: "pending-upload",
+      })),
   ];
 }
 
@@ -75,9 +85,27 @@ function pendingImageFiles(
 export function SubmissionReviewClient({
   carId,
   embedded = false,
+  onClose,
+  onStageDraft,
+  readOnly = false,
+  stagedDraft,
+  stagedLayout,
 }: {
   carId: string;
   embedded?: boolean;
+  onClose?: () => void;
+  onStageDraft?: (draft: SubmissionReviewDraft) => void;
+  readOnly?: boolean;
+  stagedDraft?: SubmissionReviewDraft;
+  stagedLayout?: {
+    classHint: string;
+    classLabel: string;
+    classTitle: string;
+    internalCommentsDescription: string;
+    statusOptions: Array<{ label: string; value: string }>;
+    statusTitle: string;
+    statusValue: string;
+  };
 }) {
   const locale = useLocale() as Locale;
   const validationT = useTranslations("cars.submission.validation");
@@ -113,6 +141,10 @@ export function SubmissionReviewClient({
   const pendingValuesRef = useRef<SubmissionReviewFormValues | null>(null);
   const pendingFilesRef = useRef(new Map<string, File>());
   const [editLocale, setEditLocale] = useState<Locale>("en");
+  const [stagedStatus, setStagedStatus] = useState(
+    stagedDraft?.stagedStatus ?? stagedLayout?.statusValue ?? "",
+  );
+  const [savedStagedStatus, setSavedStagedStatus] = useState(stagedStatus);
 
   // Mark seen submission
   useEffect(() => {
@@ -135,8 +167,16 @@ export function SubmissionReviewClient({
         const nextSubmission = { ...data, seen: true };
 
         setSubmission(nextSubmission);
-        pendingFilesRef.current.clear();
-        reset(reviewFormValuesFromSubmission(nextSubmission));
+        const nextStagedStatus =
+          stagedDraft?.stagedStatus ?? stagedLayout?.statusValue ?? "";
+        setStagedStatus(nextStagedStatus);
+        setSavedStagedStatus(nextStagedStatus);
+        pendingFilesRef.current = new Map(stagedDraft?.imageFiles ?? []);
+        reset(
+          stagedDraft?.submissionId === carId
+            ? stagedDraft.values
+            : reviewFormValuesFromSubmission(nextSubmission),
+        );
         initialSubmissionRef.current = nextSubmission;
       } catch (fetchError) {
         logger.debug("CAR-SUBMISSIONS", "Failed to fetch submission", {
@@ -151,7 +191,7 @@ export function SubmissionReviewClient({
         reset(emptyReviewFormValues());
       }
     })();
-  }, [carId, execute, reset]);
+  }, [carId, execute, reset, stagedDraft, stagedLayout?.statusValue]);
 
   const statusOptions = useMemo(
     () =>
@@ -195,7 +235,7 @@ export function SubmissionReviewClient({
   const currentDraft = draft;
   const liveStatus = submission.status;
   const isArchived = currentDraft.status === "archived";
-  const isReadOnly = isArchived || submission.deletedAt !== null;
+  const isReadOnly = readOnly || isArchived || submission.deletedAt !== null;
   const willSaveStatus: SubmissionStatus =
     currentDraft.status === "requested_info" &&
     liveStatus === "info_received" &&
@@ -203,6 +243,8 @@ export function SubmissionReviewClient({
       ? "info_received"
       : currentDraft.status;
   const statusChanged = willSaveStatus !== liveStatus;
+  const stageMode = Boolean(onStageDraft);
+  const stagedStatusChanged = stagedStatus !== savedStagedStatus;
 
   async function handleDownloadSubmissionForm() {
     executeDownload<[string], void>(async (id) => {
@@ -301,6 +343,27 @@ export function SubmissionReviewClient({
   }
 
   const requestSave: SubmitHandler<SubmissionReviewFormValues> = (values) => {
+    if (onStageDraft) {
+      const stagedValues = {
+        ...values,
+        documents: documentsForSave(values),
+      };
+      onStageDraft({
+        expectedUpdatedAt: submission.lastUpdated,
+        formId: submission.formId,
+        imageFiles: [...pendingFilesRef.current.entries()],
+        submissionId: submission.id,
+        stagedStatus,
+        values: structuredClone(stagedValues),
+      });
+      setSavedStagedStatus(stagedStatus);
+      reset(stagedValues);
+      toast.success(t("savedAsDraft"), {
+        description: t("publishDraftDescription"),
+      });
+      return;
+    }
+
     pendingValuesRef.current = structuredClone(values);
 
     const hasLanguageGap =
@@ -450,20 +513,24 @@ export function SubmissionReviewClient({
       </PageHeader> : null}
 
       <div className="flex flex-col gap-6">
-        <ReviewDecisionCard
-          clearErrors={clearErrors}
-          control={control}
-          draft={draft}
-          errors={formState.errors}
-          liveStatus={liveStatus}
-          setValue={setValue}
-          statusChanged={statusChanged}
-          statusOptions={statusOptions}
-          willSaveStatus={willSaveStatus}
-          disabled={isReadOnly}
-        />
+        {!stageMode ? (
+          <ReviewDecisionCard
+            clearErrors={clearErrors}
+            control={control}
+            draft={draft}
+            errors={formState.errors}
+            liveStatus={liveStatus}
+            setValue={setValue}
+            statusChanged={statusChanged}
+            statusOptions={statusOptions}
+            willSaveStatus={willSaveStatus}
+            disabled={isReadOnly}
+          />
+        ) : null}
 
-        <InternalCommentsCard control={control} disabled={isReadOnly} />
+        {!stageMode ? (
+          <InternalCommentsCard control={control} disabled={isReadOnly} />
+        ) : null}
 
         <CarDetailsCard
           clearErrors={clearErrors}
@@ -491,12 +558,27 @@ export function SubmissionReviewClient({
             });
           }}
           setEditLocale={setEditLocale}
+          stagedLayout={
+            stagedLayout
+              ? {
+                  ...stagedLayout,
+                  onStatusChange: setStagedStatus,
+                  statusValue: stagedStatus,
+                }
+              : undefined
+          }
           submission={submission}
         />
       </div>
 
-      {!isReadOnly && (
-        <div className="sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur">
+      {!stageMode && !isReadOnly ? (
+        <div
+          className={
+            embedded
+              ? "sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur"
+              : "sticky bottom-0 z-20 -mb-5 mt-6 border-t bg-background/95 backdrop-blur"
+          }
+        >
           <div className="flex flex-wrap items-center justify-end gap-2 py-4">
             <Button variant="outline" onClick={hancleConfirmCancel}>
               {commonT("cancel")}
@@ -510,7 +592,28 @@ export function SubmissionReviewClient({
             </Button>
           </div>
         </div>
-      )}
+      ) : null}
+      {stageMode && (!isReadOnly || Boolean(stagedLayout)) ? (
+        <div
+          className={
+            stagedLayout
+              ? "sticky bottom-0 z-20 -mx-5 -mb-5 mt-6 border-t bg-background/95 px-5 backdrop-blur"
+              : "sticky bottom-0 z-20 mt-6 border-t bg-background/95 backdrop-blur"
+          }
+        >
+          <div className="flex flex-wrap items-center justify-end gap-2 py-4">
+            <Button variant="outline" onClick={onClose}>
+              {commonT("close")}
+            </Button>
+            <Button
+              disabled={!formState.isDirty && !stagedStatusChanged}
+              onClick={handleSubmit(requestSave, handleInvalid)}
+            >
+              {commonT("saveChanges")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

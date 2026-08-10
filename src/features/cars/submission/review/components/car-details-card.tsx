@@ -5,6 +5,7 @@ import ControlledFileUploadSection from "@/src/components/form/file-upload-secti
 import { FormLanguageToggle } from "@/src/components/form/language-toggle";
 import ControlledTextarea from "@/src/components/form/textarea";
 import { Card } from "@/src/components/ui/card";
+import { Dropdown } from "@/src/components/ui/dropdown/dropdown";
 import { Input } from "@/src/components/ui/input";
 import { formatDate } from "@/src/lib/date";
 import type { Locale } from "@/src/types/locale";
@@ -18,6 +19,7 @@ import {
 import type { SubmissionReviewFormValues } from "../submission-review.schema";
 import { SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES } from "../submission-review.constants";
 import { useTranslations } from "next-intl";
+import { cn } from "@/src/lib/utils";
 
 function FieldDivider() {
   return <div className="h-px bg-border" />;
@@ -39,6 +41,7 @@ export function CarDetailsCard({
   onImageFilesAdded,
   onImagesChange,
   setEditLocale,
+  stagedLayout,
   submission,
 }: ReviewFormControlProps & {
   draft: SubmissionReviewFormValues;
@@ -47,6 +50,16 @@ export function CarDetailsCard({
   onImageFilesAdded: (files: Array<{ id: string; file: File }>) => void;
   onImagesChange: (images: SubmissionReviewFormValues["images"]) => void;
   setEditLocale: (locale: Locale) => void;
+  stagedLayout?: {
+    classHint: string;
+    classLabel: string;
+    classTitle: string;
+    internalCommentsDescription: string;
+    onStatusChange: (value: string) => void;
+    statusOptions: Array<{ label: string; value: string }>;
+    statusTitle: string;
+    statusValue: string;
+  };
   submission: CarSubmission;
 }) {
   const t = useTranslations("cars.submission.review");
@@ -56,8 +69,15 @@ export function CarDetailsCard({
     (document) => !document.id.startsWith("temp-document-"),
   );
   return (
-    <Card className="flex flex-col gap-6 p-5 shadow-none">
-      <h2 className="text-sm font-semibold">{t("carDetails")}</h2>
+    <Card
+      className={cn(
+        "flex flex-col gap-6 shadow-none",
+        stagedLayout ? "rounded-none border-0 bg-transparent p-0" : "p-5",
+      )}
+    >
+      {!stagedLayout ? (
+        <h2 className="text-sm font-semibold">{t("carDetails")}</h2>
+      ) : null}
 
       <div className="flex flex-col gap-1.5">
         <CarImageManager
@@ -77,6 +97,59 @@ export function CarDetailsCard({
       </div>
 
       <FieldDivider />
+
+      {stagedLayout ? (
+        <>
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Dropdown
+              className="h-10"
+              label={stagedLayout.statusTitle}
+              options={stagedLayout.statusOptions}
+              value={stagedLayout.statusValue}
+              onValueChange={stagedLayout.onStatusChange}
+            />
+            <div className="flex flex-col gap-1.5">
+              <Dropdown
+                className="h-10"
+                disabled
+                label={stagedLayout.classTitle}
+                options={[
+                  {
+                    label: stagedLayout.classLabel,
+                    value: submission.classId || "unassigned",
+                  },
+                ]}
+                value={submission.classId || "unassigned"}
+              />
+              <p className="text-xs text-muted-foreground">
+                {stagedLayout.classHint}
+              </p>
+            </div>
+          </section>
+
+          <FieldDivider />
+
+          <section className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-0.5">
+              <h3 className="text-sm font-semibold">
+                {t("internalComments")}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {stagedLayout.internalCommentsDescription}
+              </p>
+            </div>
+            <ControlledTextarea<SubmissionReviewFormValues>
+              control={control}
+              name="internalComments"
+              rows={4}
+              disabled={disabled}
+              placeholder={t("internalCommentsPlaceholder")}
+            />
+          </section>
+
+          <FieldDivider />
+        </>
+      ) : null}
 
       <section>
         <h3 className="mb-3 text-sm font-semibold">{t("personalInformation")}</h3>
