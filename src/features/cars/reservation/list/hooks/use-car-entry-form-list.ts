@@ -15,9 +15,11 @@ const DEFAULT_SORT = {
 } satisfies PaginationSort<CarEntryFormListSortKey>;
 
 export function useCarEntryFormList({
+  initialSort = DEFAULT_SORT,
   pageSize,
   filters = { status: null, hasDeletedAt: false },
 }: {
+  initialSort?: PaginationSort<CarEntryFormListSortKey>;
   pageSize: number;
   filters?: CarEntryFormListFilters;
 }) {
@@ -28,7 +30,7 @@ export function useCarEntryFormList({
   >({
     fetchPage: getCarEntryForms,
     pageSize,
-    initialSort: DEFAULT_SORT,
+    initialSort,
     initialFilters: { ...filters },
   });
 }

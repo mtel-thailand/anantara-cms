@@ -22,16 +22,16 @@ const savePayloadSchema = z
   })
   .strict();
 
+export function parseSubmissionReviewPayloadEnvelope(payload: unknown) {
+  return savePayloadSchema.parse(payload);
+}
+
 export function parseSubmissionReviewPayload(
   payload: unknown,
   t: import("@/src/types/translation").Translator,
 ) {
-  const parsed = savePayloadSchema.parse(payload);
+  const parsed = parseSubmissionReviewPayloadEnvelope(payload);
   const values = getSubmissionReviewSchema(t).parse(parsed.values);
-
-  if (values.status === "archived") {
-    throw new Error("Archived submissions cannot be changed from this action.");
-  }
 
   return {
     expectedUpdatedAt: parsed.expectedUpdatedAt,

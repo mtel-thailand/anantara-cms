@@ -18,7 +18,9 @@ import { NotificationProvider } from "@/src/components/providers/notification-pr
 export type OverlayElementType = {
   header?: ReactNode | null;
   content?: ReactNode | null;
+  contentClassName?: string;
   footer?: ReactNode | null;
+  panelClassName?: string;
 };
 
 type AppLayoutContextType = {

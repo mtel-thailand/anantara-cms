@@ -38,6 +38,10 @@ function searchKeyword(query: string | undefined) {
   return query?.trim() || null;
 }
 
+function ownerValue(value: string | null, fallback: string | null) {
+  return value?.trim() || fallback?.trim() || null;
+}
+
 function toOwnerReservationListItem(
   row: OwnerReservationListRpc["data"][number],
 ): OwnerReservationListItem {
@@ -51,6 +55,7 @@ function toOwnerReservationListItem(
     status: row.status,
     seen: row.seen,
     createdAt: row.created_at,
+    deletedAt: row.deleted_at,
     updatedAt: row.updated_at,
     hasCarsMovedBackToPreApproval:
       row.has_cars_moved_back_to_pre_approval,
@@ -101,7 +106,11 @@ export async function getOwnerReservation(
   const { data, error } = await supabase
     .from("owner_reservations")
     .select(
-      "*, owner_packages(name, owner_package_room_categories(id, name))",
+      `
+        *,
+        car_submissions_form(first_name, name, email),
+        owner_packages(name, owner_package_room_categories(id, name))
+      `,
     )
     .eq("id", id)
     .single();
@@ -120,9 +129,25 @@ export async function getOwnerReservation(
         category.id === reservation.room_category ||
         category.name === reservation.room_category,
     );
+  const submission = reservation.car_submissions_form;
+  const reservationWithOwnerFallback: OwnerReservationRow = {
+    ...reservation,
+    owner_forenames: ownerValue(
+      reservation.owner_forenames,
+      submission?.first_name ?? null,
+    ),
+    owner_surname: ownerValue(
+      reservation.owner_surname,
+      submission?.name ?? null,
+    ),
+    owner_email: ownerValue(
+      reservation.owner_email,
+      submission?.email ?? null,
+    ),
+  };
 
   return toOwnerReservationDetail(
-    reservation,
+    reservationWithOwnerFallback,
     carNames,
     reservation.owner_packages?.name ?? "",
     roomCategory?.name ?? reservation.room_category ?? "",

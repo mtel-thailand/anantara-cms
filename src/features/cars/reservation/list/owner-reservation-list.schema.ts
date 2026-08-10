@@ -16,6 +16,7 @@ export const OwnerReservationListRpcSchema = z
           status: z.enum(OWNER_RESERVATION_STATUSES),
           seen: z.boolean(),
           created_at: z.string(),
+          deleted_at: z.string().nullable(),
           updated_at: z.string(),
           has_cars_moved_back_to_pre_approval: z.boolean(),
           approved_vehicle_count: z.number().int().nonnegative(),

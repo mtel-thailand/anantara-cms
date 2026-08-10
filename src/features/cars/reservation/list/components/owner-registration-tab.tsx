@@ -102,6 +102,7 @@ const OwnerReservationResults = memo(function OwnerReservationResults({
           headerClassName="bg-muted/35"
           bodyClassName="bg-card"
           enableColumnSorting
+          serverSideSorting
           enabledRowSorting={false}
           emptyRow={
             showSkeleton ? (

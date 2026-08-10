@@ -13,7 +13,12 @@ export async function getCarEntryFormReview(
     .from("car_entry_forms")
     .select(
       `*,
-       car_entry_form_technicians(*)`,
+       car_entry_form_technicians(*),
+       car_submission_vehicles!inner(
+         body_style, chassis_no, coachbuilder, engine_no, exterior_colour,
+         interior_colour, make_of_vehicle, model, vehicle_history_en,
+         year_of_manufacture
+       )`,
     )
     .eq("submission_vehicle_id", submissionVehicleId)
     .maybeSingle();
@@ -23,6 +28,7 @@ export async function getCarEntryFormReview(
   return {
     form: formData,
     technicians: formData.car_entry_form_technicians,
+    vehicle: formData.car_submission_vehicles,
   };
 }
 

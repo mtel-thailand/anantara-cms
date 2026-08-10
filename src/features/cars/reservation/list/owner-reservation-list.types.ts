@@ -18,7 +18,7 @@ export type OwnerReservationStatus =
 
 export type OwnerReservationFilter = OwnerReservationStatus | "all";
 
-export type OwnerReservationListSortKey = "status" | "updated";
+export type OwnerReservationListSortKey = "deleted" | "status" | "updated";
 
 export type OwnerReservationListFilters = {
   status: OwnerReservationStatus | null;
@@ -40,6 +40,7 @@ export type OwnerReservationListItem = {
   status: OwnerReservationStatus;
   seen: boolean;
   createdAt: string;
+  deletedAt: string | null;
   updatedAt: string;
   hasCarsMovedBackToPreApproval: boolean;
   approvedVehicleCount: number;

@@ -10,6 +10,7 @@ import { Card } from "@/src/components/ui/card";
 import { Badge } from "@/src/components/ui/badge";
 import Text from "@/src/components/ui/text";
 import useAsync from "@/src/hooks/use-async";
+import { useRouter } from "@/src/i18n/navigation";
 import { logger } from "@/src/lib/logger";
 import { FORM_STATUS_BADGE } from "@/src/features/cars/reservation/list/components/form-status-stepper";
 import { cn } from "@/src/lib/utils";
@@ -21,10 +22,17 @@ import {
 } from "@/src/features/cars/reservation/review/car-entry-form-review.service";
 import type { CarEntryFormReviewDetail } from "@/src/features/cars/reservation/review/car-entry-form-review.types";
 
-export function CarEntryFormReviewClient({ carId }: { carId: string }) {
+export function CarEntryFormReviewClient({
+  carId,
+  readOnly = false,
+}: {
+  carId: string;
+  readOnly?: boolean;
+}) {
   const t = useTranslations("cars.reservation.carReview");
   const listT = useTranslations("cars.reservation.list");
   const commonT = useTranslations("common");
+  const router = useRouter();
   const modal = useModal();
   const { isLoading, execute } = useAsync(true);
   const [detail, setDetail] = useState<CarEntryFormReviewDetail | null>(null);
@@ -52,7 +60,7 @@ export function CarEntryFormReviewClient({ carId }: { carId: string }) {
 
   if (isLoading)
     return (
-      <Card className="flex h-48 items-center justify-center shadow-none">
+      <Card className="flex h-48 items-center justify-center shadow-none text-sm text-muted-foreground">
         {t("loading")}
       </Card>
     );
@@ -64,11 +72,15 @@ export function CarEntryFormReviewClient({ carId }: { carId: string }) {
     );
 
   const status = detail.form.status;
+  const isDeleted = detail.form.deleted_at !== null;
+  const backHref = isDeleted
+    ? "/app/cars/forms/deleted?tab=car"
+    : "/app/cars/forms?tab=car";
 
   function requestApproval(action: "approve" | "undo") {
     if (!detail?.form) return;
     modal.open({
-      headerClassName: "border-0 px-4 pt-4",
+      headerClassName: "border-0 px-4 py-0 pt-4",
       header: (
         <Text.FormTitle size="base">
           {t(action === "approve" ? "approveTitle" : "undoTitle")}
@@ -87,27 +99,44 @@ export function CarEntryFormReviewClient({ carId }: { carId: string }) {
           </Button>
           <Button
             loading={loading}
+            variant={action === "approve" ? "default" : "ghost"}
             onClick={() =>
               void run(async () => {
-                const notification = await updateCarEntryFormApprovalAction({
-                  action,
-                  expectedUpdatedAt: detail.form!.updated_at,
-                  submissionVehicleId: carId,
-                });
-                await load();
-                close();
-                if (
-                  action === "approve" &&
-                  notification.emailAttempted &&
-                  !notification.emailSent
-                ) {
-                  toast.warning(t("approvedEmailFailed"), {
-                    description: t("approvedEmailFailedDescription"),
+                try {
+                  const notification = await updateCarEntryFormApprovalAction({
+                    action,
+                    expectedUpdatedAt: detail.form!.updated_at,
+                    submissionVehicleId: carId,
                   });
-                } else {
-                  toast.success(
-                    t(action === "approve" ? "approved" : "approvalUndone"),
+                  await load();
+                  close();
+                  if (
+                    action === "approve" &&
+                    notification.emailAttempted &&
+                    !notification.emailSent
+                  ) {
+                    toast.warning(t("approvedEmailFailed"), {
+                      description: t("approvedEmailFailedDescription"),
+                    });
+                  } else {
+                    toast.success(
+                      t(action === "approve" ? "approved" : "approvalUndone"),
+                    );
+                  }
+                } catch (error) {
+                  logger.error(
+                    "CAR-ENTRY-FORMS",
+                    "Failed to update car entry form approval",
+                    {
+                      action,
+                      carId,
+                      error:
+                        error instanceof Error ? error.message : String(error),
+                    },
                   );
+                  toast.error(t("saveError"), {
+                    description: t("tryAgain"),
+                  });
                 }
               })
             }
@@ -138,21 +167,30 @@ export function CarEntryFormReviewClient({ carId }: { carId: string }) {
         </p>
         <CarEntryFormView detail={detail} />
       </Card>
-      <div className="sticky bottom-0 z-20 mt-6 flex justify-end gap-2 border-t bg-background/95 py-4 backdrop-blur">
-        {status === "approved" ? (
-          <Button variant="outline" onClick={() => requestApproval("undo")}>
-            {t("undoApproval")}
+      {!readOnly ? (
+        <div className="sticky bottom-0 z-20 mt-6 flex justify-end gap-2 border-t bg-background/95 py-4 backdrop-blur">
+          <Button variant="outline" onClick={() => router.push(backHref)}>
+            {commonT("cancel")}
           </Button>
-        ) : (
-          <Button
-            disabled={status !== "received"}
-            title={status !== "received" ? t("approvalUnavailable") : undefined}
-            onClick={() => requestApproval("approve")}
-          >
-            {t("approve")}
-          </Button>
-        )}
-      </div>
+          {!isDeleted ? (
+            status === "approved" ? (
+              <Button variant="outline" onClick={() => requestApproval("undo")}>
+                {t("undoApproval")}
+              </Button>
+            ) : (
+              <Button
+                disabled={status !== "received"}
+                title={
+                  status !== "received" ? t("approvalUnavailable") : undefined
+                }
+                onClick={() => requestApproval("approve")}
+              >
+                {t("approve")}
+              </Button>
+            )
+          ) : null}
+        </div>
+      ) : null}
     </>
   );
 }
