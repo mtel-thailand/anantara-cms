@@ -256,7 +256,7 @@ const EMAIL_TEMPLATES = {
       buttonUrl: createClientUrl("/en/my-submission/", {
         token: accessToken,
         action,
-        vehicle: submissionVehicleId,
+        car: submissionVehicleId,
       }),
       complete: false,
       message,
