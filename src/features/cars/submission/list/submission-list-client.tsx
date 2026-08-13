@@ -274,7 +274,7 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
     if (seenCountChanged) {
       setRefreshing((current) => !current);
     }
-  }, [submissionSeenCount, submissionTrigger, t]);
+  }, [isDeleted, submissionSeenCount, submissionTrigger, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -339,23 +339,27 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
   );
 
   const handleRestoreSubmission = useCallback(
-    async (vehicleId: string, name: string) => {
-      await runAsyncTask<void>({
-        action: () => {
-          restoreSubmissionVehicle(vehicleId);
-          setRefreshing((prev) => !prev);
-          toast.success(t("restoreSuccess", { name }), {
+    async (vehicle: SubmissionVehicleWithFormState) => {
+      const restored = await runAsyncTask<boolean>({
+        action: async () => {
+          await restoreSubmissionVehicle(vehicle.id);
+
+          setRefreshing((current) => !current);
+          toast.success(t("restoreSuccess", { name: vehicle.makeOfVehicle }), {
             description: t("restoreSuccessDescription"),
           });
+          return true;
         },
         onError: (error) => {
           logger.error("CAR-SUBMISSIONS", "Failed to restore submission", {
             error: error instanceof Error ? error.message : String(error),
-            vehicleId,
+            vehicleId: vehicle.id,
           });
+          toast.error(t("restoreError"), { description: t("tryAgain") });
         },
-        onFinally: () => setRefreshing((current) => !current),
       });
+
+      return restored === true;
     },
     [t],
   );
@@ -383,15 +387,11 @@ export function SubmissionsClient({ type }: { type?: "deleted" }) {
             </Button>
             <Button
               loading={loading}
-              onClick={async () => {
-                void run(() =>
-                  handleRestoreSubmission(
-                    vehicleData.id,
-                    vehicleData.makeOfVehicle,
-                  ),
-                );
-                close();
-              }}
+              onClick={() =>
+                void run(async () => {
+                  if (await handleRestoreSubmission(vehicleData)) close();
+                })
+              }
             >
               {t("restoreAction")}
             </Button>

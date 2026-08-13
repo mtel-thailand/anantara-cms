@@ -439,9 +439,20 @@ export function FinalizedCarsClient() {
               ) : null}
             </div>
             {row.original.hideOwnerName ? (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
-                <CircleAlert className="size-3.5" /> {t("privateCollection")}
-              </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className="inline-flex w-fit items-center gap-1 text-xs font-medium text-amber-600 focus-visible:outline-none"
+                      tabIndex={0}
+                    >
+                      <CircleAlert className="size-3.5" />
+                      {t("privateCollection")}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-60">{t("privateCollectionHint")}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : null}
           </div>
         ),
