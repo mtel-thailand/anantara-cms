@@ -17,9 +17,7 @@ function TooltipProvider({
   );
 }
 
-function Tooltip({
-  ...props
-}: ComponentProps<typeof TooltipPrimitive.Root>) {
+function Tooltip({ ...props }: ComponentProps<typeof TooltipPrimitive.Root>) {
   return <TooltipPrimitive.Root data-slot="tooltip" {...props} />;
 }
 
@@ -58,13 +56,13 @@ function GenericTooltip({
   content,
   side = "top",
 }: {
-  trigger: string | ReactElement;
+  trigger: ReactElement;
   content: string | ReactElement;
   side?: ComponentProps<typeof TooltipPrimitive.Content>["side"];
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger>{trigger}</TooltipTrigger>
+      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
       <TooltipContent side={side}>{content}</TooltipContent>
     </Tooltip>
   );

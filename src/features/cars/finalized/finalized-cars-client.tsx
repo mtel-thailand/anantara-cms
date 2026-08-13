@@ -28,12 +28,7 @@ import { Skeleton } from "@/src/components/ui/skeleton";
 import Text from "@/src/components/ui/text";
 import { Dropdown } from "@/src/components/ui/dropdown/dropdown";
 import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/src/components/ui/tooltip";
+import { GenericTooltip } from "@/src/components/ui/tooltip";
 import {
   archiveFinalizedCarsAction,
   publishFinalizedCarDraftAction,
@@ -63,8 +58,7 @@ import { cn } from "@/src/lib/utils";
 import type { Locale } from "@/src/types/locale";
 
 const PAGE_SIZE = 10;
-const FINALIZED_CAR_DRAFTS_STORAGE_KEY =
-  "anantara-cms:finalized-car-drafts:v1";
+const FINALIZED_CAR_DRAFTS_STORAGE_KEY = "anantara-cms:finalized-car-drafts:v1";
 const FINALIZED_CAR_DRAFTS_STORAGE_VERSION = 1;
 const EMPTY_DATA: FinalizedCarsData = {
   classes: [],
@@ -91,7 +85,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function storedFinalizedCarDrafts(value: unknown) {
-  if (!isRecord(value) || value.version !== FINALIZED_CAR_DRAFTS_STORAGE_VERSION) {
+  if (
+    !isRecord(value) ||
+    value.version !== FINALIZED_CAR_DRAFTS_STORAGE_VERSION
+  ) {
     return null;
   }
   if (!isRecord(value.drafts)) return null;
@@ -428,31 +425,38 @@ export function FinalizedCarsClient() {
             <div className="flex items-center gap-2">
               <span>{ownerName(row.original)}</span>
               {row.original.ownerFormNeedsAttention ? (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+                <GenericTooltip
+                  trigger={
+                    <span
+                      className="inline-flex w-fit focus-visible:outline-none"
+                      tabIndex={0}
+                    >
                       <CircleAlert className="size-4 text-amber-500" />
-                    </TooltipTrigger>
-                    <TooltipContent>{t("ownerAttention")}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                    </span>
+                  }
+                  content={t("ownerAttention")}
+                />
               ) : null}
             </div>
             {row.original.hideOwnerName ? (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span
-                      className="inline-flex w-fit items-center gap-1 text-xs font-medium text-amber-600 focus-visible:outline-none"
-                      tabIndex={0}
-                    >
-                      <CircleAlert className="size-3.5" />
+              <GenericTooltip
+                trigger={
+                  <span
+                    className="inline-flex w-fit items-center gap-1 focus-visible:outline-none"
+                    tabIndex={0}
+                  >
+                    <CircleAlert className="size-3.5 text-amber-600" />
+                    <Text size="xs" weight="medium" className="text-amber-600">
                       {t("privateCollection")}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-60">{t("privateCollectionHint")}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                    </Text>
+                  </span>
+                }
+                content={
+                  <span className="block max-w-60">
+                    {t("privateCollectionHint")}
+                  </span>
+                }
+              />
             ) : null}
           </div>
         ),
