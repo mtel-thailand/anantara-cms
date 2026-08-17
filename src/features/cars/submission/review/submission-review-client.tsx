@@ -207,11 +207,13 @@ export function SubmissionReviewClient({
   if (isLoading) {
     return (
       <>
-        {!embedded ? <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
-          <Link href="/app/cars/submissions">
-            <ChevronLeft className="size-4" /> {t("back")}
-          </Link>
-        </Button> : null}
+        {!embedded ? (
+          <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
+            <Link href="/app/cars/submissions">
+              <ChevronLeft className="size-4" /> {t("back")}
+            </Link>
+          </Button>
+        ) : null}
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
           {t("loading")}
         </Card>
@@ -222,11 +224,13 @@ export function SubmissionReviewClient({
   if (!submission) {
     return (
       <>
-        {!embedded ? <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
-          <Link href="/app/cars/submissions">
-            <ChevronLeft className="size-4" /> {t("back")}
-          </Link>
-        </Button> : null}
+        {!embedded ? (
+          <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
+            <Link href="/app/cars/submissions">
+              <ChevronLeft className="size-4" /> {t("back")}
+            </Link>
+          </Button>
+        ) : null}
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
           {t("notFound")}
         </Card>
@@ -368,20 +372,17 @@ export function SubmissionReviewClient({
 
     pendingValuesRef.current = structuredClone(values);
 
-    const hasLanguageGap =
-      Boolean(values.history.en.trim()) !== Boolean(values.history.it.trim());
-    const warnLanguage = values.status === "approved" && hasLanguageGap;
-
     modal.preventBackdropClose();
     modal.open({
       headerClassName: "border-0 px-4 py-0 pt-4",
       header: (
         <div className="pr-8">
           <h2 className="font-heading text-xl">
-            {warnLanguage ? t("oneLanguageTitle") : t("saveTitle")}
+            {/* {warnLanguage ? t("oneLanguageTitle") : t("saveTitle")} */}
+            {t("saveTitle")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {warnLanguage ? t("oneLanguageDescription") : t("saveDescription")}
+            {t("saveDescription")}
           </p>
         </div>
       ),
@@ -394,7 +395,7 @@ export function SubmissionReviewClient({
             loading={loading}
             onClick={() => void run(async () => commitSave())}
           >
-            {warnLanguage ? t("saveAnyway") : commonT("saveChanges")}
+            {commonT("saveChanges")}
           </Button>
         </>
       ),
@@ -475,32 +476,36 @@ export function SubmissionReviewClient({
 
   return (
     <>
-      {!embedded ? <NavigationButton text={t("back")} onClick={hancleConfirmCancel} /> : null}
+      {!embedded ? (
+        <NavigationButton text={t("back")} onClick={hancleConfirmCancel} />
+      ) : null}
 
-      {!embedded ? <PageHeader
-        title={submissionVehicleName(submission)}
-        description={`${submission.vehicleRef} · ${commonT(
-          "submittedLastUpdate",
-          {
-            submitted: formatDate(submission.submissionDate, locale),
-            updated: formatDate(submission.lastUpdated, locale),
-          },
-        )}`}
-        viewport={["desktop", "mobile"]}
-        titleAccessory={<SubmissionStatusBadge status={liveStatus} />}
-      >
-        <Button
-          variant="outline"
-          disabled={isReadOnly}
-          loading={isDownloading}
-          loadingClassName="text-foreground"
-          title={t("downloadTitle")}
-          onClick={handleDownloadSubmissionForm}
+      {!embedded ? (
+        <PageHeader
+          title={submissionVehicleName(submission)}
+          description={`${submission.vehicleRef} · ${commonT(
+            "submittedLastUpdate",
+            {
+              submitted: formatDate(submission.submissionDate, locale),
+              updated: formatDate(submission.lastUpdated, locale),
+            },
+          )}`}
+          viewport={["desktop", "mobile"]}
+          titleAccessory={<SubmissionStatusBadge status={liveStatus} />}
         >
-          {!isDownloading && <Download className="size-4" />}
-          {commonT("downloadPdf")}
-        </Button>
-      </PageHeader> : null}
+          <Button
+            variant="outline"
+            disabled={isReadOnly}
+            loading={isDownloading}
+            loadingClassName="text-foreground"
+            title={t("downloadTitle")}
+            onClick={handleDownloadSubmissionForm}
+          >
+            {!isDownloading && <Download className="size-4" />}
+            {commonT("downloadPdf")}
+          </Button>
+        </PageHeader>
+      ) : null}
 
       <div className="flex flex-col gap-6">
         {!stageMode ? (
