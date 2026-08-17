@@ -85,6 +85,7 @@ function pendingImageFiles(
 export function SubmissionReviewClient({
   carId,
   embedded = false,
+  initialEditLocale = "en",
   onClose,
   onStageDraft,
   readOnly = false,
@@ -93,6 +94,7 @@ export function SubmissionReviewClient({
 }: {
   carId: string;
   embedded?: boolean;
+  initialEditLocale?: Locale;
   onClose?: () => void;
   onStageDraft?: (draft: SubmissionReviewDraft) => void;
   readOnly?: boolean;
@@ -140,7 +142,7 @@ export function SubmissionReviewClient({
   const initialSubmissionRef = useRef(submission);
   const pendingValuesRef = useRef<SubmissionReviewFormValues | null>(null);
   const pendingFilesRef = useRef(new Map<string, File>());
-  const [editLocale, setEditLocale] = useState<Locale>("en");
+  const [editLocale, setEditLocale] = useState<Locale>(initialEditLocale);
   const [stagedStatus, setStagedStatus] = useState(
     stagedDraft?.stagedStatus ?? stagedLayout?.statusValue ?? "",
   );
@@ -388,18 +390,6 @@ export function SubmissionReviewClient({
           <Button variant="outline" onClick={modal.close}>
             {commonT("cancel")}
           </Button>
-          {warnLanguage ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setEditLocale(values.history.en.trim() ? "it" : "en");
-                pendingValuesRef.current = null;
-                modal.close();
-              }}
-            >
-              {t("fixContent")}
-            </Button>
-          ) : null}
           <Button
             loading={loading}
             onClick={() => void run(async () => commitSave())}

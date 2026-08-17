@@ -34,10 +34,12 @@ function isFinalizedCarDraftStatus(
 export function FinalizedCarDetails({
   car,
   draft,
+  initialEditLocale,
   onStageDraft,
 }: {
   car: FinalizedCarListItem;
   draft?: FinalizedCarDraft;
+  initialEditLocale?: Locale;
   onStageDraft: (draft: FinalizedCarDraft) => void;
 }) {
   const t = useTranslations("cars.finalized");
@@ -111,6 +113,7 @@ export function FinalizedCarDetails({
                 <SubmissionReviewClient
                   carId={car.id}
                   embedded
+                  initialEditLocale={initialEditLocale}
                   onClose={handleCloseOverlay}
                   onStageDraft={(nextDraft) => {
                     if (!isFinalizedCarDraftStatus(nextDraft.stagedStatus)) {

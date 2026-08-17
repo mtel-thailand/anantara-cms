@@ -289,7 +289,7 @@ export function FinalizedCarsClient() {
   }, [page, pageCount]);
 
   const openDetails = useCallback(
-    async (car: FinalizedCarListItem) => {
+    async (car: FinalizedCarListItem, initialEditLocale?: Locale) => {
       let ownerReservationId = car.ownerReservationId;
       if (!ownerReservationId) {
         try {
@@ -313,6 +313,7 @@ export function FinalizedCarsClient() {
             key={`${car.id}-${detailsInstanceRef.current}`}
             car={{ ...car, ownerReservationId }}
             draft={drafts[car.id]}
+            initialEditLocale={initialEditLocale}
             onStageDraft={(nextDraft) => {
               setDrafts((current) => ({
                 ...current,
@@ -676,19 +677,29 @@ export function FinalizedCarsClient() {
   }
 
   function openPublishConfirmation() {
+    const incompleteDrafts = new Map(
+      Object.entries(drafts).filter(([, draft]) => {
+        const { en, it } = draft.values.history;
+        return Boolean(en.trim()) !== Boolean(it.trim());
+      }),
+    );
+    const incompleteCount = incompleteDrafts.size;
+
     modal.preventBackdropClose();
     modal.open({
       className: "gap-2 py-0 sm:max-w-lg",
       headerClassName: "border-0 px-4 py-0 pt-4",
       header: (
         <Text.FormTitle size="base" weight="medium">
-          {t("publishTitle")}
+          {incompleteCount > 0 ? t("missingLanguageTitle") : t("publishTitle")}
         </Text.FormTitle>
       ),
       contentClassName: "px-4 pb-2",
       content: (
         <Text size="sm" color="muted-foreground">
-          {t("publishDescription")}
+          {incompleteCount > 0
+            ? t("missingLanguageDescription", { count: incompleteCount })
+            : t("publishDescription")}
         </Text>
       ),
       footer: ({ loading, close, run }) => (
@@ -696,6 +707,28 @@ export function FinalizedCarsClient() {
           <Button variant="outline" disabled={loading} onClick={close}>
             {commonT("keepEditing")}
           </Button>
+          {incompleteCount > 0 ? (
+            <Button
+              variant="outline"
+              disabled={loading}
+              onClick={() => {
+                const car = pageRows.find((item) =>
+                  incompleteDrafts.has(item.id),
+                );
+                close();
+                if (!car) return;
+
+                const draft = incompleteDrafts.get(car.id);
+                if (!draft) return;
+                void openDetails(
+                  car,
+                  draft.values.history.en.trim() ? "it" : "en",
+                );
+              }}
+            >
+              {t("fixContent")}
+            </Button>
+          ) : null}
           <Button
             loading={loading}
             onClick={() =>
@@ -704,7 +737,7 @@ export function FinalizedCarsClient() {
               })
             }
           >
-            {t("publishChanges")}
+            {incompleteCount > 0 ? t("publishAnyway") : t("publishChanges")}
           </Button>
         </>
       ),
