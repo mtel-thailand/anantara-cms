@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>{{title}} – Anantara Concorso Roma</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&amp;family=Playfair+Display:wght@600&amp;display=swap" rel="stylesheet" />
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=EB+Garamond:wght@600&display=swap");
-      body, table, td, p, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+      @import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Playfair+Display:wght@600&display=swap");
+      body, table, td, p, a, span { font-family: "EB Garamond", Georgia, "Times New Roman", serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+      h1, h2, h3, .title { font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif; }
       table, td { mso-table-lspace: 0; mso-table-rspace: 0; }
       img { border: 0; display: block; -ms-interpolation-mode: bicubic; }
       @media only screen and (max-width: 620px) {
@@ -16,14 +20,14 @@
       }
     </style>
   </head>
-  <body style="margin: 0; padding: 0; background: #ffffff; font-family: 'EB Garamond', Georgia, serif; color: #1e1e1e">
+  <body style="margin: 0; padding: 0; background: #ffffff; font-family: 'EB Garamond', Georgia, 'Times New Roman', serif; color: #1e1e1e">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr>
         <td align="center">
           <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 600px; background: #ffffff">
             <tr>
               <td align="center" style="padding: 32px 0 24px; border-bottom: 1px solid #c9c9c9">
-                <img src="https://d15j1ksm9qghj4.cloudfront.net/logo/anantara-concorso-logo-origin.png" alt="Anantara Concorso Roma" width="80" style="width: 80px; height: auto" />
+                <img src="{{logoUrl}}" alt="Anantara Concorso Roma" width="80" style="width: 80px; height: auto" />
               </td>
             </tr>
             <tr>
@@ -31,12 +35,14 @@
                 {{#if showIcon}}
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 28px">
                   <tr>
-                    <td align="center" valign="middle" width="60" height="60" style="width: 60px; height: 60px; border: 2px solid {{themeColor}}; border-radius: 50%; color: {{themeColor}}; font-family: Arial, sans-serif; font-size: 35px; font-weight: 300; line-height: 60px">{{icon}}</td>
+                    <td align="center" valign="middle" width="64" height="64" style="width: 64px; height: 64px">
+                      <img src="{{iconUrl}}" alt="" width="64" height="64" style="display: block; width: 64px; height: 64px" />
+                    </td>
                   </tr>
                 </table>
                 {{/if}}
-                <h1 class="title" style="margin: 0 0 12px; font-family: 'Playfair Display', Georgia, serif; font-size: 52px; line-height: 1.15; font-weight: 600; color: #1e1e1e">{{title}}</h1>
-                <p style="margin: 0; font-size: 20px; line-height: 1.4; font-weight: 600; color: #d2144f">{{subtitle}}</p>
+                <h1 class="title" style="margin: 0 0 12px; font-family: Didot, 'Bodoni 72', 'Bodoni MT', Georgia, serif; font-size: 52px; line-height: 1.15; font-weight: 600; letter-spacing: -0.03em; color: #1e1e1e">{{title}}</h1>
+                <p style="margin: 0; font-family: 'EB Garamond', Georgia, 'Times New Roman', serif; font-size: 20px; font-style: normal; font-weight: 500; line-height: 1.4; color: {{subtitleColor}}">{{subtitle}}</p>
               </td>
             </tr>
             <tr>
@@ -53,7 +59,7 @@
                         <tr>
                           <td style="padding: 4px 0 13px; color: #d2144f; font-size: 16px">{{vehicle.reference}}</td>
                           <td align="right" style="padding: 4px 0 13px">
-                            <span style="display: inline-block; padding: 5px 9px; border-radius: 3px; background: {{themeBackground}}; color: {{themeColor}}; font-size: 15px">{{badgeLabel}}</span>
+                            <span style="display: inline-block; padding: 5px 9px; border-radius: 3px; background: {{themeBackground}}; color: {{badgeColor}}; font-size: 15px">{{badgeLabel}}</span>
                           </td>
                         </tr>
                       </table>
@@ -70,7 +76,7 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #b6b6b6; border-radius: 16px">
                   <tr>
                     <td style="padding: 32px">
-                      <p style="margin: 0 0 13px; font-size: 20px; font-weight: 600; color: #252525">A note from our team:</p>
+                      <p style="margin: 0 0 13px; font-size: 20px; font-weight: 500; color: #252525">A note from our team:</p>
                       <p style="margin: 0 0 25px; font-size: 19px; line-height: 1.45; color: #555555">{{note}}</p>
                       <div style="text-align: center"><a href="{{buttonUrl}}" style="display: inline-block; padding: 13px 24px; border-radius: 24px; background: #d2144f; color: #ffffff; font-size: 16px; text-decoration: none">{{buttonLabel}}</a></div>
                     </td>
@@ -84,7 +90,7 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius: 16px; background: {{#if showUniqueLink}}#fff0f4{{else}}#f3f0ec{{/if}}">
                   <tr>
                     <td align="center" style="padding: 32px 31px">
-                      <p style="margin: 0 0 23px; font-size: 19px; line-height: 1.45; color: #555555">{{calloutText}}</p>
+                      <p style="margin: 0 0 23px; font-size: 20px; line-height: 1.45; color: #555555">{{calloutText}}</p>
                       <a href="{{buttonUrl}}" style="display: inline-block; padding: 13px 24px; border-radius: 24px; background: {{#if showUniqueLink}}#d2144f{{else}}#1e1e1e{{/if}}; color: #ffffff; font-size: 16px; text-decoration: none">{{buttonLabel}}</a>
                     </td>
                   </tr>
@@ -94,14 +100,14 @@
             {{/if}}
             {{#if showUniqueLink}}
             <tr>
-              <td align="center" style="padding: 0 48px 45px; color: #777777; font-size: 19px">This link is unique to your submission.</td>
+              <td align="center" style="padding: 0 48px 45px; color: #777777; font-size: 16px">This link is unique to your application.</td>
             </tr>
             {{/if}}
             <tr>
               <td align="center" style="padding: 48px 60px 42px; background: #fafafa; color: #858585">
-                <img src="https://d15j1ksm9qghj4.cloudfront.net/logo/anantara-concorso-logo-origin.png" alt="Anantara Concorso Roma" width="52" style="width: 52px; height: auto; margin-bottom: 22px" />
-                <p style="margin: 0 0 15px; font-size: 18px; line-height: 1.45">You received this email because you submitted a vehicle registration for the Anantara Concorso Roma. For support, contact us at support@anantara.com</p>
-                <p style="margin: 0; color: #b7b7b7; font-size: 17px">© 2027 Anantara. All rights reserved.</p>
+                <img src="{{logoUrl}}" alt="Anantara Concorso Roma" width="52" style="width: 52px; height: auto; margin-bottom: 22px" />
+                <p style="margin: 0 0 15px; font-size: 18px; line-height: 1.45">You received this email because you submitted a car application for the Anantara Concorso Roma. For support, contact us at <a href="mailto:support@anantara.com" style="color: #787878; text-decoration: none">support@anantara.com</a></p>
+                <p style="margin: 0; color: #b7b7b7; font-size: 17px">© Anantara Hotels &amp; Resorts. All rights reserved.</p>
               </td>
             </tr>
           </table>

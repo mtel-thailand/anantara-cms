@@ -570,6 +570,8 @@
       "publishChanges": "Pubblica modifiche",
       "discardTitle": "Annullare le modifiche non pubblicate?",
       "discardDescription": "La pagina tornerà all’ultima versione pubblicata. Tutte le modifiche preparate andranno perse. Questa azione non può essere annullata.",
+      "overlayDiscardTitle": "Annullare le modifiche?",
+      "overlayDiscardDescription": "Hai modificato questa auto ma non hai ancora salvato. Se esci ora, le modifiche andranno perse.",
       "publishTitle": "Pubblicare le modifiche?",
       "publishDescription": "Le modifiche preparate alle auto saranno pubblicate sul sito web.",
       "missingLanguageTitle": "Alcuni contenuti non sono tradotti",

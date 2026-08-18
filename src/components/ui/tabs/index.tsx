@@ -15,6 +15,7 @@ export type TabItem<T extends string> = {
   children?: ReactNode;
   className?: string;
   disabled?: boolean;
+  keepMounted?: boolean;
   label?: ReactNode;
   tabClassName?: string;
   title?: string;
@@ -38,8 +39,6 @@ export function Tabs<T extends string>({
 }) {
   const listRef = useRef<HTMLDivElement>(null);
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });
-  const activeTab = tabs.find((tab) => tab.value === value);
-
   const updateIndicator = useCallback(() => {
     const activeTab = listRef.current?.querySelector<HTMLElement>(
       '[role="tab"][aria-selected="true"]',
@@ -158,15 +157,23 @@ export function Tabs<T extends string>({
         />
       </div>
 
-      {activeTab?.children !== undefined ? (
-        <div
-          key={activeTab.value}
-          role="tabpanel"
-          className={activeTab.className}
-        >
-          {activeTab.children}
-        </div>
-      ) : null}
+      {tabs.map((tab) => {
+        const active = tab.value === value;
+        if (tab.children === undefined || (!active && !tab.keepMounted)) {
+          return null;
+        }
+
+        return (
+          <div
+            key={tab.value}
+            role="tabpanel"
+            hidden={!active}
+            className={tab.className}
+          >
+            {tab.children}
+          </div>
+        );
+      })}
     </div>
   );
 }

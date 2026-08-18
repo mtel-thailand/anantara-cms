@@ -38,10 +38,6 @@ function searchKeyword(query: string | undefined) {
   return query?.trim() || null;
 }
 
-function ownerValue(value: string | null, fallback: string | null) {
-  return value?.trim() || fallback?.trim() || null;
-}
-
 function toOwnerReservationListItem(
   row: OwnerReservationListRpc["data"][number],
 ): OwnerReservationListItem {
@@ -57,8 +53,7 @@ function toOwnerReservationListItem(
     createdAt: row.created_at,
     deletedAt: row.deleted_at,
     updatedAt: row.updated_at,
-    hasCarsMovedBackToPreApproval:
-      row.has_cars_moved_back_to_pre_approval,
+    hasCarsMovedBackToPreApproval: row.has_cars_moved_back_to_pre_approval,
     approvedVehicleCount: row.approved_vehicle_count,
     finalizedVehicleCount: row.finalized_vehicle_count,
   };
@@ -129,21 +124,8 @@ export async function getOwnerReservation(
         category.id === reservation.room_category ||
         category.name === reservation.room_category,
     );
-  const submission = reservation.car_submissions_form;
   const reservationWithOwnerFallback: OwnerReservationRow = {
     ...reservation,
-    owner_forenames: ownerValue(
-      reservation.owner_forenames,
-      submission?.first_name ?? null,
-    ),
-    owner_surname: ownerValue(
-      reservation.owner_surname,
-      submission?.name ?? null,
-    ),
-    owner_email: ownerValue(
-      reservation.owner_email,
-      submission?.email ?? null,
-    ),
   };
 
   return toOwnerReservationDetail(

@@ -570,6 +570,8 @@
       "publishChanges": "Publish changes",
       "discardTitle": "Discard unpublished changes?",
       "discardDescription": "This reverts the page to the last published version. Every staged edit will be lost. This can’t be undone.",
+      "overlayDiscardTitle": "Discard your changes?",
+      "overlayDiscardDescription": "You’ve edited this car but haven’t saved yet. If you leave now, these changes will be lost.",
       "publishTitle": "Publish changes?",
       "publishDescription": "This makes your staged car changes live on the website.",
       "missingLanguageTitle": "Some content is missing a language",
