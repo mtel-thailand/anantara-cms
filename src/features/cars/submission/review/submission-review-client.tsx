@@ -251,6 +251,9 @@ export function SubmissionReviewClient({
   const statusChanged = willSaveStatus !== liveStatus;
   const stageMode = Boolean(onStageDraft);
   const stagedStatusChanged = stagedStatus !== savedStagedStatus;
+  const isRequestInfoMessageMissing =
+    currentDraft.status === "requested_info" &&
+    !currentDraft.newInfoMessage.trim();
 
   async function handleDownloadSubmissionForm() {
     executeDownload<[string], void>(async (id) => {
@@ -580,7 +583,11 @@ export function SubmissionReviewClient({
             </Button>
             <Button
               variant="default"
-              disabled={isReadOnly || !formState.isDirty}
+              disabled={
+                isReadOnly ||
+                !formState.isDirty ||
+                isRequestInfoMessageMissing
+              }
               onClick={handleSubmit(requestSave, handleInvalid)}
             >
               {commonT("saveChanges")}

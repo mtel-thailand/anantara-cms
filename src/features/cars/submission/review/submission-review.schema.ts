@@ -151,7 +151,6 @@ export function getSubmissionReviewSchema(t: Translator) {
 
     if (
       data.status === "requested_info" &&
-      data.newInfoMessageRequired &&
       !data.newInfoMessage.trim()
     ) {
       context.addIssue({
