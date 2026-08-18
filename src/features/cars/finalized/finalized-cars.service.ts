@@ -6,6 +6,10 @@ import type {
   FinalizedCarStatus,
 } from "@/src/features/cars/finalized/finalized-cars.types";
 import type { SubmissionClass } from "@/src/features/cars/submission/submission.types";
+import {
+  carEntryFormDocuments,
+  type CarEntryFormDocument,
+} from "@/src/features/cars/reservation/review/car-entry-form-documents";
 import { unwrap } from "@/src/lib/supabase/unwrap";
 
 function firstImageUrl(value: unknown) {
@@ -166,4 +170,17 @@ export async function getFinalizedCarOwnerReservationId(
 
   if (reservationError) throw reservationError;
   return reservation?.id ?? null;
+}
+
+export async function getFinalizedCarSupportingDocuments(
+  submissionVehicleId: string,
+): Promise<CarEntryFormDocument[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("car_submission_vehicles")
+    .select("vehicle_documents")
+    .eq("id", submissionVehicleId)
+    .single();
+
+  return carEntryFormDocuments(unwrap(data, error).vehicle_documents);
 }
