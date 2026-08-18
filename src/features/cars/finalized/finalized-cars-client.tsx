@@ -46,8 +46,7 @@ import type {
   FinalizedCarsData,
   FinalizedCarStatus,
 } from "@/src/features/cars/finalized/finalized-cars.types";
-import { downloadCarEntryForm } from "@/src/features/cars/reservation/review/car-entry-form-download";
-import { getCarEntryFormReview } from "@/src/features/cars/reservation/review/car-entry-form-review.service";
+import { downloadFinalizedCarForms } from "@/src/features/cars/finalized/finalized-car-download";
 import { uploadCarSubmissionFiles } from "@/src/features/cars/submission/api/submission.service";
 import { romanNumeral } from "@/src/features/cars/submission/submission.types";
 import useAsync from "@/src/hooks/use-async";
@@ -172,7 +171,8 @@ export function FinalizedCarsClient() {
   const commonT = useTranslations("common");
   const locale = useLocale() as Locale;
   const modal = useModal();
-  const { handleOpenOverlay, setOverlayPage } = useLayoutContext();
+  const { handleCloseOverlay, handleOpenOverlay, setOverlayPage } =
+    useLayoutContext();
   const { isLoading, execute } = useAsync(true);
   const [data, setData] = useState<FinalizedCarsData>(EMPTY_DATA);
   const [tab, setTab] = useState<FinalizedCarStatus>("finalized");
@@ -189,6 +189,7 @@ export function FinalizedCarsClient() {
   const [draftStorageHydrated, setDraftStorageHydrated] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const detailsInstanceRef = useRef(0);
+  const overlayDirtyRef = useRef(false);
   const hasDrafts = Object.keys(drafts).length > 0;
 
   useEffect(() => {
@@ -288,6 +289,47 @@ export function FinalizedCarsClient() {
     if (page > pageCount) setPage(pageCount);
   }, [page, pageCount]);
 
+  const requestCloseOverlay = useCallback(() => {
+    if (!overlayDirtyRef.current) {
+      handleCloseOverlay();
+      return;
+    }
+
+    modal.preventBackdropClose();
+    modal.open({
+      className: "gap-1.5",
+      headerClassName: "border-0 px-4 py-0 pt-4",
+      header: (
+        <Text.FormTitle size="base" className="font-medium">
+          {t("overlayDiscardTitle")}
+        </Text.FormTitle>
+      ),
+      contentClassName: "px-4 pb-2 gap-0",
+      content: (
+        <Text size="sm" color="muted-foreground">
+          {t("overlayDiscardDescription")}
+        </Text>
+      ),
+      footer: (
+        <>
+          <Button variant="outline" onClick={modal.close}>
+            {commonT("keepEditing")}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              overlayDirtyRef.current = false;
+              handleCloseOverlay();
+              modal.close();
+            }}
+          >
+            {t("discardChanges")}
+          </Button>
+        </>
+      ),
+    });
+  }, [commonT, handleCloseOverlay, modal, t]);
+
   const openDetails = useCallback(
     async (car: FinalizedCarListItem, initialEditLocale?: Locale) => {
       let ownerReservationId = car.ownerReservationId;
@@ -306,6 +348,7 @@ export function FinalizedCarsClient() {
         }
       }
 
+      overlayDirtyRef.current = false;
       detailsInstanceRef.current += 1;
       setOverlayPage({
         content: (
@@ -314,6 +357,10 @@ export function FinalizedCarsClient() {
             car={{ ...car, ownerReservationId }}
             draft={drafts[car.id]}
             initialEditLocale={initialEditLocale}
+            onClose={requestCloseOverlay}
+            onDirtyChange={(dirty) => {
+              overlayDirtyRef.current = dirty;
+            }}
             onStageDraft={(nextDraft) => {
               setDrafts((current) => ({
                 ...current,
@@ -324,21 +371,25 @@ export function FinalizedCarsClient() {
         ),
         panelClassName: "w-full max-w-3xl p-0",
         contentClassName: "px-0 pb-0",
+        onClose: requestCloseOverlay,
       });
       handleOpenOverlay();
     },
-    [drafts, handleOpenOverlay, setOverlayPage],
+    [drafts, handleOpenOverlay, requestCloseOverlay, setOverlayPage],
   );
 
   const handleDownload = useCallback(
     async (car: FinalizedCarListItem) => {
       try {
-        await downloadCarEntryForm(await getCarEntryFormReview(car.id), {
-          make: car.make,
-          model: car.model,
-          ownerName: ownerName(car),
-          vehicleRef: car.vehicleRef,
-        });
+        await downloadFinalizedCarForms(
+          car.id,
+          {
+            make: car.make,
+            model: car.model,
+            ownerName: ownerName(car),
+            vehicleRef: car.vehicleRef,
+          },
+        );
       } catch (error) {
         logger.error(
           "FINALIZED-CARS",

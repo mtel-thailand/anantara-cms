@@ -10,11 +10,16 @@ import {
 } from "@/src/features/cars/reservation/review/car-entry-form-documents";
 import { FormPdf, type PdfImage } from "@/src/lib/form-pdf";
 
-type CarEntryFormDownloadMeta = {
+export type CarEntryFormDownloadMeta = {
   make: string;
   model: string;
   ownerName?: string;
   vehicleRef: string;
+};
+
+export type CarEntryFormDownloadOptions = {
+  archiveLabel?: string;
+  supportingDocuments?: CarEntryFormDocument[];
 };
 
 const LOGO_URL = "/images/logo-black.png";
@@ -46,6 +51,30 @@ async function fetchBlob(document: CarEntryFormDocument) {
     throw new Error(`Could not download attachment (${response.status}).`);
   }
   return response.blob();
+}
+
+async function addDocumentsToFolder(
+  parent: JSZip,
+  folderName: string,
+  documents: CarEntryFormDocument[],
+) {
+  if (!documents.length) return;
+
+  const target = parent.folder(folderName);
+  if (!target) throw new Error(`Could not create the ${folderName} folder.`);
+
+  const names = new Set<string>();
+  const files = await Promise.all(
+    documents.map(async (document, index) => {
+      const fallback = `Document ${index + 1}`;
+      let name = safeName(document.name) || fallback;
+      if (names.has(name.toLowerCase())) name = `${index + 1}-${name}`;
+      names.add(name.toLowerCase());
+      return { blob: await fetchBlob(document), name };
+    }),
+  );
+
+  files.forEach(({ blob, name }) => target.file(name, blob));
 }
 
 async function loadImage(url: string): Promise<PdfImage | null> {
@@ -255,9 +284,12 @@ function renderForm(pdf: FormPdf, detail: CarEntryFormReviewDetail) {
 export async function downloadCarEntryForm(
   detail: CarEntryFormReviewDetail,
   meta: CarEntryFormDownloadMeta,
+  options: CarEntryFormDownloadOptions = {},
 ) {
   const vehicleName = [meta.make, meta.model].filter(Boolean).join(" ") || "Car";
-  const base = safeName(`${meta.vehicleRef} ${vehicleName} — Car entry form`);
+  const base = safeName(
+    `${meta.vehicleRef} ${vehicleName} — ${options.archiveLabel ?? "Car entry form"}`,
+  );
   const pdf = new FormPdf();
   pdf.header(
     vehicleName,
@@ -274,20 +306,18 @@ export async function downloadCarEntryForm(
   const certificateDocuments = carEntryFormDocuments(
     detail.form.registration_certificate_documents,
   );
-  if (certificateDocuments.length) {
-    const certificateFolder = folder.folder("Vehicle registration certificate");
-    if (!certificateFolder) {
-      throw new Error("Could not create the certificate folder.");
-    }
-    const names = new Set<string>();
-    for (const [index, document] of certificateDocuments.entries()) {
-      const fallback = `Document ${index + 1}`;
-      let name = safeName(document.name) || fallback;
-      if (names.has(name.toLowerCase())) name = `${index + 1}-${name}`;
-      names.add(name.toLowerCase());
-      certificateFolder.file(name, await fetchBlob(document));
-    }
-  }
+  await Promise.all([
+    addDocumentsToFolder(
+      folder,
+      "Supporting documents",
+      options.supportingDocuments ?? [],
+    ),
+    addDocumentsToFolder(
+      folder,
+      "Vehicle registration certificate",
+      certificateDocuments,
+    ),
+  ]);
 
   triggerDownload(await zip.generateAsync({ type: "blob" }), `${base}.zip`);
 }

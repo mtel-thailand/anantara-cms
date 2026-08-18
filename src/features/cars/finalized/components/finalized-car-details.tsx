@@ -7,9 +7,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/src/components/ui/button";
 import { Tabs } from "@/src/components/ui/tabs";
-import { useLayoutContext } from "@/src/components/providers/app-layout";
-import { downloadCarEntryForm } from "@/src/features/cars/reservation/review/car-entry-form-download";
-import { getCarEntryFormReview } from "@/src/features/cars/reservation/review/car-entry-form-review.service";
+import { downloadFinalizedCarForms } from "@/src/features/cars/finalized/finalized-car-download";
 import { CarEntryFormReviewClient } from "@/src/features/cars/reservation/review/car-entry-form-review-client";
 import { ReservationFormReviewClient } from "@/src/features/cars/reservation/review/reservation-review-client";
 import { SubmissionReviewClient } from "@/src/features/cars/submission/review/submission-review-client";
@@ -35,17 +33,20 @@ export function FinalizedCarDetails({
   car,
   draft,
   initialEditLocale,
+  onClose,
+  onDirtyChange,
   onStageDraft,
 }: {
   car: FinalizedCarListItem;
   draft?: FinalizedCarDraft;
   initialEditLocale?: Locale;
+  onClose: () => void;
+  onDirtyChange: (dirty: boolean) => void;
   onStageDraft: (draft: FinalizedCarDraft) => void;
 }) {
   const t = useTranslations("cars.finalized");
   const commonT = useTranslations("common");
   const locale = useLocale() as Locale;
-  const { handleCloseOverlay } = useLayoutContext();
   const [activeTab, setActiveTab] = useState<ReviewTab>("basic");
   const carName = [car.make, car.model].filter(Boolean).join(" ");
   const ownerName = [car.ownerFirstName, car.ownerLastName]
@@ -60,12 +61,15 @@ export function FinalizedCarDetails({
 
   async function handleDownload() {
     try {
-      await downloadCarEntryForm(await getCarEntryFormReview(car.id), {
-        make: car.make,
-        model: car.model,
-        ownerName,
-        vehicleRef: car.vehicleRef,
-      });
+      await downloadFinalizedCarForms(
+        car.id,
+        {
+          make: car.make,
+          model: car.model,
+          ownerName,
+          vehicleRef: car.vehicleRef,
+        },
+      );
     } catch (error) {
       logger.error("FINALIZED-CARS", "Failed to download finalized car form", {
         error: error instanceof Error ? error.message : String(error),
@@ -77,7 +81,7 @@ export function FinalizedCarDetails({
 
   return (
     <div className="flex min-h-full flex-col">
-      <div className="px-5 pt-5 pb-2">
+      <div className="relative px-5 pt-5 pr-16 pb-2">
         <h2 className="font-heading text-2xl">{carName}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {t("submittedAndUpdated", {
@@ -109,12 +113,14 @@ export function FinalizedCarDetails({
               value: "basic",
               label: t("basicInformation"),
               className: "pt-5",
+              keepMounted: true,
               children: (
                 <SubmissionReviewClient
                   carId={car.id}
                   embedded
                   initialEditLocale={initialEditLocale}
-                  onClose={handleCloseOverlay}
+                  onClose={onClose}
+                  onDirtyChange={onDirtyChange}
                   onStageDraft={(nextDraft) => {
                     if (!isFinalizedCarDraftStatus(nextDraft.stagedStatus)) {
                       throw new Error("The selected finalized car status is invalid.");
@@ -178,7 +184,7 @@ export function FinalizedCarDetails({
 
       {activeTab !== "basic" ? (
         <div className="sticky bottom-0 flex justify-end border-t bg-background/95 px-5 py-4 backdrop-blur">
-          <Button variant="outline" onClick={handleCloseOverlay}>
+          <Button variant="outline" onClick={onClose}>
             {commonT("close")}
           </Button>
         </div>

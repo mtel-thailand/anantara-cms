@@ -87,6 +87,7 @@ export function SubmissionReviewClient({
   embedded = false,
   initialEditLocale = "en",
   onClose,
+  onDirtyChange,
   onStageDraft,
   readOnly = false,
   stagedDraft,
@@ -96,6 +97,7 @@ export function SubmissionReviewClient({
   embedded?: boolean;
   initialEditLocale?: Locale;
   onClose?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
   onStageDraft?: (draft: SubmissionReviewDraft) => void;
   readOnly?: boolean;
   stagedDraft?: SubmissionReviewDraft;
@@ -147,6 +149,13 @@ export function SubmissionReviewClient({
     stagedDraft?.stagedStatus ?? stagedLayout?.statusValue ?? "",
   );
   const [savedStagedStatus, setSavedStagedStatus] = useState(stagedStatus);
+  const stageMode = Boolean(onStageDraft);
+  const stagedStatusChanged = stagedStatus !== savedStagedStatus;
+
+  useEffect(() => {
+    onDirtyChange?.(formState.isDirty || stagedStatusChanged);
+    return () => onDirtyChange?.(false);
+  }, [formState.isDirty, onDirtyChange, stagedStatusChanged]);
 
   // Mark seen submission
   useEffect(() => {
@@ -249,8 +258,6 @@ export function SubmissionReviewClient({
       ? "info_received"
       : currentDraft.status;
   const statusChanged = willSaveStatus !== liveStatus;
-  const stageMode = Boolean(onStageDraft);
-  const stagedStatusChanged = stagedStatus !== savedStagedStatus;
   const isRequestInfoMessageMissing =
     currentDraft.status === "requested_info" &&
     !currentDraft.newInfoMessage.trim();
@@ -428,7 +435,28 @@ export function SubmissionReviewClient({
     });
   };
 
-  const hancleConfirmCancel = () => {
+  const closeOrNavigateAway = () => {
+    if (stageMode) {
+      onClose?.();
+      return;
+    }
+
+    const redirectUrl = embedded
+      ? submission.deletedAt !== null
+        ? "/app/cars/forms/deleted?tab=car"
+        : "/app/cars/forms?tab=car"
+      : submission.deletedAt !== null
+        ? "/app/cars/submissions/deleted"
+        : "/app/cars/submissions";
+    router.push(redirectUrl);
+  };
+
+  const handleConfirmCancel = () => {
+    if (stageMode) {
+      onClose?.();
+      return;
+    }
+
     if (formState.isDirty) {
       modal.open({
         className: "gap-1.5",
@@ -452,11 +480,7 @@ export function SubmissionReviewClient({
             <Button
               variant="destructive"
               onClick={() => {
-                router.push(
-                  embedded
-                    ? "/app/cars/forms?tab=car"
-                    : "/app/cars/submissions",
-                );
+                closeOrNavigateAway();
                 modal.close();
               }}
             >
@@ -466,21 +490,14 @@ export function SubmissionReviewClient({
         ),
       });
     } else {
-      const redirectUrl = embedded
-        ? submission.deletedAt !== null
-          ? "/app/cars/forms/deleted?tab=car"
-          : "/app/cars/forms?tab=car"
-        : submission.deletedAt !== null
-          ? "/app/cars/submissions/deleted"
-          : "/app/cars/submissions";
-      router.push(redirectUrl);
+      closeOrNavigateAway();
     }
   };
 
   return (
     <>
       {!embedded ? (
-        <NavigationButton text={t("back")} onClick={hancleConfirmCancel} />
+        <NavigationButton text={t("back")} onClick={handleConfirmCancel} />
       ) : null}
 
       {!embedded ? (
@@ -578,7 +595,7 @@ export function SubmissionReviewClient({
           }
         >
           <div className="flex flex-wrap items-center justify-end gap-2 py-4">
-            <Button variant="outline" onClick={hancleConfirmCancel}>
+            <Button variant="outline" onClick={handleConfirmCancel}>
               {commonT("cancel")}
             </Button>
             <Button
@@ -604,8 +621,8 @@ export function SubmissionReviewClient({
           }
         >
           <div className="flex flex-wrap items-center justify-end gap-2 py-4">
-            <Button variant="outline" onClick={onClose}>
-              {commonT("close")}
+            <Button variant="outline" onClick={handleConfirmCancel}>
+              {commonT("cancel")}
             </Button>
             <Button
               disabled={!formState.isDirty && !stagedStatusChanged}

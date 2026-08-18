@@ -20,6 +20,7 @@ export type OverlayElementType = {
   content?: ReactNode | null;
   contentClassName?: string;
   footer?: ReactNode | null;
+  onClose?: (() => void) | null;
   panelClassName?: string;
 };
 
@@ -90,6 +91,7 @@ export default function AppLayoutProvider({
         <OverlayPage
           open={openOverlay}
           setOpen={setOpenOverlay}
+          onClose={overlayElement.onClose}
           overlayElement={overlayElement}
         />
       </NotificationProvider>
