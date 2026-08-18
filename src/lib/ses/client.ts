@@ -22,9 +22,10 @@ export async function sendSesEmail({
   subject,
   html,
 }: SendSesEmailOptions) {
+  const emailName = process.env.SES_FROM_NAME || "Anantara Concorsoroma";
   await sesClient.send(
     new SendEmailCommand({
-      Source: process.env.SES_FROM!,
+      Source: `${emailName} <${process.env.SES_FROM}>`,
       Destination: {
         ToAddresses: receiver.split(",").map((email) => email.trim()),
       },
