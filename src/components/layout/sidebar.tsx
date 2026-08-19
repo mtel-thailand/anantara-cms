@@ -31,6 +31,20 @@ function NavChildItem({ child, count }: { child: NavChild; count: number }) {
     pathname === child.href || pathname.startsWith(`${child.href}/`);
   const Icon = child.icon;
 
+  if (child.disabled) {
+    return (
+      <li>
+        <div
+          aria-disabled="true"
+          className="flex cursor-not-allowed items-center gap-2 rounded-md px-3 py-1.5 text-sm text-sidebar-foreground opacity-40"
+        >
+          {Icon ? <Icon className="size-4 shrink-0" /> : null}
+          <span className="truncate">{t(child.titleKey)}</span>
+        </div>
+      </li>
+    );
+  }
+
   return (
     <li>
       <Link
@@ -66,10 +80,12 @@ function NavItemButton({
     ? pathname === item.href || pathname.startsWith(`${item.href}/`)
     : false;
   const hasActiveChild = item.children?.some(
-    (child) => child.href === pathname || pathname.startsWith(`${child.href}/`),
+    (child) =>
+      !child.disabled &&
+      (child.href === pathname || pathname.startsWith(`${child.href}/`)),
   );
   const hasChildAlert = item.children?.some(
-    (child) => (counts[child.href] ?? 0) > 0,
+    (child) => !child.disabled && (counts[child.href] ?? 0) > 0,
   );
   const isExpanded = useSidebarStore(selectIsMenuExpanded(item.titleKey));
   const setMenuExpanded = useSidebarStore(selectSetMenuExpanded);
@@ -126,15 +142,28 @@ function NavItemButton({
     modal.disableBackdropClose();
   };
 
-  if (item.action === "logout") {
+  if (item.disabled) {
     return (
       <div
+        aria-disabled="true"
+        className="flex w-full cursor-not-allowed items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-sidebar-foreground opacity-40"
+      >
+        <Icon className="size-4 shrink-0" />
+        <span className="truncate">{t(item.titleKey)}</span>
+      </div>
+    );
+  }
+
+  if (item.action === "logout") {
+    return (
+      <button
+        type="button"
         onClick={handleOpenLogoutModal}
         className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100 hover:text-neutral-950"
       >
         <Icon className="size-4 shrink-0" />
         <span className="truncate">{t(item.titleKey)}</span>
-      </div>
+      </button>
     );
   }
 
@@ -157,7 +186,8 @@ function NavItemButton({
 
   return (
     <div className="space-y-1">
-      <div
+      <button
+        type="button"
         aria-expanded={isExpanded}
         onClick={() => toggleMenuExpanded(item.titleKey)}
         className={clsx(
@@ -184,7 +214,7 @@ function NavItemButton({
             isExpanded && "rotate-180",
           )}
         />
-      </div>
+      </button>
       <div
         className={clsx(
           "grid transition-[grid-template-rows,opacity] duration-200 ease-out",

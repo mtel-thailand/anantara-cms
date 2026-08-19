@@ -61,6 +61,7 @@ export type NavChild = {
   titleKey: MenuTranslationKey;
   icon?: LucideIcon;
   href: string;
+  disabled?: boolean;
   permissionKey?: string | string[];
 };
 
@@ -68,6 +69,7 @@ export type NavItem = {
   titleKey: MenuTranslationKey;
   icon: LucideIcon;
   href?: string;
+  disabled?: boolean;
   permissionKey?: string | string[];
   children?: NavChild[];
   action?: "logout";
@@ -78,20 +80,35 @@ export const NAV_ITEMS: NavItem[] = [
     titleKey: "cars.root",
     icon: Car,
     children: [
-      { titleKey: "cars.submissions", href: "/app/cars/submissions" },
-      { titleKey: "cars.forms", href: "/app/cars/forms" },
-      { titleKey: "cars.finalized", href: "/app/cars/finalized" },
-      { titleKey: "cars.classes", href: "/app/cars/classes" },
+      {
+        titleKey: "cars.submissions",
+        href: "/app/cars/submissions",
+        disabled: false,
+      },
+      { titleKey: "cars.forms", href: "/app/cars/forms", disabled: false },
+      {
+        titleKey: "cars.finalized",
+        href: "/app/cars/finalized",
+        disabled: false,
+      },
+      { titleKey: "cars.classes", href: "/app/cars/classes", disabled: true },
       {
         titleKey: "cars.contentField",
         href: "/app/cars/website-description",
+        disabled: true,
       },
     ],
   },
-  { titleKey: "agenda", icon: CalendarDays, href: "/app/agenda" },
+  {
+    titleKey: "agenda",
+    icon: CalendarDays,
+    href: "/app/agenda",
+    disabled: true,
+  },
   {
     titleKey: "awards.root",
     icon: Trophy,
+    disabled: true,
     children: [
       { titleKey: "awards.bestOfShow", href: "/app/awards/best-of-show" },
       { titleKey: "awards.bestInClass", href: "/app/awards/best-in-class" },
@@ -104,6 +121,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     titleKey: "sponsors.root",
     icon: Handshake,
+    disabled: true,
     children: [
       { titleKey: "sponsors.list", href: "/app/sponsors/list" },
       {
@@ -115,6 +133,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     titleKey: "judges.root",
     icon: Gavel,
+    disabled: true,
     children: [
       { titleKey: "judges.list", href: "/app/judges/list" },
       {
@@ -123,11 +142,22 @@ export const NAV_ITEMS: NavItem[] = [
       },
     ],
   },
-  { titleKey: "news", icon: Newspaper, href: "/app/news" },
-  { titleKey: "press", icon: Megaphone, href: "/app/press" },
+  {
+    titleKey: "news",
+    icon: Newspaper,
+    href: "/app/news",
+    disabled: true,
+  },
+  {
+    titleKey: "press",
+    icon: Megaphone,
+    href: "/app/press",
+    disabled: true,
+  },
   {
     titleKey: "staticPages.root",
     icon: FileText,
+    disabled: true,
     children: [
       { titleKey: "staticPages.about", href: "/app/static-pages/about" },
       {
@@ -148,6 +178,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     titleKey: "gallery.root",
     icon: Images,
+    disabled: true,
     children: [
       { titleKey: "gallery.items", href: "/app/gallery/items" },
       {
@@ -159,6 +190,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     titleKey: "volunteers.root",
     icon: Users,
+    disabled: true,
     children: [
       {
         titleKey: "volunteers.submissions",
@@ -170,6 +202,7 @@ export const NAV_ITEMS: NavItem[] = [
   {
     titleKey: "carsAndCoffee.root",
     icon: Coffee,
+    disabled: true,
     children: [
       {
         titleKey: "carsAndCoffee.events",
@@ -181,13 +214,24 @@ export const NAV_ITEMS: NavItem[] = [
       },
     ],
   },
-  { titleKey: "shop", icon: ShoppingBag, href: "/app/shop" },
+  {
+    titleKey: "shop",
+    icon: ShoppingBag,
+    href: "/app/shop",
+    disabled: true,
+  },
   {
     titleKey: "ticketsAndPackages",
     icon: Ticket,
     href: "/app/tickets-and-packages",
+    disabled: true,
   },
-  { titleKey: "profile", icon: UserCircle, href: "/app/profile" },
+  {
+    titleKey: "profile",
+    icon: UserCircle,
+    href: "/app/profile",
+    disabled: true,
+  },
   { titleKey: "logout", icon: LogOut, action: "logout" },
 ] satisfies NavItem[];
 
