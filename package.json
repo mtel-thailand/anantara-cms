@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:prod": "env-cmd -f .env.production next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

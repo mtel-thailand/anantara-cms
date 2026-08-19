@@ -26,7 +26,9 @@ type ReviewTab = "basic" | "owner" | "car";
 function isFinalizedCarDraftStatus(
   status: string,
 ): status is FinalizedCarDraftStatus {
-  return status === "finalized" || status === "archived" || status === "rejected";
+  return (
+    status === "finalized" || status === "archived" || status === "rejected"
+  );
 }
 
 export function FinalizedCarDetails({
@@ -60,14 +62,10 @@ export function FinalizedCarDetails({
     try {
       await downloadFinalizedCarForms(car.id, car.categoryId);
     } catch (error) {
-      logger.error(
-        "FINALIZED-CARS",
-        "Failed to download finalized car forms",
-        {
-          error: error instanceof Error ? error.message : String(error),
-          submissionVehicleId: car.id,
-        },
-      );
+      logger.error("FINALIZED-CARS", "Failed to download finalized car forms", {
+        error: error instanceof Error ? error.message : String(error),
+        submissionVehicleId: car.id,
+      });
       toast.error(t("downloadError"), { description: t("tryAgain") });
     }
   }
@@ -112,7 +110,9 @@ export function FinalizedCarDetails({
                   onDirtyChange={onDirtyChange}
                   onStageDraft={(nextDraft) => {
                     if (!isFinalizedCarDraftStatus(nextDraft.stagedStatus)) {
-                      throw new Error("The selected finalized car status is invalid.");
+                      throw new Error(
+                        "The selected finalized car status is invalid.",
+                      );
                     }
                     onStageDraft({
                       ...nextDraft,
