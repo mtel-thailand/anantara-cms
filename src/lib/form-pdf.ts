@@ -350,6 +350,12 @@ export class FormPdf {
     this.y += amount;
   }
 
+  /** Start the next form on a fresh page. */
+  pageBreak() {
+    this.doc.addPage();
+    this.y = MARGIN;
+  }
+
   blob(): Blob {
     return this.doc.output("blob");
   }

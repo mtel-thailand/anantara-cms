@@ -1,23 +1,31 @@
 "use client";
 
 import {
-  downloadCarEntryForm,
-  type CarEntryFormDownloadMeta,
+  getCarSubmissionClasses,
+  getCarSubmissionVehicle,
+} from "@/src/features/cars/submission/api/submission.service";
+import { downloadSubmissionForm } from "@/src/features/cars/submission/submission-download";
+import {
+  addCarEntryFormDocuments,
+  renderCarEntryForm,
 } from "@/src/features/cars/reservation/review/car-entry-form-download";
 import { getCarEntryFormReview } from "@/src/features/cars/reservation/review/car-entry-form-review.service";
-import { getFinalizedCarSupportingDocuments } from "@/src/features/cars/finalized/finalized-cars.service";
 
 export async function downloadFinalizedCarForms(
   submissionVehicleId: string,
-  meta: CarEntryFormDownloadMeta,
+  classId: string,
 ) {
-  const [detail, supportingDocuments] = await Promise.all([
+  const [submission, classes, carEntryForm] = await Promise.all([
+    getCarSubmissionVehicle(submissionVehicleId),
+    getCarSubmissionClasses(),
     getCarEntryFormReview(submissionVehicleId),
-    getFinalizedCarSupportingDocuments(submissionVehicleId),
   ]);
 
-  await downloadCarEntryForm(detail, meta, {
+  await downloadSubmissionForm({ ...submission, classId }, classes, {
     archiveLabel: "Forms",
-    supportingDocuments,
+    pdfLabel: "Forms",
+    appendPdf: (pdf) => renderCarEntryForm(pdf, carEntryForm),
+    appendFiles: (folder) =>
+      addCarEntryFormDocuments(folder, carEntryForm),
   });
 }

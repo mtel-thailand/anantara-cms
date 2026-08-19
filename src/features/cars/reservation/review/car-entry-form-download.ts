@@ -115,7 +115,10 @@ async function loadLogo() {
   return logoCache;
 }
 
-function renderForm(pdf: FormPdf, detail: CarEntryFormReviewDetail) {
+export function renderCarEntryForm(
+  pdf: FormPdf,
+  detail: CarEntryFormReviewDetail,
+) {
   const { form, technicians, vehicle } = detail;
   const value = (input: string | number | null | undefined) =>
     input === null || input === undefined ? "" : String(input);
@@ -281,6 +284,29 @@ function renderForm(pdf: FormPdf, detail: CarEntryFormReviewDetail) {
   );
 }
 
+export async function addCarEntryFormDocuments(
+  folder: JSZip,
+  detail: CarEntryFormReviewDetail,
+  supportingDocuments: CarEntryFormDocument[] = [],
+) {
+  const certificateDocuments = carEntryFormDocuments(
+    detail.form.registration_certificate_documents,
+  );
+
+  await Promise.all([
+    addDocumentsToFolder(
+      folder,
+      "Supporting documents",
+      supportingDocuments,
+    ),
+    addDocumentsToFolder(
+      folder,
+      "Vehicle registration certificate",
+      certificateDocuments,
+    ),
+  ]);
+}
+
 export async function downloadCarEntryForm(
   detail: CarEntryFormReviewDetail,
   meta: CarEntryFormDownloadMeta,
@@ -296,28 +322,18 @@ export async function downloadCarEntryForm(
     meta.ownerName || detail.form.owner_collection_name || "",
     (await loadLogo()) ?? undefined,
   );
-  renderForm(pdf, detail);
+  renderCarEntryForm(pdf, detail);
 
   const zip = new JSZip();
   const folder = zip.folder(base);
   if (!folder) throw new Error("Could not create the download package.");
   folder.file(`${base}.pdf`, pdf.blob());
 
-  const certificateDocuments = carEntryFormDocuments(
-    detail.form.registration_certificate_documents,
+  await addCarEntryFormDocuments(
+    folder,
+    detail,
+    options.supportingDocuments,
   );
-  await Promise.all([
-    addDocumentsToFolder(
-      folder,
-      "Supporting documents",
-      options.supportingDocuments ?? [],
-    ),
-    addDocumentsToFolder(
-      folder,
-      "Vehicle registration certificate",
-      certificateDocuments,
-    ),
-  ]);
 
   triggerDownload(await zip.generateAsync({ type: "blob" }), `${base}.zip`);
 }

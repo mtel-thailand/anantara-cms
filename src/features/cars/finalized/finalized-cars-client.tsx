@@ -381,19 +381,11 @@ export function FinalizedCarsClient() {
   const handleDownload = useCallback(
     async (car: FinalizedCarListItem) => {
       try {
-        await downloadFinalizedCarForms(
-          car.id,
-          {
-            make: car.make,
-            model: car.model,
-            ownerName: ownerName(car),
-            vehicleRef: car.vehicleRef,
-          },
-        );
+        await downloadFinalizedCarForms(car.id, car.categoryId);
       } catch (error) {
         logger.error(
           "FINALIZED-CARS",
-          "Failed to download finalized car form",
+          "Failed to download finalized car forms",
           {
             error: error instanceof Error ? error.message : String(error),
             submissionVehicleId: car.id,

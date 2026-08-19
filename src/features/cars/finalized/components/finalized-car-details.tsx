@@ -49,9 +49,6 @@ export function FinalizedCarDetails({
   const locale = useLocale() as Locale;
   const [activeTab, setActiveTab] = useState<ReviewTab>("basic");
   const carName = [car.make, car.model].filter(Boolean).join(" ");
-  const ownerName = [car.ownerFirstName, car.ownerLastName]
-    .filter(Boolean)
-    .join(" ");
   const classLabel =
     car.classSequence === null
       ? t("unassigned")
@@ -61,20 +58,16 @@ export function FinalizedCarDetails({
 
   async function handleDownload() {
     try {
-      await downloadFinalizedCarForms(
-        car.id,
+      await downloadFinalizedCarForms(car.id, car.categoryId);
+    } catch (error) {
+      logger.error(
+        "FINALIZED-CARS",
+        "Failed to download finalized car forms",
         {
-          make: car.make,
-          model: car.model,
-          ownerName,
-          vehicleRef: car.vehicleRef,
+          error: error instanceof Error ? error.message : String(error),
+          submissionVehicleId: car.id,
         },
       );
-    } catch (error) {
-      logger.error("FINALIZED-CARS", "Failed to download finalized car form", {
-        error: error instanceof Error ? error.message : String(error),
-        submissionVehicleId: car.id,
-      });
       toast.error(t("downloadError"), { description: t("tryAgain") });
     }
   }
@@ -93,10 +86,6 @@ export function FinalizedCarDetails({
           variant="outline"
           size="sm"
           className="mt-3"
-          disabled={!car.carEntryFormId}
-          title={
-            !car.carEntryFormId ? t("carEntryFormUnavailable") : undefined
-          }
           onClick={() => void handleDownload()}
         >
           <Download className="size-4" /> {t("downloadPdf")}
