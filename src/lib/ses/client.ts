@@ -1,7 +1,11 @@
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
+import { logger } from "../logger";
 
 const accessKeyId = process.env.SES_ACCESS_KEY_ID?.trim();
 const secretAccessKey = process.env.SES_SECRET_ACCESS_KEY?.trim();
+const isTestMode = process.env.SES_TEST_MODE === "false" ? false : true;
+const testReceiver = process.env.SES_TEST_RECEIVER?.split(",").map((email) => email.trim()) || [''];
+const emailName = process.env.SES_FROM_NAME || "Anantara Concorsoroma";
 
 const sesClient = new SESClient({
   region: process.env.SES_REGION,
@@ -22,12 +26,13 @@ export async function sendSesEmail({
   subject,
   html,
 }: SendSesEmailOptions) {
-  const emailName = process.env.SES_FROM_NAME || "Anantara Concorsoroma";
+  const finalReceiver = isTestMode ? testReceiver : receiver.split(",").map((email) => email.trim());
+  logger.info('SES EMAIL',`Sending email with test mode: ${isTestMode}, receiver: ${finalReceiver.join(", ")}`);
   await sesClient.send(
     new SendEmailCommand({
       Source: `${emailName} <${process.env.SES_FROM}>`,
       Destination: {
-        ToAddresses: receiver.split(",").map((email) => email.trim()),
+        ToAddresses: finalReceiver,
       },
       Message: {
         Subject: {
