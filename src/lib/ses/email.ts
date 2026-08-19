@@ -247,11 +247,12 @@ const EMAIL_TEMPLATES = {
     file: "car-entry-form.html",
     subject: "Your Car Entry Form is complete",
     resolveParams: ({ accessToken, vehicle }) => ({
-      buttonLabel: "View My Submission",
+      buttonLabel: "View My Application",
       buttonUrl: createClientUrl("/en/my-submission", {
         token: accessToken,
       }),
       complete: true,
+      iconUrl: createClientUrl("/icons/status-approved.svg"),
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       message: "",
       required: false,
@@ -283,7 +284,7 @@ const EMAIL_TEMPLATES = {
   },
   [EmailTemplate.OwnerRegistrationComplete]: {
     file: "owner-registration-complete.html",
-    subject: "Your Owner Registration is complete",
+    subject: "Your Owner Application is complete",
     resolveParams: ({ accessToken }) => ({
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       submissionUrl: createClientUrl("/en/my-submission", {
@@ -293,12 +294,12 @@ const EMAIL_TEMPLATES = {
   },
   [EmailTemplate.OwnerRegistrationRequired]: {
     file: "owner-registration-required.html",
-    subject: "Action required: complete your Owner Registration",
+    subject: "Action required: complete your Owner Application",
     resolveParams: ({ accessToken, action, message }) => ({
-      buttonLabel: "Review Owner Registration",
+      buttonLabel: "Review Owner Application",
       formDescription:
-        "Please review your Owner Registration and complete any required information to continue your registration.",
-      formTitle: "Owner Registration",
+        "Please review your Owner Application and complete any required information to continue your application.",
+      formTitle: "Owner Application",
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       message,
       formUrl: createClientUrl("/en/my-submission/", {
@@ -362,10 +363,6 @@ const EMAIL_TEMPLATES = {
                 ? { action: "edit", car: carId }
                 : {}),
             });
-      console.log(
-        "icon path",
-        content.iconPath ? createClientUrl(content.iconPath) : "",
-      );
       return {
         ...content,
         iconUrl: content.iconPath ? createClientUrl(content.iconPath) : "",
