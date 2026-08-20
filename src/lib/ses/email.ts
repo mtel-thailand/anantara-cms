@@ -129,6 +129,15 @@ function createClientUrl(
 
 const EMAIL_LOGO_PATH = "logo/anantara-logo.png";
 
+function getGuestRelationsEmail() {
+  const email = process.env.GUEST_RELATIONS_EMAIL?.trim();
+  if (!email) {
+    throw new Error("Guest relations email is not configured");
+  }
+
+  return email;
+}
+
 function createEmailImageUrl(imagePath: string) {
   const baseUrl = process.env.NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL?.trim();
   if (!baseUrl) {
@@ -252,6 +261,7 @@ const EMAIL_TEMPLATES = {
         token: accessToken,
       }),
       complete: true,
+      guestRelationsEmail: getGuestRelationsEmail(),
       iconUrl: createClientUrl("/icons/status-approved.svg"),
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       message: "",
@@ -276,6 +286,7 @@ const EMAIL_TEMPLATES = {
         car: submissionVehicleId,
       }),
       complete: false,
+      guestRelationsEmail: getGuestRelationsEmail(),
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       message,
       required: true,
@@ -286,6 +297,7 @@ const EMAIL_TEMPLATES = {
     file: "owner-registration-complete.html",
     subject: "Your Owner Application is complete",
     resolveParams: ({ accessToken }) => ({
+      guestRelationsEmail: getGuestRelationsEmail(),
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       submissionUrl: createClientUrl("/en/my-submission", {
         token: accessToken,
@@ -300,6 +312,7 @@ const EMAIL_TEMPLATES = {
       formDescription:
         "Please review your Owner Application and complete any required information to continue your application.",
       formTitle: "Owner Application",
+      guestRelationsEmail: getGuestRelationsEmail(),
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       message,
       formUrl: createClientUrl("/en/my-submission/", {
@@ -316,6 +329,7 @@ const EMAIL_TEMPLATES = {
       body: "Your application for the Anantara Concorso Roma has been received.",
       footerText:
         "You received this email because you submitted a car application for the Anantara Concorso Roma.",
+      guestRelationsEmail: getGuestRelationsEmail(),
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       showRecipientName: true,
       recipientName,
@@ -333,6 +347,7 @@ const EMAIL_TEMPLATES = {
       body: "As requested, here’s your personal link to access and track your Anantara Concorso Roma application.",
       footerText:
         "You received this email because you submitted a car registration for the Anantara Concorso Roma.",
+      guestRelationsEmail: getGuestRelationsEmail(),
       logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       showRecipientName: false,
       recipientName,
@@ -365,6 +380,7 @@ const EMAIL_TEMPLATES = {
             });
       return {
         ...content,
+        guestRelationsEmail: getGuestRelationsEmail(),
         iconUrl: content.iconPath ? createClientUrl(content.iconPath) : "",
         logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
         recipientName,
@@ -393,9 +409,7 @@ async function renderEmailTemplate<Template extends EmailTemplateName>(
   const templateParams = definition.resolveParams(options.params);
   const render = Handlebars.compile(source, { strict: true });
 
-  return render({
-    ...templateParams,
-  });
+  return render(templateParams);
 }
 
 export async function sendEmail<Template extends EmailTemplateName>(
