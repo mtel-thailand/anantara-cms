@@ -21,9 +21,7 @@ export type SubmissionEmailStatus =
   | "under_review"
   | "waitlist";
 
-export type CarEntryFormRequestAction =
-  | "car-entry-create"
-  | "car-entry-edit";
+export type CarEntryFormRequestAction = "car-entry-create" | "car-entry-edit";
 
 export type EmailTemplateParams = {
   [EmailTemplate.CarEntryFormComplete]: {
@@ -116,7 +114,7 @@ function createClientUrl(
   pathname: string,
   searchParams?: Record<string, string>,
 ) {
-  const baseUrl = process.env.NEXT_PUBLIC_ANANTARA_CLIENT_BASE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL;
   if (!baseUrl) {
     throw new Error("Client path is not configured");
   }
@@ -129,100 +127,117 @@ function createClientUrl(
   return url.toString();
 }
 
+const EMAIL_LOGO_PATH = "logo/anantara-logo.png";
+
+function createEmailImageUrl(imagePath: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_IMAGE_PUBLIC_BASE_URL?.trim();
+  if (!baseUrl) {
+    throw new Error("Public image path is not configured");
+  }
+
+  return `${baseUrl.replace(/\/$/, "")}/${imagePath.replace(/^\//, "")}`;
+}
+
 const STATUS_CONTENT: Record<
   SubmissionEmailStatus,
   {
+    badgeColor: string;
     badgeLabel: string;
     buttonLabel: string;
     calloutText: string;
-    icon: string;
+    iconPath: string;
     showIcon: boolean;
     showNote: boolean;
     showUniqueLink: boolean;
     subject: string;
     subtitle: string;
+    subtitleColor: string;
     themeBackground: string;
-    themeColor: string;
     title: string;
   }
 > = {
   approved: {
+    badgeColor: "#00a651",
     badgeLabel: "Approved",
-    buttonLabel: "View My Submission",
+    buttonLabel: "View My Application",
     calloutText:
-      "What happens next? Our team will contact you when it is time to complete: The Car Entry Form & The Owner Registration Form. Your participation will be confirmed once both forms have been submitted.",
-    icon: "✓",
+      "What happens next? Our team will contact you when it is time to complete: The Car Entry Form & The Owner Application Form. Your participation will be confirmed once both forms have been submitted.",
+    iconPath: "/icons/status-approved.svg",
     showIcon: true,
     showNote: false,
     showUniqueLink: true,
     subject: "Congratulations — your car submission was approved",
     subtitle:
-      "Your Car Submission has been approved. We’ll contact you when the next step is ready.",
+      "Your Car has been approved. We’ll contact you when the next step is ready.",
+    subtitleColor: "#d2144f",
     themeBackground: "#edfbf3",
-    themeColor: "#00a651",
     title: "Congratulations!",
   },
   requested_info: {
+    badgeColor: "#ff692f",
     badgeLabel: "More Info Required",
-    buttonLabel: "Update Car Submission",
+    buttonLabel: "Update Car Application",
     calloutText: "",
-    icon: "×",
+    iconPath: "/icons/status-requested-info.svg",
     showIcon: true,
     showNote: true,
     showUniqueLink: true,
     subject: "More information is required for your car submission",
     subtitle:
-      "Our Selection Committee requires additional information to complete your review.",
-    themeBackground: "#fff7e8",
-    themeColor: "#f39200",
+      "The Selection Committee requires additional information to complete your review.",
+    subtitleColor: "#d2144f",
+    themeBackground: "#ffeae2",
     title: "More Information Required",
   },
   not_selected: {
+    badgeColor: "#555555",
     badgeLabel: "Not Selected",
     buttonLabel: "Contact Us",
     calloutText:
       "We encourage you to apply again in the future. If you have questions about the selection process, please don’t hesitate to reach out.",
-    icon: "",
+    iconPath: "",
     showIcon: false,
     showNote: false,
     showUniqueLink: false,
     subject: "An update on your Concorso Roma submission",
     subtitle:
-      "After careful consideration, your vehicle was not selected for this edition of Concorso Roma.",
+      "After careful consideration, your car was not selected for this edition of Concorso Roma.",
+    subtitleColor: "#525252",
     themeBackground: "#efefef",
-    themeColor: "#555555",
     title: "Thanks for your interest",
   },
   under_review: {
+    badgeColor: "#ad963d",
     badgeLabel: "Under Review",
-    buttonLabel: "View My Submission",
+    buttonLabel: "View My Application",
     calloutText:
-      "You will be notified by email once the Selection Committee has made their decision. Track your submission at any time:",
-    icon: "◷",
+      "You will be notified by email once the Selection Committee has made their decision. Track your application at any time:",
+    iconPath: "/icons/status-under-review.svg",
     showIcon: true,
     showNote: false,
     showUniqueLink: true,
     subject: "Your car submission is under review",
     subtitle:
-      "Your vehicle is currently being reviewed by our Selection Committee.",
+      "Your car is currently being reviewed by the Selection Committee.",
+    subtitleColor: "#d2144f",
     themeBackground: "#fbf8e9",
-    themeColor: "#ad963d",
     title: "Under Review",
   },
   waitlist: {
+    badgeColor: "#637995",
     badgeLabel: "Waitlisted",
-    buttonLabel: "View My Submission",
+    buttonLabel: "View My Application",
     calloutText:
-      "Your vehicle meets our quality standards and has been placed on the waitlist. You will be notified if a spot becomes available. Track your submission at any time:",
-    icon: "⌛",
+      "Your car meets our quality standards and has been placed on the waitlist. You will be notified if a spot becomes available. Track your application at any time:",
+    iconPath: "/icons/status-waitlisted.svg",
     showIcon: true,
     showNote: false,
     showUniqueLink: true,
     subject: "You've been waitlisted for Anantara Concorso Roma",
     subtitle:
       "Your application has been placed on our waitlist for the Anantara Concorso Roma.",
+    subtitleColor: "#d2144f",
     themeBackground: "#eef3f8",
-    themeColor: "#637995",
     title: "You've Been Waitlisted",
   },
 };
@@ -232,11 +247,13 @@ const EMAIL_TEMPLATES = {
     file: "car-entry-form.html",
     subject: "Your Car Entry Form is complete",
     resolveParams: ({ accessToken, vehicle }) => ({
-      buttonLabel: "View My Submission",
+      buttonLabel: "View My Application",
       buttonUrl: createClientUrl("/en/my-submission", {
         token: accessToken,
       }),
       complete: true,
+      iconUrl: createClientUrl("/icons/status-approved.svg"),
+      logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       message: "",
       required: false,
       vehicle,
@@ -259,6 +276,7 @@ const EMAIL_TEMPLATES = {
         car: submissionVehicleId,
       }),
       complete: false,
+      logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       message,
       required: true,
       vehicle,
@@ -266,8 +284,9 @@ const EMAIL_TEMPLATES = {
   },
   [EmailTemplate.OwnerRegistrationComplete]: {
     file: "owner-registration-complete.html",
-    subject: "Your Owner Registration is complete",
+    subject: "Your Owner Application is complete",
     resolveParams: ({ accessToken }) => ({
+      logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       submissionUrl: createClientUrl("/en/my-submission", {
         token: accessToken,
       }),
@@ -275,12 +294,13 @@ const EMAIL_TEMPLATES = {
   },
   [EmailTemplate.OwnerRegistrationRequired]: {
     file: "owner-registration-required.html",
-    subject: "Action required: complete your Owner Registration",
+    subject: "Action required: complete your Owner Application",
     resolveParams: ({ accessToken, action, message }) => ({
-      buttonLabel: "Review Owner Registration",
+      buttonLabel: "Review Owner Application",
       formDescription:
-        "Please review your Owner Registration and complete any required information to continue your registration.",
-      formTitle: "Owner Registration",
+        "Please review your Owner Application and complete any required information to continue your application.",
+      formTitle: "Owner Application",
+      logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       message,
       formUrl: createClientUrl("/en/my-submission/", {
         token: accessToken,
@@ -292,8 +312,11 @@ const EMAIL_TEMPLATES = {
     file: "submission-confirm.html",
     subject: "We've received your Concorso Roma submission",
     resolveParams: ({ recipientName, accessToken, vehicles }) => ({
-      title: "Submission Confirmed",
-      body: "Your registration for the Anantara Concorso Roma has been received.",
+      title: "Application Confirmed",
+      body: "Your application for the Anantara Concorso Roma has been received.",
+      footerText:
+        "You received this email because you submitted a car application for the Anantara Concorso Roma.",
+      logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       showRecipientName: true,
       recipientName,
       vehicles,
@@ -306,8 +329,11 @@ const EMAIL_TEMPLATES = {
     file: "submission-confirm.html",
     subject: "Your Submission Link",
     resolveParams: ({ recipientName, accessToken, vehicles }) => ({
-      title: "Your Submission Link",
-      body: "As requested, here's your personal link to access and track your Anantara Concorso Roma submission.",
+      title: "Your Application Link",
+      body: "As requested, here’s your personal link to access and track your Anantara Concorso Roma application.",
+      footerText:
+        "You received this email because you submitted a car registration for the Anantara Concorso Roma.",
+      logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
       showRecipientName: false,
       recipientName,
       vehicles,
@@ -337,9 +363,10 @@ const EMAIL_TEMPLATES = {
                 ? { action: "edit", car: carId }
                 : {}),
             });
-
       return {
         ...content,
+        iconUrl: content.iconPath ? createClientUrl(content.iconPath) : "",
+        logoUrl: createEmailImageUrl(EMAIL_LOGO_PATH),
         recipientName,
         note,
         vehicle,

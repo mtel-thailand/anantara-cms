@@ -29,6 +29,7 @@ function ViewportBadges({ viewport }: { viewport: Viewport[] }) {
               <span
                 aria-label={label}
                 className="flex size-6 items-center justify-center rounded-md border bg-muted/40"
+                tabIndex={0}
               >
                 <Icon className="size-3.5" />
               </span>

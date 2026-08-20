@@ -28,12 +28,7 @@ import { Skeleton } from "@/src/components/ui/skeleton";
 import Text from "@/src/components/ui/text";
 import { Dropdown } from "@/src/components/ui/dropdown/dropdown";
 import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/src/components/ui/tooltip";
+import { GenericTooltip } from "@/src/components/ui/tooltip";
 import {
   archiveFinalizedCarsAction,
   publishFinalizedCarDraftAction,
@@ -51,8 +46,7 @@ import type {
   FinalizedCarsData,
   FinalizedCarStatus,
 } from "@/src/features/cars/finalized/finalized-cars.types";
-import { downloadCarEntryForm } from "@/src/features/cars/reservation/review/car-entry-form-download";
-import { getCarEntryFormReview } from "@/src/features/cars/reservation/review/car-entry-form-review.service";
+import { downloadFinalizedCarForms } from "@/src/features/cars/finalized/finalized-car-download";
 import { uploadCarSubmissionFiles } from "@/src/features/cars/submission/api/submission.service";
 import { romanNumeral } from "@/src/features/cars/submission/submission.types";
 import useAsync from "@/src/hooks/use-async";
@@ -63,8 +57,7 @@ import { cn } from "@/src/lib/utils";
 import type { Locale } from "@/src/types/locale";
 
 const PAGE_SIZE = 10;
-const FINALIZED_CAR_DRAFTS_STORAGE_KEY =
-  "anantara-cms:finalized-car-drafts:v1";
+const FINALIZED_CAR_DRAFTS_STORAGE_KEY = "anantara-cms:finalized-car-drafts:v1";
 const FINALIZED_CAR_DRAFTS_STORAGE_VERSION = 1;
 const EMPTY_DATA: FinalizedCarsData = {
   classes: [],
@@ -91,7 +84,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function storedFinalizedCarDrafts(value: unknown) {
-  if (!isRecord(value) || value.version !== FINALIZED_CAR_DRAFTS_STORAGE_VERSION) {
+  if (
+    !isRecord(value) ||
+    value.version !== FINALIZED_CAR_DRAFTS_STORAGE_VERSION
+  ) {
     return null;
   }
   if (!isRecord(value.drafts)) return null;
@@ -175,7 +171,8 @@ export function FinalizedCarsClient() {
   const commonT = useTranslations("common");
   const locale = useLocale() as Locale;
   const modal = useModal();
-  const { handleOpenOverlay, setOverlayPage } = useLayoutContext();
+  const { handleCloseOverlay, handleOpenOverlay, setOverlayPage } =
+    useLayoutContext();
   const { isLoading, execute } = useAsync(true);
   const [data, setData] = useState<FinalizedCarsData>(EMPTY_DATA);
   const [tab, setTab] = useState<FinalizedCarStatus>("finalized");
@@ -192,6 +189,7 @@ export function FinalizedCarsClient() {
   const [draftStorageHydrated, setDraftStorageHydrated] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const detailsInstanceRef = useRef(0);
+  const overlayDirtyRef = useRef(false);
   const hasDrafts = Object.keys(drafts).length > 0;
 
   useEffect(() => {
@@ -291,8 +289,49 @@ export function FinalizedCarsClient() {
     if (page > pageCount) setPage(pageCount);
   }, [page, pageCount]);
 
+  const requestCloseOverlay = useCallback(() => {
+    if (!overlayDirtyRef.current) {
+      handleCloseOverlay();
+      return;
+    }
+
+    modal.preventBackdropClose();
+    modal.open({
+      className: "gap-1.5",
+      headerClassName: "border-0 px-4 py-0 pt-4",
+      header: (
+        <Text.FormTitle size="base" className="font-medium">
+          {t("overlayDiscardTitle")}
+        </Text.FormTitle>
+      ),
+      contentClassName: "px-4 pb-2 gap-0",
+      content: (
+        <Text size="sm" color="muted-foreground">
+          {t("overlayDiscardDescription")}
+        </Text>
+      ),
+      footer: (
+        <>
+          <Button variant="outline" onClick={modal.close}>
+            {commonT("keepEditing")}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              overlayDirtyRef.current = false;
+              handleCloseOverlay();
+              modal.close();
+            }}
+          >
+            {t("discardChanges")}
+          </Button>
+        </>
+      ),
+    });
+  }, [commonT, handleCloseOverlay, modal, t]);
+
   const openDetails = useCallback(
-    async (car: FinalizedCarListItem) => {
+    async (car: FinalizedCarListItem, initialEditLocale?: Locale) => {
       let ownerReservationId = car.ownerReservationId;
       if (!ownerReservationId) {
         try {
@@ -309,6 +348,7 @@ export function FinalizedCarsClient() {
         }
       }
 
+      overlayDirtyRef.current = false;
       detailsInstanceRef.current += 1;
       setOverlayPage({
         content: (
@@ -316,6 +356,11 @@ export function FinalizedCarsClient() {
             key={`${car.id}-${detailsInstanceRef.current}`}
             car={{ ...car, ownerReservationId }}
             draft={drafts[car.id]}
+            initialEditLocale={initialEditLocale}
+            onClose={requestCloseOverlay}
+            onDirtyChange={(dirty) => {
+              overlayDirtyRef.current = dirty;
+            }}
             onStageDraft={(nextDraft) => {
               setDrafts((current) => ({
                 ...current,
@@ -326,25 +371,21 @@ export function FinalizedCarsClient() {
         ),
         panelClassName: "w-full max-w-3xl p-0",
         contentClassName: "px-0 pb-0",
+        onClose: requestCloseOverlay,
       });
       handleOpenOverlay();
     },
-    [drafts, handleOpenOverlay, setOverlayPage],
+    [drafts, handleOpenOverlay, requestCloseOverlay, setOverlayPage],
   );
 
   const handleDownload = useCallback(
     async (car: FinalizedCarListItem) => {
       try {
-        await downloadCarEntryForm(await getCarEntryFormReview(car.id), {
-          make: car.make,
-          model: car.model,
-          ownerName: ownerName(car),
-          vehicleRef: car.vehicleRef,
-        });
+        await downloadFinalizedCarForms(car.id, car.categoryId);
       } catch (error) {
         logger.error(
           "FINALIZED-CARS",
-          "Failed to download finalized car form",
+          "Failed to download finalized car forms",
           {
             error: error instanceof Error ? error.message : String(error),
             submissionVehicleId: car.id,
@@ -428,20 +469,38 @@ export function FinalizedCarsClient() {
             <div className="flex items-center gap-2">
               <span>{ownerName(row.original)}</span>
               {row.original.ownerFormNeedsAttention ? (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+                <GenericTooltip
+                  trigger={
+                    <span
+                      className="inline-flex w-fit focus-visible:outline-none"
+                      tabIndex={0}
+                    >
                       <CircleAlert className="size-4 text-amber-500" />
-                    </TooltipTrigger>
-                    <TooltipContent>{t("ownerAttention")}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                    </span>
+                  }
+                  content={t("ownerAttention")}
+                />
               ) : null}
             </div>
             {row.original.hideOwnerName ? (
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600">
-                <CircleAlert className="size-3.5" /> {t("privateCollection")}
-              </span>
+              <GenericTooltip
+                trigger={
+                  <span
+                    className="inline-flex w-fit items-center gap-1 focus-visible:outline-none"
+                    tabIndex={0}
+                  >
+                    <CircleAlert className="size-3.5 text-amber-600" />
+                    <Text size="xs" weight="medium" className="text-amber-600">
+                      {t("privateCollection")}
+                    </Text>
+                  </span>
+                }
+                content={
+                  <span className="block max-w-60">
+                    {t("privateCollectionHint")}
+                  </span>
+                }
+              />
             ) : null}
           </div>
         ),
@@ -661,19 +720,29 @@ export function FinalizedCarsClient() {
   }
 
   function openPublishConfirmation() {
+    const incompleteDrafts = new Map(
+      Object.entries(drafts).filter(([, draft]) => {
+        const { en, it } = draft.values.history;
+        return Boolean(en.trim()) !== Boolean(it.trim());
+      }),
+    );
+    const incompleteCount = incompleteDrafts.size;
+
     modal.preventBackdropClose();
     modal.open({
       className: "gap-2 py-0 sm:max-w-lg",
       headerClassName: "border-0 px-4 py-0 pt-4",
       header: (
         <Text.FormTitle size="base" weight="medium">
-          {t("publishTitle")}
+          {incompleteCount > 0 ? t("missingLanguageTitle") : t("publishTitle")}
         </Text.FormTitle>
       ),
       contentClassName: "px-4 pb-2",
       content: (
         <Text size="sm" color="muted-foreground">
-          {t("publishDescription")}
+          {incompleteCount > 0
+            ? t("missingLanguageDescription", { count: incompleteCount })
+            : t("publishDescription")}
         </Text>
       ),
       footer: ({ loading, close, run }) => (
@@ -681,6 +750,28 @@ export function FinalizedCarsClient() {
           <Button variant="outline" disabled={loading} onClick={close}>
             {commonT("keepEditing")}
           </Button>
+          {incompleteCount > 0 ? (
+            <Button
+              variant="outline"
+              disabled={loading}
+              onClick={() => {
+                const car = pageRows.find((item) =>
+                  incompleteDrafts.has(item.id),
+                );
+                close();
+                if (!car) return;
+
+                const draft = incompleteDrafts.get(car.id);
+                if (!draft) return;
+                void openDetails(
+                  car,
+                  draft.values.history.en.trim() ? "it" : "en",
+                );
+              }}
+            >
+              {t("fixContent")}
+            </Button>
+          ) : null}
           <Button
             loading={loading}
             onClick={() =>
@@ -689,7 +780,7 @@ export function FinalizedCarsClient() {
               })
             }
           >
-            {t("publishChanges")}
+            {incompleteCount > 0 ? t("publishAnyway") : t("publishChanges")}
           </Button>
         </>
       ),

@@ -47,6 +47,15 @@ function submissionBaseName(submission: CarSubmission) {
   );
 }
 
+function submissionArchiveName(
+  submission: CarSubmission,
+  archiveLabel: string,
+) {
+  return safeName(
+    `${submission.vehicleRef} ${submissionName(submission) || "car"} — ${archiveLabel}`,
+  );
+}
+
 function fileUrl(url: string, key?: string) {
   return key
     ? `/api/file?${new URLSearchParams({ key, response: "content" })}`
@@ -214,21 +223,44 @@ async function renderBasicInformation(
 export async function downloadSubmissionForm(
   submission: CarSubmission,
   classes: SubmissionClass[] = [],
+  options: {
+    appendFiles?: (folder: JSZip) => Promise<void>;
+    appendPdf?: (pdf: FormPdf) => Promise<void> | void;
+    archiveLabel?: string;
+    pdfLabel?: string;
+  } = {},
 ) {
   const base = submissionBaseName(submission);
+  const archiveBase = options.archiveLabel
+    ? submissionArchiveName(submission, options.archiveLabel)
+    : base;
   const pdf = new FormPdf();
+  const logo = (await loadLogo()) ?? undefined;
   pdf.header(
     submissionName(submission) || "Submission",
     ownerName(submission),
-    (await loadLogo()) ?? undefined,
+    logo,
   );
   await renderBasicInformation(pdf, submission, classes);
+  if (options.appendPdf) {
+    pdf.pageBreak();
+    pdf.header(
+      submissionName(submission) || "Submission",
+      ownerName(submission),
+      logo,
+    );
+    await options.appendPdf(pdf);
+  }
 
   const zip = new JSZip();
-  const folder = zip.folder(base);
+  const folder = zip.folder(archiveBase);
   if (!folder) throw new Error("Could not create the download package.");
 
-  folder.file(`${base}.pdf`, pdf.blob());
+  const pdfBase = options.pdfLabel
+    ? submissionArchiveName(submission, options.pdfLabel)
+    : base;
+  folder.file(`${pdfBase}.pdf`, pdf.blob());
+  const fileTasks: Promise<void>[] = [];
   const supportingDocuments = submission.documents.filter(
     (document) => !document.additionalPhotoLink,
   );
@@ -237,9 +269,13 @@ export async function downloadSubmissionForm(
     if (!documentsFolder) {
       throw new Error("Could not create the supporting documents folder.");
     }
-    await addSupportingDocuments(documentsFolder, supportingDocuments);
+    fileTasks.push(
+      addSupportingDocuments(documentsFolder, supportingDocuments),
+    );
   }
+  if (options.appendFiles) fileTasks.push(options.appendFiles(folder));
+  await Promise.all(fileTasks);
 
   const archive = await zip.generateAsync({ type: "blob" });
-  triggerDownload(archive, `${base}.zip`);
+  triggerDownload(archive, `${archiveBase}.zip`);
 }

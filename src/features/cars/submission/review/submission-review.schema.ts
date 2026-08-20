@@ -6,7 +6,6 @@ import type { Translator } from "@/src/types/translation";
 import { SUBMISSION_REVIEW_MAX_FILE_SIZE_BYTES } from "@/src/features/cars/submission/review/submission-review.constants";
 
 const optionalString = z.string();
-const currentYear = new Date().getFullYear();
 const documentTypes = new Set([
   "application/pdf",
   "application/msword",
@@ -30,6 +29,7 @@ function getDocumentFileSchema(t: Translator) {
 
 export function getSubmissionReviewSchema(t: Translator) {
   const yearError = t("year");
+  const currentYear = new Date().getFullYear();
   return z
   .object({
     classId: optionalString,
@@ -58,9 +58,7 @@ export function getSubmissionReviewSchema(t: Translator) {
     }),
     year: z
       .number({ error: yearError })
-      .int(yearError)
-      .min(1880, yearError)
-      .max(currentYear + 1, yearError),
+      .max(currentYear, t("yearFuture", { year: currentYear })),
     history: z.object({
       en: optionalString,
       it: optionalString,
@@ -153,7 +151,6 @@ export function getSubmissionReviewSchema(t: Translator) {
 
     if (
       data.status === "requested_info" &&
-      data.newInfoMessageRequired &&
       !data.newInfoMessage.trim()
     ) {
       context.addIssue({

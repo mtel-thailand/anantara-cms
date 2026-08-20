@@ -85,7 +85,9 @@ function pendingImageFiles(
 export function SubmissionReviewClient({
   carId,
   embedded = false,
+  initialEditLocale = "en",
   onClose,
+  onDirtyChange,
   onStageDraft,
   readOnly = false,
   stagedDraft,
@@ -93,7 +95,9 @@ export function SubmissionReviewClient({
 }: {
   carId: string;
   embedded?: boolean;
+  initialEditLocale?: Locale;
   onClose?: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
   onStageDraft?: (draft: SubmissionReviewDraft) => void;
   readOnly?: boolean;
   stagedDraft?: SubmissionReviewDraft;
@@ -140,11 +144,18 @@ export function SubmissionReviewClient({
   const initialSubmissionRef = useRef(submission);
   const pendingValuesRef = useRef<SubmissionReviewFormValues | null>(null);
   const pendingFilesRef = useRef(new Map<string, File>());
-  const [editLocale, setEditLocale] = useState<Locale>("en");
+  const [editLocale, setEditLocale] = useState<Locale>(initialEditLocale);
   const [stagedStatus, setStagedStatus] = useState(
     stagedDraft?.stagedStatus ?? stagedLayout?.statusValue ?? "",
   );
   const [savedStagedStatus, setSavedStagedStatus] = useState(stagedStatus);
+  const stageMode = Boolean(onStageDraft);
+  const stagedStatusChanged = stagedStatus !== savedStagedStatus;
+
+  useEffect(() => {
+    onDirtyChange?.(formState.isDirty || stagedStatusChanged);
+    return () => onDirtyChange?.(false);
+  }, [formState.isDirty, onDirtyChange, stagedStatusChanged]);
 
   // Mark seen submission
   useEffect(() => {
@@ -205,11 +216,13 @@ export function SubmissionReviewClient({
   if (isLoading) {
     return (
       <>
-        {!embedded ? <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
-          <Link href="/app/cars/submissions">
-            <ChevronLeft className="size-4" /> {t("back")}
-          </Link>
-        </Button> : null}
+        {!embedded ? (
+          <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
+            <Link href="/app/cars/submissions">
+              <ChevronLeft className="size-4" /> {t("back")}
+            </Link>
+          </Button>
+        ) : null}
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
           {t("loading")}
         </Card>
@@ -220,11 +233,13 @@ export function SubmissionReviewClient({
   if (!submission) {
     return (
       <>
-        {!embedded ? <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
-          <Link href="/app/cars/submissions">
-            <ChevronLeft className="size-4" /> {t("back")}
-          </Link>
-        </Button> : null}
+        {!embedded ? (
+          <Button asChild variant="ghost" size="sm" className="mb-5 -ml-2">
+            <Link href="/app/cars/submissions">
+              <ChevronLeft className="size-4" /> {t("back")}
+            </Link>
+          </Button>
+        ) : null}
         <Card className="flex h-48 items-center justify-center text-sm text-muted-foreground shadow-none">
           {t("notFound")}
         </Card>
@@ -243,8 +258,9 @@ export function SubmissionReviewClient({
       ? "info_received"
       : currentDraft.status;
   const statusChanged = willSaveStatus !== liveStatus;
-  const stageMode = Boolean(onStageDraft);
-  const stagedStatusChanged = stagedStatus !== savedStagedStatus;
+  const isRequestInfoMessageMissing =
+    currentDraft.status === "requested_info" &&
+    !currentDraft.newInfoMessage.trim();
 
   async function handleDownloadSubmissionForm() {
     executeDownload<[string], void>(async (id) => {
@@ -366,20 +382,17 @@ export function SubmissionReviewClient({
 
     pendingValuesRef.current = structuredClone(values);
 
-    const hasLanguageGap =
-      Boolean(values.history.en.trim()) !== Boolean(values.history.it.trim());
-    const warnLanguage = values.status === "approved" && hasLanguageGap;
-
     modal.preventBackdropClose();
     modal.open({
       headerClassName: "border-0 px-4 py-0 pt-4",
       header: (
         <div className="pr-8">
           <h2 className="font-heading text-xl">
-            {warnLanguage ? t("oneLanguageTitle") : t("saveTitle")}
+            {/* {warnLanguage ? t("oneLanguageTitle") : t("saveTitle")} */}
+            {t("saveTitle")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {warnLanguage ? t("oneLanguageDescription") : t("saveDescription")}
+            {t("saveDescription")}
           </p>
         </div>
       ),
@@ -388,23 +401,11 @@ export function SubmissionReviewClient({
           <Button variant="outline" onClick={modal.close}>
             {commonT("cancel")}
           </Button>
-          {warnLanguage ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                setEditLocale(values.history.en.trim() ? "it" : "en");
-                pendingValuesRef.current = null;
-                modal.close();
-              }}
-            >
-              {t("fixContent")}
-            </Button>
-          ) : null}
           <Button
             loading={loading}
             onClick={() => void run(async () => commitSave())}
           >
-            {warnLanguage ? t("saveAnyway") : commonT("saveChanges")}
+            {commonT("saveChanges")}
           </Button>
         </>
       ),
@@ -434,7 +435,28 @@ export function SubmissionReviewClient({
     });
   };
 
-  const hancleConfirmCancel = () => {
+  const closeOrNavigateAway = () => {
+    if (stageMode) {
+      onClose?.();
+      return;
+    }
+
+    const redirectUrl = embedded
+      ? submission.deletedAt !== null
+        ? "/app/cars/forms/deleted?tab=car"
+        : "/app/cars/forms?tab=car"
+      : submission.deletedAt !== null
+        ? "/app/cars/submissions/deleted"
+        : "/app/cars/submissions";
+    router.push(redirectUrl);
+  };
+
+  const handleConfirmCancel = () => {
+    if (stageMode) {
+      onClose?.();
+      return;
+    }
+
     if (formState.isDirty) {
       modal.open({
         className: "gap-1.5",
@@ -458,11 +480,7 @@ export function SubmissionReviewClient({
             <Button
               variant="destructive"
               onClick={() => {
-                router.push(
-                  embedded
-                    ? "/app/cars/forms?tab=car"
-                    : "/app/cars/submissions",
-                );
+                closeOrNavigateAway();
                 modal.close();
               }}
             >
@@ -472,45 +490,42 @@ export function SubmissionReviewClient({
         ),
       });
     } else {
-      const redirectUrl = embedded
-        ? submission.deletedAt !== null
-          ? "/app/cars/forms/deleted?tab=car"
-          : "/app/cars/forms?tab=car"
-        : submission.deletedAt !== null
-          ? "/app/cars/submissions/deleted"
-          : "/app/cars/submissions";
-      router.push(redirectUrl);
+      closeOrNavigateAway();
     }
   };
 
   return (
     <>
-      {!embedded ? <NavigationButton text={t("back")} onClick={hancleConfirmCancel} /> : null}
+      {!embedded ? (
+        <NavigationButton text={t("back")} onClick={handleConfirmCancel} />
+      ) : null}
 
-      {!embedded ? <PageHeader
-        title={submissionVehicleName(submission)}
-        description={`${submission.vehicleRef} · ${commonT(
-          "submittedLastUpdate",
-          {
-            submitted: formatDate(submission.submissionDate, locale),
-            updated: formatDate(submission.lastUpdated, locale),
-          },
-        )}`}
-        viewport={["desktop", "mobile"]}
-        titleAccessory={<SubmissionStatusBadge status={liveStatus} />}
-      >
-        <Button
-          variant="outline"
-          disabled={isReadOnly}
-          loading={isDownloading}
-          loadingClassName="text-foreground"
-          title={t("downloadTitle")}
-          onClick={handleDownloadSubmissionForm}
+      {!embedded ? (
+        <PageHeader
+          title={submissionVehicleName(submission)}
+          description={`${submission.vehicleRef} · ${commonT(
+            "submittedLastUpdate",
+            {
+              submitted: formatDate(submission.submissionDate, locale),
+              updated: formatDate(submission.lastUpdated, locale),
+            },
+          )}`}
+          viewport={["desktop", "mobile"]}
+          titleAccessory={<SubmissionStatusBadge status={liveStatus} />}
         >
-          {!isDownloading && <Download className="size-4" />}
-          {commonT("downloadPdf")}
-        </Button>
-      </PageHeader> : null}
+          <Button
+            variant="outline"
+            disabled={isReadOnly}
+            loading={isDownloading}
+            loadingClassName="text-foreground"
+            title={t("downloadTitle")}
+            onClick={handleDownloadSubmissionForm}
+          >
+            {!isDownloading && <Download className="size-4" />}
+            {commonT("downloadPdf")}
+          </Button>
+        </PageHeader>
+      ) : null}
 
       <div className="flex flex-col gap-6">
         {!stageMode ? (
@@ -580,12 +595,16 @@ export function SubmissionReviewClient({
           }
         >
           <div className="flex flex-wrap items-center justify-end gap-2 py-4">
-            <Button variant="outline" onClick={hancleConfirmCancel}>
+            <Button variant="outline" onClick={handleConfirmCancel}>
               {commonT("cancel")}
             </Button>
             <Button
               variant="default"
-              disabled={isReadOnly || !formState.isDirty}
+              disabled={
+                isReadOnly ||
+                !formState.isDirty ||
+                isRequestInfoMessageMissing
+              }
               onClick={handleSubmit(requestSave, handleInvalid)}
             >
               {commonT("saveChanges")}
@@ -602,8 +621,8 @@ export function SubmissionReviewClient({
           }
         >
           <div className="flex flex-wrap items-center justify-end gap-2 py-4">
-            <Button variant="outline" onClick={onClose}>
-              {commonT("close")}
+            <Button variant="outline" onClick={handleConfirmCancel}>
+              {commonT("cancel")}
             </Button>
             <Button
               disabled={!formState.isDirty && !stagedStatusChanged}

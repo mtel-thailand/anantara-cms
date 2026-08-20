@@ -43,8 +43,17 @@ type Locale = keyof typeof messages;
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  applicationName: "Anantara Concorso Roma 2027 CMS",
+  title: {
+    default: "Anantara Concorso Roma 2027 CMS",
+    template: "%s | Anantara Concorso Roma 2027 CMS",
+  },
+  description:
+    "Manage car submissions, registrations, event content, and published experiences for Anantara Concorso Roma 2027.",
+  icons: {
+    icon: [{ url: "/images/anantara-logo.png", type: "image/png" }],
+    shortcut: "/images/anantara-logo.png",
+  },
 };
 
 export function generateStaticParams() {
