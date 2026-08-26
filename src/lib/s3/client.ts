@@ -225,7 +225,10 @@ export async function storageAdaptorGetFileMetadata(
   };
 }
 
-export async function storageAdaptorGetDownloadUrl(key: string) {
+export async function storageAdaptorGetDownloadUrl(
+  key: string,
+  { disposition = "attachment" }: { disposition?: "attachment" | "inline" } = {},
+) {
   const metadata = await storageAdaptorGetFileMetadata(key);
   const fallbackFileName = metadata.fileName
     .replace(/[^\x20-\x7E]/g, "_")
@@ -235,7 +238,7 @@ export async function storageAdaptorGetDownloadUrl(key: string) {
     (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
   );
   const contentDisposition = [
-    `attachment; filename="${fallbackFileName || "download"}"`,
+    `${disposition}; filename="${fallbackFileName || "download"}"`,
     `filename*=UTF-8''${encodedFileName}`,
   ].join("; ");
 
@@ -331,25 +334,6 @@ export async function storageAdaptorGetUploadUrl({
 
     throw error;
   }
-}
-
-export async function storageAdaptorGetFile(key: string) {
-  const metadata = await storageAdaptorGetFileMetadata(key);
-  const response = await s3Client.send(
-    new GetObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    }),
-  );
-
-  if (!response.Body) {
-    throw new Error("Uploaded file has no content.");
-  }
-
-  return {
-    body: response.Body.transformToWebStream(),
-    metadata,
-  };
 }
 
 export async function storageAdaptorDeleteFile(key: string) {

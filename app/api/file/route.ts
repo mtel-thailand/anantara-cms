@@ -1,7 +1,6 @@
 import {
   storageAdaptorDeleteFile,
   storageAdaptorGetDownloadUrl,
-  storageAdaptorGetFile,
   storageAdaptorGetFileMetadata,
   storageAdaptorUploadFile,
 } from "@/src/lib/s3/client";
@@ -103,21 +102,10 @@ async function getRouteHandler(
   request: NextRequest,
   ctx: GetContextReturnType,
 ) {
-  if (ctx.query.response === "content") {
-    const file = await storageAdaptorGetFile(ctx.query.key);
-
-    return new NextResponse(file.body, {
-      headers: {
-        "Cache-Control": "private, no-store",
-        "Content-Disposition": "inline",
-        "Content-Length": String(file.metadata.size),
-        "Content-Type": file.metadata.contentType,
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
-  }
-
-  const downloadUrl = await storageAdaptorGetDownloadUrl(ctx.query.key);
+  const downloadUrl = await storageAdaptorGetDownloadUrl(ctx.query.key, {
+    disposition:
+      ctx.query.response === "content" ? "inline" : "attachment",
+  });
   return NextResponse.redirect(downloadUrl);
 }
 
