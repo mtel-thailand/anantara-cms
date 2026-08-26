@@ -105,15 +105,14 @@ async function getRouteHandler(
 ) {
   if (ctx.query.response === "content") {
     const file = await storageAdaptorGetFile(ctx.query.key);
-    const body = new ArrayBuffer(file.body.byteLength);
-    new Uint8Array(body).set(file.body);
 
-    return new NextResponse(body, {
+    return new NextResponse(file.body, {
       headers: {
         "Cache-Control": "private, no-store",
         "Content-Disposition": "inline",
         "Content-Length": String(file.metadata.size),
         "Content-Type": file.metadata.contentType,
+        "X-Content-Type-Options": "nosniff",
       },
     });
   }
