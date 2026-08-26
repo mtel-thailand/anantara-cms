@@ -45,7 +45,7 @@ function triggerDownload(blob: Blob, fileName: string) {
 
 async function fetchBlob(document: CarEntryFormDocument) {
   const response = await fetch(carEntryFormDocumentUrl(document), {
-    credentials: "include",
+    credentials: "same-origin",
   });
   if (!response.ok) {
     throw new Error(`Could not download attachment (${response.status}).`);

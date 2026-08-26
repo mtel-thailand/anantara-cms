@@ -64,7 +64,7 @@ function fileUrl(url: string, key?: string) {
 
 async function fetchBlob(url: string, key?: string) {
   const response = await fetch(fileUrl(url, key), {
-    credentials: "include",
+    credentials: "same-origin",
   });
   if (!response.ok) {
     throw new Error(`Could not download attachment (${response.status}).`);
