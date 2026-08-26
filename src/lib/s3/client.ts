@@ -347,7 +347,7 @@ export async function storageAdaptorGetFile(key: string) {
   }
 
   return {
-    body: await response.Body.transformToByteArray(),
+    body: response.Body.transformToWebStream(),
     metadata,
   };
 }
