@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  Fragment,
   memo,
   useCallback,
+  useId,
   useMemo,
   type CSSProperties,
   type ReactNode,
@@ -39,7 +41,7 @@ import {
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
 import { cn } from "@/src/lib/utils";
-import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, GripVertical } from "lucide-react";
 
 const genericMemo: <T>(component: T) => T = memo;
 
@@ -60,6 +62,7 @@ export type DraggableTableProps<TData extends { id: string }> = {
   emptyRow?: ReactNode;
   getRowClassName?: (data: TData) => string | undefined;
   canDragRow?: (data: TData) => boolean;
+  renderExpandedRow?: (data: TData) => ReactNode;
 };
 
 const dragModifiers = [
@@ -84,7 +87,9 @@ const DraggableTableComponent = <TData extends { id: string }>({
   columnSorting,
   columnVisibility,
   onColumnSortingChange,
+  renderExpandedRow,
 }: DraggableTableProps<TData>) => {
+  const dndContextId = useId();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -134,6 +139,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
 
   return (
     <DndContext
+      id={dndContextId}
       sensors={sensors}
       collisionDetection={closestCenter}
       modifiers={dragModifiers}
@@ -162,7 +168,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
                     >
                       <div
                         className={cn(
-                          "inline-flex items-center gap-1 font-medium text-muted-foreground transition-colors",
+                          "inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors",
                           canSort
                             ? "hover:text-foreground cursor-pointer"
                             : "text-foreground",
@@ -209,11 +215,9 @@ const DraggableTableComponent = <TData extends { id: string }>({
           <tbody className={bodyClassName}>
             <SortableContext items={ids} strategy={verticalListSortingStrategy}>
               {table.getRowModel().rows.length > 0 ? (
-                table
-                  .getRowModel()
-                  .rows.map((row) => (
+                table.getRowModel().rows.map((row) => (
+                  <Fragment key={row.id}>
                     <DraggableRow
-                      key={row.id}
                       row={row}
                       sorting={enabledRowSorting}
                       draggable={
@@ -222,7 +226,10 @@ const DraggableTableComponent = <TData extends { id: string }>({
                       }
                       className={getRowClassName?.(row.original)}
                     />
-                  ))
+
+                    {renderExpandedRow?.(row.original)}
+                  </Fragment>
+                ))
               ) : (
                 <tr>
                   <td
@@ -265,7 +272,8 @@ function arePropsEqual<TData extends { id: string }>(
     oldProps.className === newProps.className &&
     oldProps.emptyRow === newProps.emptyRow &&
     oldProps.getRowClassName === newProps.getRowClassName &&
-    oldProps.canDragRow === newProps.canDragRow
+    oldProps.canDragRow === newProps.canDragRow &&
+    oldProps.renderExpandedRow === newProps.renderExpandedRow
   );
 }
 
@@ -316,13 +324,13 @@ function DraggableRowComponent<TData>({
             {...attributes}
             {...listeners}
             className={cn(
-              "touch-none rounded border px-2 py-1",
+              "touch-none rounded px-2 py-1",
               draggable
                 ? "cursor-grab active:cursor-grabbing"
                 : "cursor-not-allowed text-muted-foreground/40",
             )}
           >
-            ☰
+            <GripVertical className="size-4" />
           </button>
         </td>
       )}

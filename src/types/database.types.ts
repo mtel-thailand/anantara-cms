@@ -1500,6 +1500,7 @@ export type Database = {
         Args: { p_email: string }
         Returns: boolean
       }
+      car_classes_revision: { Args: never; Returns: string }
       clear_car_and_reservation_forms: { Args: never; Returns: Json }
       gen_ref: { Args: { length: number; prefix: string }; Returns: string }
       get_car_entry_form: {
@@ -1529,6 +1530,10 @@ export type Database = {
           p_status?: Database["public"]["Enums"]["submission_status"]
           p_unassigned?: boolean
         }
+        Returns: Json
+      }
+      get_car_class_car_details: {
+        Args: { p_submission_vehicle_id: string }
         Returns: Json
       }
       finalize_car_entry_form_vehicle: {
@@ -1577,6 +1582,10 @@ export type Database = {
       mark_car_submission_vehicles_deleted_by_statuses: {
         Args: { p_statuses: Database["public"]["Enums"]["submission_status"][] }
         Returns: number
+      }
+      publish_car_classes: {
+        Args: { p_cars: Json; p_classes: Json; p_expected_revision: string }
+        Returns: undefined
       }
       refresh_car_submission_deleted_at: {
         Args: { p_submission_id: string }

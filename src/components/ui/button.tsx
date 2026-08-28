@@ -49,7 +49,9 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   leftIcon?: LucideIcon;
+  leftIconClassName?: string;
   rightIcon?: LucideIcon;
+  rightIconClassName?: string;
   loading?: boolean;
   loadingClassName?: string;
 }
@@ -63,7 +65,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       size,
       asChild = false,
       leftIcon,
+      leftIconClassName,
       rightIcon,
+      rightIconClassName,
       loading,
       disabled = false,
       loadingClassName = "text-background",
@@ -82,9 +86,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           {...props}
         >
           {loading && <Loader classname={loadingClassName} />}
-          {LeftIcon && <LeftIcon data-icon="inline-start" />}
+          {LeftIcon && (
+            <LeftIcon data-icon="inline-start" className={leftIconClassName} />
+          )}
           <Slottable>{children}</Slottable>
-          {RightIcon && <RightIcon data-icon="inline-end" />}
+          {RightIcon && (
+            <RightIcon data-icon="inline-end" className={rightIconClassName} />
+          )}
         </Comp>
       </>
     );

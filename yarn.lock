@@ -1258,6 +1258,11 @@
     "@ckeditor/ckeditor5-utils" "48.2.0"
     es-toolkit "1.45.1"
 
+"@commander-js/extra-typings@^13.1.0":
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/@commander-js/extra-typings/-/extra-typings-13.1.0.tgz#026e29b04401c92fc4307223fbaadf1ff3e5551e"
+  integrity sha512-q5P52BYb1hwVWE6dtID7VvuJWrlfbCv4klj7BjUUOqMz4jbSZD4C9fJ9lRjL2jnBGTg+gDDlaXN51rkWcLk4fg==
+
 "@date-fns/tz@^1.4.1":
   version "1.5.0"
   resolved "https://registry.npmjs.org/@date-fns/tz/-/tz-1.5.0.tgz"
@@ -3929,6 +3934,11 @@ comma-separated-tokens@^2.0.0:
   resolved "https://registry.npmjs.org/comma-separated-tokens/-/comma-separated-tokens-2.0.3.tgz"
   integrity sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==
 
+commander@^13.1.0:
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-13.1.0.tgz#776167db68c78f38dcce1f9b8d7b8b9a488abf46"
+  integrity sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==
+
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.npmjs.org/concat-map/-/concat-map-0.0.1.tgz"
@@ -4118,6 +4128,15 @@ enhanced-resolve@5.21.6:
   dependencies:
     graceful-fs "^4.2.4"
     tapable "^2.3.3"
+
+env-cmd@^11.0.0:
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/env-cmd/-/env-cmd-11.0.0.tgz#5912634c865f294a74745747d852aae07fd0d9a5"
+  integrity sha512-gnG7H1PlwPqsGhFJNTv68lsDGyQdK+U9DwLVitcj1+wGq7LeOBgUzZd2puZ710bHcH9NfNeGWe2sbw7pdvAqDw==
+  dependencies:
+    "@commander-js/extra-typings" "^13.1.0"
+    commander "^13.1.0"
+    cross-spawn "^7.0.6"
 
 es-abstract@^1.17.5, es-abstract@^1.23.2, es-abstract@^1.23.3, es-abstract@^1.23.5, es-abstract@^1.23.6, es-abstract@^1.23.9, es-abstract@^1.24.0, es-abstract@^1.24.2:
   version "1.24.2"

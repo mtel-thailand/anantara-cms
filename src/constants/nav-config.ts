@@ -91,11 +91,11 @@ export const NAV_ITEMS: NavItem[] = [
         href: "/app/cars/finalized",
         disabled: false,
       },
-      { titleKey: "cars.classes", href: "/app/cars/classes", disabled: true },
+      { titleKey: "cars.classes", href: "/app/cars/classes", disabled: false },
       {
         titleKey: "cars.contentField",
-        href: "/app/cars/website-description",
-        disabled: true,
+        href: "/app/cars/content-field",
+        disabled: false,
       },
     ],
   },
@@ -103,7 +103,7 @@ export const NAV_ITEMS: NavItem[] = [
     titleKey: "agenda",
     icon: CalendarDays,
     href: "/app/agenda",
-    disabled: true,
+    disabled: false,
   },
   {
     titleKey: "awards.root",
@@ -121,24 +121,30 @@ export const NAV_ITEMS: NavItem[] = [
   {
     titleKey: "sponsors.root",
     icon: Handshake,
-    disabled: true,
+    disabled: false,
     children: [
-      { titleKey: "sponsors.list", href: "/app/sponsors/list" },
+      {
+        titleKey: "sponsors.list",
+        href: "/app/sponsors/list",
+        disabled: true,
+      },
       {
         titleKey: "sponsors.contentField",
         href: "/app/sponsors/website-description",
+        disabled: false,
       },
     ],
   },
   {
     titleKey: "judges.root",
     icon: Gavel,
-    disabled: true,
+    disabled: false,
     children: [
-      { titleKey: "judges.list", href: "/app/judges/list" },
+      { titleKey: "judges.list", href: "/app/judges/list", disabled: true },
       {
         titleKey: "judges.contentField",
         href: "/app/judges/website-descriptions",
+        disabled: false,
       },
     ],
   },

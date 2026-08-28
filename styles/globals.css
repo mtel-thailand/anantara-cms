@@ -194,3 +194,97 @@ body {
     opacity: 0;
   }
 }
+
+/* CKEditor 5 — align the rich-text field with the CMS theme (brand crimson
+   accents, warm borders, app radius) and give the editing area room. */
+.cke-field {
+  --ck-border-radius: 0.5rem;
+  --ck-color-base-border: hsl(var(--input));
+  --ck-color-toolbar-border: hsl(var(--border));
+  --ck-color-focus-border: hsl(var(--ring));
+  --ck-color-button-on-color: hsl(var(--primary));
+  --ck-color-link-default: hsl(var(--primary));
+}
+
+.cke-field .ck.ck-editor__editable {
+  min-height: 20rem;
+}
+/* Error state — red borders that mirror the form fields' aria-invalid styling. */
+.cke-field--invalid {
+  --ck-color-base-border: hsl(var(--destructive));
+  --ck-color-toolbar-border: hsl(var(--destructive));
+  --ck-color-focus-border: hsl(var(--destructive));
+}
+.cke-field--invalid .ck.ck-editor__editable,
+.cke-field--invalid .ck.ck-editor__editable.ck-focused,
+.cke-field--invalid .ck.ck-toolbar {
+  border-color: hsl(var(--destructive));
+}
+/* Shorter editing area for header-only fields. */
+.cke-field--compact .ck.ck-editor__editable {
+  min-height: 8rem;
+}
+.cke-field .ck.ck-editor__editable_inline {
+  padding: 1rem 1.25rem;
+}
+.cke-field .ck.ck-content blockquote {
+  border-left: 3px solid
+    color-mix(in oklab, hsl(var(--primary)) 40%, transparent);
+  font-style: italic;
+}
+/* CKEditor only sizes its default headings (h2–h4); size H1 too, and give all
+   headings the Playfair display face so the editor previews the public site. */
+.cke-field .ck.ck-content h1 {
+  font-size: 2.6em;
+  line-height: 1.1;
+  font-family: "Playfair Display", Georgia, serif;
+}
+.cke-field .ck.ck-content h2 {
+  font-size: 1.9em;
+  line-height: 1.15;
+  font-family: "Playfair Display", Georgia, serif;
+}
+.cke-field .ck.ck-content h3 {
+  font-size: 1.4em;
+  font-family: "Playfair Display", Georgia, serif;
+}
+/* Travel-mode icons (How to get there) live in the first table column as small
+   uploadable images — keep them compact whatever the source resolution. */
+.cke-field .ck.ck-content table img {
+  max-height: 34px;
+  width: auto;
+}
+/* The horizontal line doubles as the Sponsors page "logo set" position marker:
+   label it inside the editor so authors see where the sponsor logos land. */
+.cke-field .ck.ck-content .ck-horizontal-line {
+  position: relative;
+  margin: 1.75rem 0;
+}
+.cke-field .ck.ck-content .ck-horizontal-line hr {
+  height: 2px;
+  margin: 0;
+  border: none;
+  background: color-mix(in oklab, hsl(var(--primary)) 35%, transparent);
+}
+.cke-field .ck.ck-content .ck-horizontal-line::after {
+  content: "◆ Sponsor logo set ◆";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.2rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px dashed
+    color-mix(in oklab, hsl(var(--primary)) 45%, transparent);
+  background: hsl(var(--card));
+  color: hsl(var(--primary));
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.news-editor-field .cke-field .ck.ck-editor__editable {
+  min-height: 30rem;
+}

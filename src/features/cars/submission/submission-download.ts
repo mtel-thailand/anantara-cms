@@ -4,8 +4,8 @@ import JSZip from "jszip";
 
 import { FormPdf, type PdfImage } from "@/src/lib/form-pdf";
 import { formatDate } from "@/src/lib/date";
+import { romanNumeral } from "@/src/features/cars/car-class-number.helpers";
 import {
-  romanNumeral,
   SUBMISSION_STATUS_LABELS,
   type CarSubmission,
   type SubmissionClass,

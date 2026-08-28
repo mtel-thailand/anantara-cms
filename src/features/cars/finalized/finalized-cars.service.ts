@@ -1,11 +1,15 @@
 import { createClient } from "@/src/lib/supabase/client";
 import type {
   FinalizedCarListItem,
+  FinalizedCarDetailItem,
   FinalizedCarsData,
   FinalizedCarsPageParams,
   FinalizedCarStatus,
 } from "@/src/features/cars/finalized/finalized-cars.types";
-import type { SubmissionClass } from "@/src/features/cars/submission/submission.types";
+import type {
+  DbSubmissionStatus,
+  SubmissionClass,
+} from "@/src/features/cars/submission/submission.types";
 import { unwrap } from "@/src/lib/supabase/unwrap";
 
 function firstImageUrl(value: unknown) {
@@ -46,7 +50,7 @@ type FinalizedCarRpcRow = {
   owner_form_needs_attention: boolean;
   owner_last_name: string;
   owner_reservation_id: string | null;
-  status: FinalizedCarStatus;
+  status: DbSubmissionStatus;
   updated_at: string;
   vehicle_ref: string;
   year: number;
@@ -87,7 +91,7 @@ function rpcCounts(value: unknown): Record<FinalizedCarStatus, number> {
   };
 }
 
-function toListItem(row: FinalizedCarRpcRow): FinalizedCarListItem {
+function toDetailItem(row: FinalizedCarRpcRow): FinalizedCarDetailItem {
   return {
     id: row.id,
     archivedAt: row.archived_at,
@@ -112,6 +116,15 @@ function toListItem(row: FinalizedCarRpcRow): FinalizedCarListItem {
     vehicleRef: row.vehicle_ref,
     year: row.year,
   };
+}
+
+function toListItem(row: FinalizedCarRpcRow): FinalizedCarListItem {
+  const item = toDetailItem(row);
+  if (item.status !== "finalized" && item.status !== "archived") {
+    throw new Error("Finalized cars RPC returned an unexpected status.");
+  }
+
+  return { ...item, status: item.status };
 }
 
 export async function getFinalizedCarsPage({
@@ -144,6 +157,17 @@ export async function getFinalizedCarsPage({
     items: rpcRows(result.data).map(toListItem),
     total: typeof result.total === "number" ? result.total : 0,
   };
+}
+
+export async function getCarClassCarDetails(submissionVehicleId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("get_car_class_car_details", {
+    p_submission_vehicle_id: submissionVehicleId,
+  });
+  const result = unwrap(data, error);
+
+  if (!result) throw new Error("The car was not found.");
+  return toDetailItem(result as FinalizedCarRpcRow);
 }
 
 export async function getFinalizedCarOwnerReservationId(

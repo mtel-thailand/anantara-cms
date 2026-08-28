@@ -57,8 +57,8 @@ export const SUBMISSION_STATUS_CLASSES: Record<SubmissionStatusKey, string> = {
   not_selected: "border-rose-200 bg-rose-50 text-rose-700",
   rejected: "border-rose-200 bg-rose-50 text-rose-700",
   approved: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  archived: "border-gray-200 bg-gray-50 text-gray-700",
-  finalized: "border-green-200 bg-green-50 text-green-700",
+  archived: "border-zinc-300 bg-zinc-100 text-zinc-600",
+  finalized: "border-indigo-200 bg-indigo-50 text-indigo-700",
 };
 
 export type LocalizedText = { en: string; it: string };
@@ -131,35 +131,6 @@ export type CarSubmission = {
   internalComments: string;
   infoRequests: InformationRequest[];
 };
-
-export function romanNumeral(value: number) {
-  const numerals: [number, string][] = [
-    [1000, "M"],
-    [900, "CM"],
-    [500, "D"],
-    [400, "CD"],
-    [100, "C"],
-    [90, "XC"],
-    [50, "L"],
-    [40, "XL"],
-    [10, "X"],
-    [9, "IX"],
-    [5, "V"],
-    [4, "IV"],
-    [1, "I"],
-  ];
-  let remaining = value;
-  let result = "";
-
-  for (const [amount, numeral] of numerals) {
-    while (remaining >= amount) {
-      result += numeral;
-      remaining -= amount;
-    }
-  }
-
-  return result;
-}
 
 export type SubmissionVehicleImage = {
   seq: number;
