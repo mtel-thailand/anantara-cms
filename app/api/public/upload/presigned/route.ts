@@ -5,10 +5,7 @@ import type { ApiContext } from "@/src/lib/api/types";
 import { withApiLogger } from "@/src/lib/api/with-api-logger";
 import { withValidate } from "@/src/lib/api/with-validate";
 import { storageAdaptorGetUploadUrl } from "@/src/lib/s3/client";
-import {
-  buildStoragePrefix,
-  normalizeStorageFolder,
-} from "@/src/lib/s3/key";
+import { buildStoragePrefix, normalizeStorageFolder } from "@/src/lib/s3/key";
 import { ACCEPTED_FILE_TYPES } from "@/src/lib/s3/presigned-upload.constants";
 import type { InferSchemas, SchemaMap } from "@/src/types/api-schema";
 
@@ -24,13 +21,15 @@ const schemas = {
         .trim()
         .min(1, "S3 key is required.")
         .max(1024)
-        .refine(
-          (key) =>
+        .refine((key) => {
+          const segments = key.split("/");
+
+          return (
             !key.endsWith("/") &&
-            !key.includes("..") &&
-            !key.split("/").includes("."),
-          "Invalid S3 key.",
-        ),
+            !segments.includes(".") &&
+            !segments.includes("..")
+          );
+        }, "Invalid S3 key."),
       contentType: z
         .string()
         .refine(
