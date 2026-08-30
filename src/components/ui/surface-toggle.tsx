@@ -17,6 +17,7 @@ export function SurfaceToggle({
   labels,
   availability,
   disabled = false,
+  disabledSurfaces = [],
   disabledTitle,
   className,
 }: {
@@ -25,6 +26,7 @@ export function SurfaceToggle({
   labels: Record<ContentSurface, string>;
   availability?: Partial<Record<ContentSurface, boolean>>;
   disabled?: boolean;
+  disabledSurfaces?: readonly ContentSurface[];
   disabledTitle?: string;
   className?: string;
 }) {
@@ -38,7 +40,8 @@ export function SurfaceToggle({
       {SURFACES.map(({ value: surface, Icon }) => {
         const active = value === surface;
         const filled = availability?.[surface];
-        const title = disabled
+        const surfaceDisabled = disabled || disabledSurfaces.includes(surface);
+        const title = surfaceDisabled
           ? disabledTitle
           : `Edit ${labels[surface]} content — ${
               filled ? "content added" : "empty"
@@ -49,14 +52,14 @@ export function SurfaceToggle({
             key={surface}
             type="button"
             aria-pressed={active}
-            disabled={disabled}
+            disabled={surfaceDisabled}
             title={title}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
               active
                 ? "bg-stone-200 text-stone-700 shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
-              disabled && !active && "hover:text-muted-foreground",
+              surfaceDisabled && !active && "hover:text-muted-foreground",
             )}
             onClick={() => onValueChange(surface)}
           >

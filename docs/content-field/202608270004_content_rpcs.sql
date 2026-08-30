@@ -168,9 +168,11 @@ begin
 end;
 $$;
 
+-- Replace the prior three-argument overload that used an expected version.
+drop function if exists public.publish_content_page(text, bigint, jsonb);
+
 create or replace function public.publish_content_page(
   p_page_key text,
-  p_expected_version bigint,
   p_values jsonb
 )
 returns jsonb
@@ -182,7 +184,7 @@ declare
   page_record record;
   field_record record;
   value_payload jsonb;
-  required_locale text;
+  required_variant text;
   payload_locale text;
   payload_channel text;
   payload_value jsonb;
@@ -201,7 +203,7 @@ begin
     raise exception 'Too many content values.';
   end if;
 
-  select page.id, page.version
+  select page.id
     into page_record
   from public.content_pages as page
   where page.key = p_page_key
@@ -209,12 +211,6 @@ begin
 
   if not found then
     raise exception 'Content page does not exist.';
-  end if;
-
-  if page_record.version <> p_expected_version then
-    raise exception using
-      errcode = '40001',
-      message = 'The page content changed. Refresh and try again.';
   end if;
 
   if exists (
@@ -283,48 +279,40 @@ begin
     end if;
   end loop;
 
-  -- Required localized fields need EN and IT. App variants remain optional when
-  -- appFallbackToWeb is enabled; the Web variant is the required baseline.
+  -- The field definition explicitly declares publish baselines. This allows
+  -- optional translations, such as Web Italian, to be published later.
   for field_record in
     select field.*
     from public.content_fields as field
     where field.page_id = page_record.id
       and field.required
   loop
-    if field_record.is_localized then
-      foreach required_locale in array array['en', 'it']
-      loop
-        if not exists (
-          select 1
-          from jsonb_array_elements(p_values) as item(value)
-          where item.value->>'fieldKey' = field_record.key
-            and item.value->>'locale' = required_locale
-            and item.value->>'channel' = case
-              when field_record.channel_mode = 'shared' then 'shared'
-              else 'web'
-            end
-            and item.value->'value' is not null
-            and item.value->'value' <> 'null'::jsonb
-        ) then
-          raise exception 'A required EN/IT content value is missing.';
-        end if;
-      end loop;
-    else
+    for required_variant in
+      select jsonb_array_elements_text(
+        coalesce(
+          field_record.config->'requiredVariants',
+          case
+            when field_record.channel_mode = 'per_channel' and field_record.is_localized
+              then jsonb_build_array('web:en', 'app:en')
+            when field_record.channel_mode = 'shared' and field_record.is_localized
+              then jsonb_build_array('shared:en')
+            else jsonb_build_array('shared:und')
+          end
+        )
+      )
+    loop
       if not exists (
         select 1
         from jsonb_array_elements(p_values) as item(value)
         where item.value->>'fieldKey' = field_record.key
-          and item.value->>'locale' = 'und'
-          and item.value->>'channel' = case
-            when field_record.channel_mode = 'shared' then 'shared'
-            else 'web'
-          end
+          and item.value->>'locale' = split_part(required_variant, ':', 2)
+          and item.value->>'channel' = split_part(required_variant, ':', 1)
           and item.value->'value' is not null
           and item.value->'value' <> 'null'::jsonb
       ) then
-        raise exception 'A required shared/Web content value is missing.';
+        raise exception 'A required content value is missing.';
       end if;
-    end if;
+    end loop;
   end loop;
 
   for value_payload in
@@ -416,12 +404,12 @@ revoke all on function public.get_content_page_admin(text)
   from public;
 revoke all on function public.get_content_page_public(text, text, text)
   from public;
-revoke all on function public.publish_content_page(text, bigint, jsonb)
+revoke all on function public.publish_content_page(text, jsonb)
   from public;
 
 grant execute on function public.get_content_page_admin(text)
   to authenticated;
 grant execute on function public.get_content_page_public(text, text, text)
   to anon, authenticated;
-grant execute on function public.publish_content_page(text, bigint, jsonb)
+grant execute on function public.publish_content_page(text, jsonb)
   to authenticated;

@@ -17,7 +17,7 @@ insert into public.content_fields (
 values
   ('20000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 'hero', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true}'),
   ('20000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000002', 'header', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true}'),
-  ('20000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000002', 'body', 'rich_text', 'content', true, 'per_channel', true, 2, '{"appFallbackToWeb":true}'),
+  ('20000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000002', 'footer', 'rich_text', 'footer', true, 'per_channel', true, 2, '{"appFallbackToWeb":true}'),
   ('20000000-0000-4000-8000-000000000004', '10000000-0000-4000-8000-000000000003', 'hero', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true}'),
   ('20000000-0000-4000-8000-000000000005', '10000000-0000-4000-8000-000000000004', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'),
   ('20000000-0000-4000-8000-000000000006', '10000000-0000-4000-8000-000000000005', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'),

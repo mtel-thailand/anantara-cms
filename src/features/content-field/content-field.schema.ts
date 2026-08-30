@@ -1,5 +1,9 @@
 import { z } from "zod";
+import {
+  getRequiredContentFieldVariants,
+} from "./content-field.config";
 import { CONTENT_FIELD_PAGE_KEYS } from "./content-field.types";
+import type { ContentFieldData, ContentFieldPageKey } from "./content-field.types";
 
 const richTextValueSchema = z
   .object({
@@ -31,15 +35,49 @@ export const contentFieldDataSchema = z.record(
   contentFieldFieldDataSchema,
 );
 
-const contentFieldDraftSchema = z
+const contentFieldFormSchema = z
   .object({
     data: contentFieldDataSchema,
-    pageKey: z.enum(CONTENT_FIELD_PAGE_KEYS),
-    version: z.number().int().positive(),
   })
   .strict();
 
-export const publishContentFieldSchema = contentFieldDraftSchema;
+export function getContentFieldFormSchema(pageKey: ContentFieldPageKey) {
+  return contentFieldFormSchema.superRefine(({ data }, context) => {
+    for (const { fieldKey, variant } of getRequiredContentFieldVariants(
+      pageKey,
+    )) {
+      const [channel, locale] = variant.split(":") as ["web" | "app", "en"];
+      const content =
+        channel === "web"
+          ? data[fieldKey]?.desktop?.[locale]
+          : data[fieldKey]?.app?.en;
+
+      if (!content?.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Required content is missing.",
+          path: [
+            "data",
+            fieldKey,
+            channel === "web" ? "desktop" : "app",
+            locale,
+          ],
+        });
+      }
+    }
+  });
+}
+
+export type ContentFieldFormValues = {
+  data: ContentFieldData;
+};
+
+export const publishContentFieldSchema = z
+  .object({
+    data: contentFieldDataSchema,
+    pageKey: z.enum(CONTENT_FIELD_PAGE_KEYS),
+  })
+  .strict();
 
 export const contentFieldSnapshotSchema = z
   .object({
@@ -82,8 +120,8 @@ export const contentFieldPageSchema = z
 
 export const contentFieldDraftStorageSchema = z
   .object({
-    draft: contentFieldDraftSchema,
-    version: z.literal(3),
+    draft: publishContentFieldSchema,
+    version: z.literal(5),
   })
   .strict();
 

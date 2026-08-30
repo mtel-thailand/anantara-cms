@@ -27,6 +27,7 @@ import {
   MediaEmbed,
   RemoveFormat,
   Strikethrough,
+  Style,
   Table,
   TableToolbar,
   Underline,
@@ -171,6 +172,7 @@ const CustomEditor = memo((props: CustomEditorProps) => {
             Table,
             TableToolbar,
             Undo,
+            Style,
           ],
           extraPlugins: [uploadPlugin],
           toolbar: {
@@ -179,6 +181,7 @@ const CustomEditor = memo((props: CustomEditorProps) => {
               "redo",
               "|",
               "heading",
+              "style",
               "|",
               "fontFamily",
               "fontSize",

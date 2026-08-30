@@ -8,7 +8,10 @@ import {
   contentFieldSnapshotSchema,
   type PublishContentFieldInput,
 } from "./content-field.schema";
-import { getContentFieldDefinitions } from "./content-field.config";
+import {
+  getContentFieldDefinitions,
+  getRequiredContentFieldVariants,
+} from "./content-field.config";
 import type {
   ContentFieldData,
   ContentFieldDraft,
@@ -38,7 +41,6 @@ type ContentRpcClient = {
   rpc(
     functionName: "publish_content_page",
     args: {
-      p_expected_version: number;
       p_page_key: ContentFieldPageKey;
       p_values: unknown[];
     },
@@ -85,8 +87,8 @@ function mapSnapshot(snapshot: unknown): ContentFieldDraft {
   const supportedVariants = definitions.flatMap((field) =>
     field.variants.map((variant) => `${field.key}:${variant}`),
   );
-  const requiredVariants = supportedVariants.filter((variant) =>
-    variant.includes(":web:"),
+  const requiredVariants = getRequiredContentFieldVariants(parsed.pageKey).map(
+    ({ fieldKey, variant }) => `${fieldKey}:${variant}`,
   );
   if (
     variants.size !== parsed.values.length ||
@@ -111,8 +113,8 @@ function mapSnapshot(snapshot: unknown): ContentFieldDraft {
           ...(field.variants.some((variant) => variant.startsWith("web:"))
             ? {
                 desktop: {
-                  en: variants.get(`${field.key}:web:en`)!,
-                  it: variants.get(`${field.key}:web:it`)!,
+                  en: variants.get(`${field.key}:web:en`) ?? "",
+                  it: variants.get(`${field.key}:web:it`) ?? "",
                 },
               }
             : {}),
@@ -255,7 +257,6 @@ export async function publishContentField(
     "publish_content_page",
     {
       p_page_key: input.pageKey,
-      p_expected_version: input.version,
       p_values: toPublishValues(input.pageKey, input.data),
     },
   );

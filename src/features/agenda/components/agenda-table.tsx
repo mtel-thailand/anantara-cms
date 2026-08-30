@@ -381,7 +381,10 @@ const AgendaTable = memo(function AgendaTable({
             {dateLabel}
           </Text.FormTitle>
           {agenda.removed ? (
-            <Badge variant="outline" className="text-muted-foreground">
+            <Badge
+              variant="outline"
+              className="border-destructive/30 bg-destructive/5 text-destructive"
+            >
               {t("willRemove")}
             </Badge>
           ) : duplicate ? (

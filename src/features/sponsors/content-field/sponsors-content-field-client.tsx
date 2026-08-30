@@ -12,7 +12,7 @@ export function SponsorsContentFieldClient({ description, initialDraft, title }:
     description={description}
     fields={[
       { key: "header", label: t("headerLabel"), description: t("headerDescription"), surfaces: ["desktop", "app"] },
-      { key: "footer", label: t("footerLabel"), description: t("footerDescription"), surfaces: ["desktop"] },
+      { key: "footer", label: t("bodyLabel"), description: t("bodyDescription"), surfaces: ["desktop"] },
     ]}
     initialDraft={initialDraft}
     previewData={undefined}

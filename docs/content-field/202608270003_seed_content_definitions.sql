@@ -10,6 +10,24 @@ values
   ('gallery')
 on conflict (key) do nothing;
 
+-- Earlier versions of this seed named the desktop-only Sponsors footer "body".
+-- Keep existing installations compatible when this seed is re-applied.
+update public.content_fields as field
+set
+  key = 'footer',
+  placement = 'footer',
+  config = '{"appFallbackToWeb":true,"requiredVariants":["web:en"]}'::jsonb
+from public.content_pages as page
+where field.page_id = page.id
+  and page.key = 'sponsors'
+  and field.key = 'body'
+  and not exists (
+    select 1
+    from public.content_fields as existing_field
+    where existing_field.page_id = page.id
+      and existing_field.key = 'footer'
+  );
+
 insert into public.content_fields (
   page_id, key, content_type, placement, is_localized,
   channel_mode, required, sequence, config
@@ -21,15 +39,15 @@ select
   definition.sequence, definition.config
 from (
   values
-    ('cars.classes', 'hero', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true}'::jsonb),
-    ('sponsors', 'header', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true}'::jsonb),
-    ('sponsors', 'body', 'rich_text', 'content', true, 'per_channel', true, 2, '{"appFallbackToWeb":true}'::jsonb),
-    ('judges', 'hero', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true}'::jsonb),
+    ('cars.classes', 'hero', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true,"requiredVariants":["web:en","app:en"]}'::jsonb),
+    ('sponsors', 'header', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true,"requiredVariants":["web:en","app:en"]}'::jsonb),
+    ('sponsors', 'footer', 'rich_text', 'footer', true, 'per_channel', true, 2, '{"appFallbackToWeb":true,"requiredVariants":["web:en"]}'::jsonb),
+    ('judges', 'hero', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true,"requiredVariants":["web:en","app:en"]}'::jsonb),
     ('awards.best_of_show', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'::jsonb),
     ('awards.best_in_class', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'::jsonb),
     ('awards.special_awards', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'::jsonb),
     ('gallery', 'contact_email', 'email', 'metadata', false, 'shared', true, 1, '{}'::jsonb),
-    ('gallery', 'introduction', 'rich_text', 'header', true, 'per_channel', true, 2, '{"appFallbackToWeb":true}'::jsonb)
+    ('gallery', 'introduction', 'rich_text', 'header', true, 'per_channel', true, 2, '{"appFallbackToWeb":true,"requiredVariants":["web:en","app:en"]}'::jsonb)
 ) as definition(
   page_key, field_key, content_type, placement, is_localized,
   channel_mode, required, sequence, config

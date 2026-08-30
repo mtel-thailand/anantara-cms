@@ -2,12 +2,14 @@ import type { ContentFieldPageKey, ContentFieldSurface } from "./content-field.t
 
 type ContentFieldDefinition = {
   key: string;
+  requiredVariants: readonly `${"web" | "app"}:${"en" | "it"}`[];
   surfaces: readonly ContentFieldSurface[];
   variants: readonly `${"web" | "app"}:${"en" | "it"}`[];
 };
 
 const heroField = {
   key: "hero",
+  requiredVariants: ["web:en", "app:en"],
   surfaces: ["desktop", "app"],
   variants: ["web:en", "web:it", "app:en"],
 } as const satisfies ContentFieldDefinition;
@@ -18,11 +20,13 @@ export const contentFieldDefinitions = {
   sponsors: [
     {
       key: "header",
+      requiredVariants: ["web:en", "app:en"],
       surfaces: ["desktop", "app"],
       variants: ["web:en", "web:it", "app:en"],
     },
     {
       key: "footer",
+      requiredVariants: ["web:en"],
       surfaces: ["desktop"],
       variants: ["web:en", "web:it"],
     },
@@ -31,6 +35,12 @@ export const contentFieldDefinitions = {
 
 export function getContentFieldDefinitions(pageKey: ContentFieldPageKey) {
   return contentFieldDefinitions[pageKey] as readonly ContentFieldDefinition[];
+}
+
+export function getRequiredContentFieldVariants(pageKey: ContentFieldPageKey) {
+  return getContentFieldDefinitions(pageKey).flatMap((field) =>
+    field.requiredVariants.map((variant) => ({ fieldKey: field.key, variant })),
+  );
 }
 
 export function channelForSurface(surface: ContentFieldSurface) {

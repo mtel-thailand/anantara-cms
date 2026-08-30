@@ -274,8 +274,7 @@ body {
   transform: translate(-50%, -50%);
   padding: 0.2rem 0.75rem;
   border-radius: 9999px;
-  border: 1px dashed
-    color-mix(in oklab, hsl(var(--primary)) 45%, transparent);
+  border: 1px dashed color-mix(in oklab, hsl(var(--primary)) 45%, transparent);
   background: hsl(var(--card));
   color: hsl(var(--primary));
   font-size: 0.7rem;

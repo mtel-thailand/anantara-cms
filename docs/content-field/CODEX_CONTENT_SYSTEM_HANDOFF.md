@@ -15,7 +15,7 @@ has EN/IT on both platforms:
 - Rich text, plain text and email fields
 - Local-first editing: changes stay in client state until Publish
 - Atomic publishing through a PostgreSQL RPC
-- Optimistic concurrency through `content_pages.version`
+- Publication revisions through `content_pages.version`
 - Exact per-field allowed and required variant validation
 - Publication snapshots for audit/history
 
@@ -318,7 +318,6 @@ field explicitly defines such fallback.
 ```ts
 supabase.rpc("publish_content_page", {
   p_page_key: draft.pageKey,
-  p_expected_version: draft.version,
   p_values: draft.values,
 });
 ```
@@ -362,13 +361,12 @@ Publish must execute atomically and must:
 1. Verify the authenticated CMS editor.
 2. Validate the payload is an array within the size limit.
 3. Lock the matching `content_pages` record.
-4. Compare `p_expected_version` with the persisted version.
-5. Reject duplicate field/locale/channel variants.
-6. Reject unknown fields.
-7. Validate the exact `channel:locale` pair against the field's
+4. Reject duplicate field/locale/channel variants.
+5. Reject unknown fields.
+6. Validate the exact `channel:locale` pair against the field's
    `config.allowedVariants` list.
-8. Validate the JSON shape against `content_type`.
-9. Require every pair in `config.requiredVariants`; do not apply a global EN/IT
+7. Validate the JSON shape against `content_type`.
+8. Require every pair in `config.requiredVariants`; do not apply a global EN/IT
    or Web/App requirement.
 10. Upsert non-null variants and delete explicitly null optional variants.
 11. Increment `content_pages.version`.
@@ -469,19 +467,10 @@ Do not show an App editor for Sponsors footer or Gallery header. Do not show an
 Italian App editor anywhere in this scope. Do not generate unsupported rows when
 publishing the complete draft.
 
-## Concurrency Behaviour
+## Concurrent Publishing
 
-Example:
-
-```text
-Admin A loads version 3
-Admin B loads version 3
-Admin B publishes -> database becomes version 4
-Admin A publishes expected version 3 -> reject with concurrency error
-```
-
-The UI must show a clear refresh/reload message. It must not automatically retry
-with the new version because doing so could overwrite another editor's changes.
+Publishes are serialized by the page row lock. The most recently completed
+publish becomes the live content; no expected-version comparison is performed.
 
 ## Public Page Integration
 
@@ -540,10 +529,9 @@ At minimum verify:
 11. Missing exact required variants are rejected.
 12. Invalid rich-text, plain-text and email shapes are rejected.
 13. Duplicate variants in one payload are rejected.
-14. A stale expected version is rejected without any partial updates.
-15. A successful publish updates all values, increments the version and inserts
+14. A successful publish updates all values, increments the publication revision and inserts
     exactly one publication snapshot.
-16. Static Pages continue to work unchanged.
+15. Static Pages continue to work unchanged.
 
 Run focused checks on all touched files:
 
@@ -576,7 +564,6 @@ separately and still run the narrowest relevant checks on touched files.
 - Do not move existing Cars, Sponsors, Judges, Awards or Gallery domain records.
 - Do not write draft content to the database on every keystroke.
 - Do not perform multi-step non-transactional publishing.
-- Do not bypass optimistic concurrency.
 - Do not silently fall back from EN to IT or IT to EN.
 - Do not apply both seed files.
 - Do not edit a migration that has already been applied to production; create a

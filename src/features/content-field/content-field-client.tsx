@@ -11,19 +11,29 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, type Path } from "react-hook-form";
 import { toast } from "sonner";
 
 import { FormLanguageToggle } from "@/src/components/form/language-toggle";
+import ControlledRichTextEditor from "@/src/components/form/rich-text-editor";
 import { PageHeader } from "@/src/components/page-header";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { Dropdown } from "@/src/components/ui/dropdown/dropdown";
-import ClientSideCustomEditor from "@/src/components/ui/editor/client-side-custom-editor";
 import { Label } from "@/src/components/ui/label";
 import { SurfaceToggle } from "@/src/components/ui/surface-toggle";
 import { publishContentFieldAction } from "./content-field.actions";
-import { contentFieldDraftStorageSchema } from "./content-field.schema";
+import {
+  getContentFieldDefinitions,
+  getRequiredContentFieldVariants,
+} from "./content-field.config";
+import {
+  contentFieldDraftStorageSchema,
+  getContentFieldFormSchema,
+  type ContentFieldFormValues,
+} from "./content-field.schema";
 import { useContentFieldModals } from "./hooks/use-content-field-modals";
 import { useContentPreviewModal } from "./hooks/use-content-preview-modal";
 import type {
@@ -35,7 +45,7 @@ import type {
   ContentFieldTranslationNamespace,
 } from "./content-field.types";
 
-const DRAFT_STORAGE_VERSION = 3;
+const DRAFT_STORAGE_VERSION = 5;
 
 function getDraftStorageKey(pageKey: ContentFieldDraft["pageKey"]) {
   return `anantara-cms:content-field:${pageKey}:draft:v${DRAFT_STORAGE_VERSION}`;
@@ -43,6 +53,32 @@ function getDraftStorageKey(pageKey: ContentFieldDraft["pageKey"]) {
 
 function contentSnapshot(data: ContentFieldData) {
   return JSON.stringify(data);
+}
+
+function getVariantContent(
+  data: ContentFieldData,
+  fieldKey: string,
+  variant: string,
+) {
+  const fieldData = data[fieldKey];
+  if (variant === "web:en") return fieldData?.desktop?.en;
+  if (variant === "web:it") return fieldData?.desktop?.it;
+  if (variant === "app:en") return fieldData?.app?.en;
+  return undefined;
+}
+
+function getFirstWebLanguageGap(
+  pageKey: ContentFieldDraft["pageKey"],
+  data: ContentFieldData,
+) {
+  return getContentFieldDefinitions(pageKey).find((field) => {
+    if (!field.variants.includes("web:it")) return false;
+
+    const webEnglish = getVariantContent(data, field.key, "web:en")?.trim();
+    const webItalian = getVariantContent(data, field.key, "web:it")?.trim();
+
+    return Boolean(webEnglish) !== Boolean(webItalian);
+  });
 }
 
 export function ContentFieldClient<PreviewData>({
@@ -70,9 +106,13 @@ export function ContentFieldClient<PreviewData>({
   const routeLocale = useLocale() as ContentFieldLocale;
   const [publishedDraft, setPublishedDraft] =
     useState<ContentFieldDraft>(initialDraft);
-  const [draftData, setDraftData] = useState<ContentFieldData>(
-    initialDraft.data,
-  );
+  const form = useForm<ContentFieldFormValues>({
+    defaultValues: { data: initialDraft.data },
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    resolver: zodResolver(getContentFieldFormSchema(initialDraft.pageKey)),
+  });
+  const draftData = form.watch("data");
   const [hydrated, setHydrated] = useState(false);
   const [surfaceByField, setSurfaceByField] = useState<Record<string, "app" | "desktop">>(
     () => Object.fromEntries(fields.map((field) => [field.key, field.surfaces[0] ?? "desktop"])),
@@ -80,6 +120,26 @@ export function ContentFieldClient<PreviewData>({
   const [desktopLocale, setDesktopLocale] =
     useState<ContentFieldLocale>(routeLocale);
   const [editorResetKey, setEditorResetKey] = useState(0);
+  const [showValidation, setShowValidation] = useState(false);
+  const requiredVariants = getRequiredContentFieldVariants(
+    publishedDraft.pageKey,
+  );
+  const hasMissingRequiredContent = requiredVariants.some(
+    ({ fieldKey, variant }) =>
+      !getVariantContent(draftData, fieldKey, variant)?.trim(),
+  );
+  const firstWebLanguageGap = getFirstWebLanguageGap(
+    publishedDraft.pageKey,
+    draftData,
+  );
+  const missingRequiredSurfaces = [...new Set(
+    requiredVariants
+      .filter(
+        ({ fieldKey, variant }) =>
+          !getVariantContent(draftData, fieldKey, variant)?.trim(),
+      )
+      .map(({ variant }) => (variant.startsWith("app:") ? t("app") : t("desktop"))),
+  )];
 
   const dirty =
     contentSnapshot(draftData) !== contentSnapshot(publishedDraft.data);
@@ -98,22 +158,23 @@ export function ContentFieldClient<PreviewData>({
         return;
       }
 
-      if (
-        parsed.data.draft.pageKey === initialDraft.pageKey &&
-        parsed.data.draft.version === initialDraft.version
-      ) {
-        setDraftData(parsed.data.draft.data);
+      if (parsed.data.draft.pageKey === initialDraft.pageKey) {
+        form.reset({ data: parsed.data.draft.data });
       }
     } catch {
       window.localStorage.removeItem(getDraftStorageKey(initialDraft.pageKey));
     } finally {
       setHydrated(true);
     }
-  }, [initialDraft.pageKey, initialDraft.version]);
+  }, [form, initialDraft.pageKey, initialDraft.version]);
 
   useEffect(() => {
     setDesktopLocale(routeLocale);
   }, [routeLocale]);
+
+  useEffect(() => {
+    if (!hasMissingRequiredContent) setShowValidation(false);
+  }, [hasMissingRequiredContent]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -131,7 +192,6 @@ export function ContentFieldClient<PreviewData>({
           draft: {
             data: draftData,
             pageKey: publishedDraft.pageKey,
-            version: publishedDraft.version,
           },
         }),
       );
@@ -140,32 +200,8 @@ export function ContentFieldClient<PreviewData>({
     }
   }, [draftData, dirty, hydrated, initialDraft.pageKey, publishedDraft]);
 
-  function updateContent(
-    fieldKey: string,
-    surface: "app" | "desktop",
-    locale: ContentFieldLocale,
-    content: string,
-  ) {
-    setDraftData((current) => {
-      const fieldData = current[fieldKey] ?? {};
-
-      return surface === "app"
-        ? { ...current, [fieldKey]: { ...fieldData, app: { en: content } } }
-        : {
-            ...current,
-            [fieldKey]: {
-              ...fieldData,
-              desktop: {
-                en: locale === "en" ? content : (fieldData.desktop?.en ?? ""),
-                it: locale === "it" ? content : (fieldData.desktop?.it ?? ""),
-              },
-            },
-          };
-    });
-  }
-
   function discard() {
-    setDraftData(publishedDraft.data);
+    form.reset({ data: publishedDraft.data });
     setEditorResetKey((current) => current + 1);
     toast.success(t("discardSuccess"));
   }
@@ -173,12 +209,11 @@ export function ContentFieldClient<PreviewData>({
   async function publish() {
     try {
       const canonical = await publishContentFieldAction({
-        data: draftData,
+        data: form.getValues("data"),
         pageKey: publishedDraft.pageKey,
-        version: publishedDraft.version,
       });
       setPublishedDraft(canonical);
-      setDraftData(canonical.data);
+      form.reset({ data: canonical.data });
       toast.success(t("publishSuccess"), {
         description: t("publishDescription"),
       });
@@ -192,11 +227,56 @@ export function ContentFieldClient<PreviewData>({
     }
   }
 
+  function fixContent() {
+    const incomplete = getRequiredContentFieldVariants(
+      publishedDraft.pageKey,
+    ).find(({ fieldKey, variant }) => {
+      return !getVariantContent(form.getValues("data"), fieldKey, variant)?.trim();
+    });
+
+    if (!incomplete) return;
+
+    const [channel, locale] = incomplete.variant.split(":") as [
+      "web" | "app",
+      "en",
+    ];
+    setSurfaceByField((current) => ({
+      ...current,
+      [incomplete.fieldKey]: channel === "web" ? "desktop" : "app",
+    }));
+    if (channel === "web") setDesktopLocale(locale);
+  }
+
+  function fixWebLanguageGap() {
+    if (!firstWebLanguageGap) return;
+
+    const webItalian = getVariantContent(
+      form.getValues("data"),
+      firstWebLanguageGap.key,
+      "web:it",
+    )?.trim();
+
+    setSurfaceByField((current) => ({
+      ...current,
+      [firstWebLanguageGap.key]: "desktop",
+    }));
+    setDesktopLocale(webItalian ? "en" : "it");
+  }
+
   const { openDiscardChanges, openPublishChanges } = useContentFieldModals({
+    hasWebLanguageGap: Boolean(firstWebLanguageGap),
     onDiscard: discard,
+    onFixContent: fixWebLanguageGap,
     onPublish: publish,
     translationNamespace,
   });
+
+  function submitForPublish() {
+    void form.handleSubmit(openPublishChanges, () => {
+      setShowValidation(true);
+      fixContent();
+    })();
+  }
 
   return (
     <>
@@ -274,7 +354,7 @@ export function ContentFieldClient<PreviewData>({
         <Button
           leftIcon={Upload}
           disabled={!dirty}
-          onClick={openPublishChanges}
+          onClick={submitForPublish}
         >
           {t("publishChanges")}
         </Button>
@@ -285,10 +365,22 @@ export function ContentFieldClient<PreviewData>({
           const surface = surfaceByField[field.key] ?? "desktop";
           const fieldData = draftData[field.key];
           const editLocale: ContentFieldLocale = surface === "app" ? "en" : desktopLocale;
-          const activeContent = surface === "app"
-            ? fieldData?.app?.en ?? ""
-            : fieldData?.desktop?.[editLocale] ?? "";
           const hasApp = field.surfaces.includes("app");
+          const editorName = (
+            surface === "app"
+              ? `data.${field.key}.app.en`
+              : `data.${field.key}.desktop.${editLocale}`
+          ) as Path<ContentFieldFormValues>;
+          const activeVariant = surface === "app" ? "app:en" : "web:en";
+          const invalid =
+            showValidation &&
+            (surface === "app" || editLocale === "en") &&
+            requiredVariants.some(
+              ({ fieldKey, variant }) =>
+                fieldKey === field.key &&
+                variant === activeVariant &&
+                !getVariantContent(draftData, fieldKey, variant)?.trim(),
+            );
 
           return (
             <Card key={field.key} className="rounded-2xl">
@@ -299,17 +391,17 @@ export function ContentFieldClient<PreviewData>({
                     <p className="text-xs text-muted-foreground">{field.description}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    {hasApp ? (
-                      <SurfaceToggle
-                        value={surface}
-                        labels={{ app: t("app"), desktop: t("desktop") }}
-                        availability={{
-                          app: Boolean(fieldData?.app?.en.trim()),
-                          desktop: Boolean(fieldData?.desktop?.en.trim()),
-                        }}
-                        onValueChange={(nextSurface) => setSurfaceByField((current) => ({ ...current, [field.key]: nextSurface }))}
-                      />
-                    ) : null}
+                    <SurfaceToggle
+                      value={surface}
+                      labels={{ app: t("app"), desktop: t("desktop") }}
+                      availability={{
+                        app: Boolean(fieldData?.app?.en?.trim()),
+                        desktop: Boolean(fieldData?.desktop?.en?.trim()),
+                      }}
+                      disabledSurfaces={hasApp ? [] : ["app"]}
+                      disabledTitle={hasApp ? undefined : t("appUnavailable")}
+                      onValueChange={(nextSurface) => setSurfaceByField((current) => ({ ...current, [field.key]: nextSurface }))}
+                    />
                     <FormLanguageToggle
                       size="sm"
                       value={editLocale}
@@ -317,19 +409,33 @@ export function ContentFieldClient<PreviewData>({
                       disabledTitle={t("appEnglishOnly")}
                       availability={{
                         en: Boolean((surface === "app" ? fieldData?.app?.en : fieldData?.desktop?.en)?.trim()),
-                        it: surface === "desktop" && Boolean(fieldData?.desktop?.it.trim()),
+                        it: Boolean(fieldData?.desktop?.it?.trim()),
                       }}
                       onValueChange={setDesktopLocale}
                     />
                   </div>
                 </div>
                 <div className="[&_.ck-editor__editable_inline]:min-h-[28rem] [&_.ck-editor__editable_inline]:px-10 [&_.ck-editor__editable_inline]:py-12">
-                  <ClientSideCustomEditor
+                  <ControlledRichTextEditor
+                    control={form.control}
+                    invalid={invalid}
+                    name={editorName}
                     key={`${field.key}-${surface}-${editLocale}-${editorResetKey}`}
-                    data={activeContent}
                     placeholder={t(surface === "app" ? "appPlaceholder" : "desktopPlaceholder")}
-                    onChange={(content) => updateContent(field.key, surface, editLocale, content)}
                   />
+                  {invalid ? (
+                    <p className="text-sm text-destructive">
+                      {missingRequiredSurfaces.length === 1
+                        ? t("contentRequiredError", {
+                            surface: missingRequiredSurfaces[0],
+                          })
+                        : t("contentRequiredErrors", {
+                            surfaces: missingRequiredSurfaces.join(
+                              ` ${t("and")} `,
+                            ),
+                          })}
+                    </p>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>

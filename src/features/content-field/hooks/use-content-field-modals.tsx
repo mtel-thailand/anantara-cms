@@ -9,11 +9,15 @@ import Text from "@/src/components/ui/text";
 import type { ContentFieldTranslationNamespace } from "../content-field.types";
 
 export function useContentFieldModals({
+  hasWebLanguageGap,
   onDiscard,
+  onFixContent,
   onPublish,
   translationNamespace,
 }: {
+  hasWebLanguageGap: boolean;
   onDiscard: () => void;
+  onFixContent: () => void;
   onPublish: () => Promise<boolean>;
   translationNamespace: ContentFieldTranslationNamespace;
 }) {
@@ -57,19 +61,26 @@ export function useContentFieldModals({
   }, [modal, onDiscard, t]);
 
   const openPublishChanges = useCallback(() => {
+    const title = hasWebLanguageGap
+      ? t("languageGapDialogTitle")
+      : t("publishDialogTitle");
+    const description = hasWebLanguageGap
+      ? t("languageGapDialogDescription")
+      : t("publishDialogDescription");
+
     modal.preventBackdropClose();
     modal.open({
       className: "gap-1.5 p-0 sm:max-w-sm",
       headerClassName: "border-0 px-4 pb-0 pt-4",
       header: (
         <Text.FormTitle size="base" weight="medium">
-          {t("publishDialogTitle")}
+          {title}
         </Text.FormTitle>
       ),
       contentClassName: "px-4 pb-3",
       content: (
         <Text size="sm" color="muted-foreground">
-          {t("publishDialogDescription")}
+          {description}
         </Text>
       ),
       footerClassName: "px-4",
@@ -78,6 +89,18 @@ export function useContentFieldModals({
           <Button variant="outline" disabled={loading} onClick={close}>
             {t("keepEditing")}
           </Button>
+          {hasWebLanguageGap ? (
+            <Button
+              variant="outline"
+              disabled={loading}
+              onClick={() => {
+                onFixContent();
+                close();
+              }}
+            >
+              {t("fixContent")}
+            </Button>
+          ) : null}
           <Button
             loading={loading}
             onClick={() => {
@@ -88,12 +111,12 @@ export function useContentFieldModals({
               });
             }}
           >
-            {t("publishChanges")}
+            {hasWebLanguageGap ? t("publishAnyway") : t("publishChanges")}
           </Button>
         </>
       ),
     });
-  }, [modal, onPublish, t]);
+  }, [hasWebLanguageGap, modal, onFixContent, onPublish, t]);
 
   return { openDiscardChanges, openPublishChanges };
 }

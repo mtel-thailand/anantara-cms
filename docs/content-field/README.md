@@ -44,7 +44,7 @@ Important columns:
 
 - `id`: Database identifier
 - `key`: Stable page identifier used by application code and RPCs
-- `version`: Optimistic-concurrency token incremented after every publish
+- `version`: Publication revision incremented after every publish
 - `published_at`: Time of the latest successful publication
 - `created_at`, `updated_at`: Audit timestamps
 
@@ -131,7 +131,7 @@ cars.classes
 
 sponsors
   header          rich_text  EN/IT  Web/App
-  body            rich_text  EN/IT  Web/App
+  footer          rich_text  EN/IT  Web
 
 judges
   hero            rich_text  EN/IT  Web/App
@@ -189,7 +189,7 @@ Anonymous users have read-only access to all four content tables. Every
 authenticated user has direct CRUD access to all four content tables.
 
 The CMS publish feature should still use `publish_content_page()` so validation,
-optimistic concurrency, value updates, and the publication snapshot happen in
+value updates, and the publication snapshot happen in
 one transaction. Direct authenticated writes can bypass those guarantees and
 should be reserved for intentional administrative/database workflows.
 
@@ -249,7 +249,7 @@ field has:
 
 The RPC does not fall back between EN and IT.
 
-### `publish_content_page(pageKey, expectedVersion, values)`
+### `publish_content_page(pageKey, values)`
 
 Publishes the complete local draft atomically.
 
@@ -260,7 +260,6 @@ const { data, error } = await supabase.rpc(
   "publish_content_page",
   {
     p_page_key: draft.pageKey,
-    p_expected_version: draft.version,
     p_values: draft.values,
   },
 );
@@ -270,32 +269,22 @@ The RPC:
 
 1. Checks that the caller is authenticated.
 2. Locks the relevant `content_pages` record.
-3. Verifies `expectedVersion`.
-4. Rejects duplicate variants and unknown fields.
-5. Validates locale, channel, and value shape.
-6. Verifies all required baseline values.
-7. Upserts or removes variants.
-8. Increments the page version.
-9. Updates `published_at`.
-10. Inserts a publication snapshot.
-11. Returns the canonical published snapshot.
+3. Rejects duplicate variants and unknown fields.
+4. Validates locale, channel, and value shape.
+5. Verifies all required baseline values.
+6. Upserts or removes variants.
+7. Increments the page revision.
+8. Updates `published_at`.
+9. Inserts a publication snapshot.
+10. Returns the canonical published snapshot.
 
 All operations run in one PostgreSQL transaction. Any failure rolls back the
 complete publish.
 
-## Optimistic Concurrency
+## Concurrent Publishing
 
-Example:
-
-```text
-Editor A loads version 4
-Editor B loads version 4
-Editor B publishes successfully -> database version becomes 5
-Editor A publishes with expected version 4 -> request is rejected
-```
-
-The client must ask Editor A to refresh. It must not automatically retry with
-version 5 because that could overwrite Editor B's changes.
+The page row is locked while each publish runs. The most recently completed
+publish becomes live; publishing does not compare an expected version.
 
 ## Local-First Editing
 
