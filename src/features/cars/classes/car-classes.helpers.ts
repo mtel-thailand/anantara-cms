@@ -42,6 +42,44 @@ export function updateCarClassSequences(classes: CarClass[]) {
   );
 }
 
+export function normalizeCarAssignmentSequences(
+  cars: ClassAssignableCar[],
+) {
+  const groupedCars = new Map<
+    string,
+    Array<{ car: ClassAssignableCar; index: number }>
+  >();
+
+  for (const [index, car] of cars.entries()) {
+    if (!car.categoryId) continue;
+
+    const group = groupedCars.get(car.categoryId) ?? [];
+    group.push({ car, index });
+    groupedCars.set(car.categoryId, group);
+  }
+
+  const normalizedCars = cars.map((car) =>
+    car.categoryId === null && car.sequence !== null
+      ? { ...car, sequence: null }
+      : car,
+  );
+
+  for (const group of groupedCars.values()) {
+    group
+      .sort(
+        (left, right) =>
+          (left.car.sequence ?? Number.MAX_SAFE_INTEGER) -
+            (right.car.sequence ?? Number.MAX_SAFE_INTEGER) ||
+          left.index - right.index,
+      )
+      .forEach(({ car, index }, sequence) => {
+        normalizedCars[index] = { ...car, sequence: sequence + 1 };
+      });
+  }
+
+  return normalizedCars;
+}
+
 export function getLiveClassPositions(classes: CarClass[]) {
   const positions = new Map<string, number>();
   let position = 0;

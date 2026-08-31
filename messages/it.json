@@ -140,6 +140,8 @@
       "delete": "Elimina",
       "removeClassTitle": "Rimuovere {class}?",
       "removeClassDescription": "Verrà contrassegnata per la rimozione e scomparirà dal sito alla pubblicazione. Fino ad allora puoi ripristinarla.",
+      "removeClassWithCarsDescription": "Questa classe ha {count} {count, plural, one {auto approvata assegnata} other {auto approvate assegnate}}. Manterranno i dati, ma perderanno l’assegnazione alla classe finché non verranno riassegnate.",
+      "removeEmptyClassDescription": "Questa classe non ha auto approvate assegnate. Le classi rimanenti verranno rinumerate automaticamente.",
       "classMarkedForRemoval": "Classe contrassegnata per la rimozione",
       "classMarkedForRemovalDescription": "Puoi ripristinarla dall’elenco prima di pubblicare.",
       "classRestored": "{class} ripristinata",

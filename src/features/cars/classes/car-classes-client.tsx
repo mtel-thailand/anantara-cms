@@ -26,6 +26,7 @@ import {
   CAR_CLASSES_DRAFT_STORAGE_VERSION,
   getLiveClassPositions,
   groupCarsByClass,
+  normalizeCarAssignmentSequences,
   normalizedCarClassesSnapshot,
   stripCarClassRow,
   storedCarClassesDraft,
@@ -218,6 +219,13 @@ export function CarClassesClient({
               .filter(({ removed }) => removed)
               .map(({ id }) => id),
           );
+          const normalizedCars = normalizeCarAssignmentSequences(
+            draftData.cars.map((car) =>
+              removedIds.has(car.categoryId ?? "")
+                ? { ...car, categoryId: null, sequence: null }
+                : car,
+            ),
+          );
           const canonical = await publishCarClassesAction({
             revision: draftData.revision,
             classes: draftData.classes.map(
@@ -228,11 +236,11 @@ export function CarClassesClient({
                 sequence,
               }),
             ),
-            cars: draftData.cars.map(({ id, categoryId, sequence }) =>
-              removedIds.has(categoryId ?? "")
-                ? { id, categoryId: null, sequence: null }
-                : { id, categoryId, sequence },
-            ),
+            cars: normalizedCars.map(({ id, categoryId, sequence }) => ({
+              id,
+              categoryId,
+              sequence,
+            })),
           });
           setPublishedData(canonical);
           setDraftData(canonical);
