@@ -89,7 +89,9 @@ export function useCarClassModals({
                       },
                 );
                 close();
-                toast.success(t("classMarkedForRemoval"));
+                toast.success(t("classMarkedForRemoval"), {
+                  description: t("classMarkedForRemovalDescription"),
+                });
               }}
             >
               {commonT("remove")}
@@ -148,9 +150,12 @@ export function useCarClassModals({
                       ],
                     },
               );
-              toast.success(carClass ? t("classUpdated") : t("classCreated"), {
-                description: t("rememberToPublish"),
-              });
+              toast.success(
+                carClass
+                  ? t("classUpdated", { number: romanNumeral(position) })
+                  : t("classCreated", { number: romanNumeral(position) }),
+                { description: t("rememberToPublish") },
+              );
               return null;
             }}
           />
@@ -202,7 +207,14 @@ export function useCarClassModals({
                 };
               });
               toast.success(
-                t("carAssigned", { car: car.name, class: carClass.name }),
+                t("carAssigned", {
+                  car: car.name,
+                  class: `${t("classNumber", {
+                    number: romanNumeral(
+                      livePositions.get(carClass.id) ?? carClass.sequence,
+                    ),
+                  })} — ${carClass.name}`,
+                }),
               );
             }}
           />
@@ -260,6 +272,9 @@ export function useCarClassModals({
 
   const openRemoveCar = useCallback(
     (car: ClassAssignableCar) => {
+      const carClass = draftData.classes.find(
+        ({ id }) => id === car.categoryId,
+      );
       modal.preventBackdropClose();
       modal.open({
         className: "gap-1.5 p-0 sm:max-w-sm",
@@ -292,7 +307,12 @@ export function useCarClassModals({
                   ),
                 }));
                 close();
-                toast.success(t("carRemoved"));
+                toast.success(
+                  carClass
+                    ? t("carRemoved", { car: car.name, class: carClass.name })
+                    : t("carRemovedWithoutClass", { car: car.name }),
+                  { description: t("carRemovedDescription") },
+                );
               }}
             >
               {commonT("remove")}
@@ -301,7 +321,7 @@ export function useCarClassModals({
         ),
       });
     },
-    [commonT, modal, setDraftData, t],
+    [commonT, draftData.classes, modal, setDraftData, t],
   );
 
   const openDiscardChanges = () => {

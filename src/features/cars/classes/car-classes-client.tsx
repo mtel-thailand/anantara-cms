@@ -148,21 +148,23 @@ export function CarClassesClient({
     setExpandedClassId,
   });
 
-  const restoreClass = useCallback((id: string) => {
-    setDraftData((current) => ({
-      ...current,
-      classes: updateCarClassSequences(
-        current.classes.map((carClass) =>
-          carClass.id === id
-            ? {
-                ...carClass,
-                removed: false,
-              }
-            : carClass,
+  const restoreClass = useCallback(
+    (id: string) => {
+      const carClass = draftData.classes.find(({ id: classId }) => classId === id);
+      if (!carClass) return;
+
+      setDraftData((current) => ({
+        ...current,
+        classes: updateCarClassSequences(
+          current.classes.map((item) =>
+            item.id === id ? { ...item, removed: false } : item,
+          ),
         ),
-      ),
-    }));
-  }, []);
+      }));
+      toast.success(t("classRestored", { class: carClass.name }));
+    },
+    [draftData.classes, t],
+  );
 
   const classColumns = useCarClassTable({
     expandedClassId,
