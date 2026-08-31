@@ -1,5 +1,6 @@
 import type { SubmissionReviewDraft } from "@/src/features/cars/submission/review/submission-review.types";
 import type { SubmissionClass } from "@/src/features/cars/submission/submission.types";
+import type { DbSubmissionStatus } from "@/src/features/cars/submission/submission.types";
 
 export type FinalizedCarStatus = "finalized" | "archived";
 export type FinalizedCarDraftStatus = FinalizedCarStatus | "rejected";
@@ -31,6 +32,13 @@ export type FinalizedCarListItem = {
   updatedAt: string;
   vehicleRef: string;
   year: number;
+};
+
+export type FinalizedCarDetailItem = Omit<
+  FinalizedCarListItem,
+  "status"
+> & {
+  status: DbSubmissionStatus;
 };
 
 export type FinalizedCarsData = {

@@ -57,6 +57,7 @@ export function CarDetailsCard({
     internalCommentsDescription: string;
     onStatusChange: (value: string) => void;
     statusOptions: Array<{ label: string; value: string }>;
+    statusEditable?: boolean;
     statusTitle: string;
     statusValue: string;
   };
@@ -103,6 +104,7 @@ export function CarDetailsCard({
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Dropdown
               className="h-10"
+              disabled={disabled && !stagedLayout.statusEditable}
               label={stagedLayout.statusTitle}
               options={stagedLayout.statusOptions}
               value={stagedLayout.statusValue}

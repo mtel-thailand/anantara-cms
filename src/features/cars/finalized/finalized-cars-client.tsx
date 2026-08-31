@@ -48,7 +48,7 @@ import type {
 } from "@/src/features/cars/finalized/finalized-cars.types";
 import { downloadFinalizedCarForms } from "@/src/features/cars/finalized/finalized-car-download";
 import { uploadCarSubmissionFiles } from "@/src/features/cars/submission/api/submission.service";
-import { romanNumeral } from "@/src/features/cars/submission/submission.types";
+import { romanNumeral } from "@/src/features/cars/car-class-number.helpers";
 import useAsync from "@/src/hooks/use-async";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { formatDate } from "@/src/lib/date";

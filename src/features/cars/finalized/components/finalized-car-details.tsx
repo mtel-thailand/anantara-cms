@@ -13,13 +13,13 @@ import { ReservationFormReviewClient } from "@/src/features/cars/reservation/rev
 import { SubmissionReviewClient } from "@/src/features/cars/submission/review/submission-review-client";
 import type {
   FinalizedCarDraft,
+  FinalizedCarDetailItem,
   FinalizedCarDraftStatus,
-  FinalizedCarListItem,
 } from "@/src/features/cars/finalized/finalized-cars.types";
 import { formatDate } from "@/src/lib/date";
 import { logger } from "@/src/lib/logger";
 import type { Locale } from "@/src/types/locale";
-import { romanNumeral } from "@/src/features/cars/submission/submission.types";
+import { romanNumeral } from "@/src/features/cars/car-class-number.helpers";
 
 type ReviewTab = "basic" | "owner" | "car";
 
@@ -38,13 +38,17 @@ export function FinalizedCarDetails({
   onClose,
   onDirtyChange,
   onStageDraft,
+  previewOnly = false,
+  readOnly = false,
 }: {
-  car: FinalizedCarListItem;
+  car: FinalizedCarDetailItem;
   draft?: FinalizedCarDraft;
   initialEditLocale?: Locale;
   onClose: () => void;
   onDirtyChange: (dirty: boolean) => void;
   onStageDraft: (draft: FinalizedCarDraft) => void;
+  previewOnly?: boolean;
+  readOnly?: boolean;
 }) {
   const t = useTranslations("cars.finalized");
   const commonT = useTranslations("common");
@@ -120,6 +124,7 @@ export function FinalizedCarDetails({
                     });
                   }}
                   stagedDraft={draft}
+                  previewOnly={previewOnly}
                   stagedLayout={{
                     classHint: t("classAssignmentHint"),
                     classLabel,
@@ -132,10 +137,11 @@ export function FinalizedCarDetails({
                       { label: t("status.archived"), value: "archived" },
                       { label: t("status.rejected"), value: "rejected" },
                     ],
+                    statusEditable: !previewOnly && !readOnly,
                     statusTitle: t("statusLabel"),
                     statusValue: draft?.stagedStatus ?? car.status,
                   }}
-                  readOnly={car.status === "archived"}
+                  readOnly={previewOnly || readOnly || car.status === "archived"}
                 />
               ),
             },
@@ -171,7 +177,7 @@ export function FinalizedCarDetails({
         />
       </div>
 
-      {activeTab !== "basic" ? (
+      {previewOnly || activeTab !== "basic" ? (
         <div className="sticky bottom-0 flex justify-end border-t bg-background/95 px-5 py-4 backdrop-blur">
           <Button variant="outline" onClick={onClose}>
             {commonT("close")}

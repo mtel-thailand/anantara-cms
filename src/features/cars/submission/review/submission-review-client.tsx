@@ -89,6 +89,7 @@ export function SubmissionReviewClient({
   onClose,
   onDirtyChange,
   onStageDraft,
+  previewOnly = false,
   readOnly = false,
   stagedDraft,
   stagedLayout,
@@ -99,6 +100,7 @@ export function SubmissionReviewClient({
   onClose?: () => void;
   onDirtyChange?: (dirty: boolean) => void;
   onStageDraft?: (draft: SubmissionReviewDraft) => void;
+  previewOnly?: boolean;
   readOnly?: boolean;
   stagedDraft?: SubmissionReviewDraft;
   stagedLayout?: {
@@ -107,6 +109,7 @@ export function SubmissionReviewClient({
     classTitle: string;
     internalCommentsDescription: string;
     statusOptions: Array<{ label: string; value: string }>;
+    statusEditable?: boolean;
     statusTitle: string;
     statusValue: string;
   };
@@ -159,6 +162,8 @@ export function SubmissionReviewClient({
 
   // Mark seen submission
   useEffect(() => {
+    if (previewOnly) return;
+
     (async () => {
       try {
         await markSeenCarSubmissionVehicle(carId);
@@ -168,7 +173,7 @@ export function SubmissionReviewClient({
         });
       }
     })();
-  }, [carId]);
+  }, [carId, previewOnly]);
 
   useEffect(() => {
     (async () => {
@@ -250,7 +255,8 @@ export function SubmissionReviewClient({
   const currentDraft = draft;
   const liveStatus = submission.status;
   const isArchived = currentDraft.status === "archived";
-  const isReadOnly = readOnly || isArchived || submission.deletedAt !== null;
+  const isReadOnly =
+    previewOnly || readOnly || isArchived || submission.deletedAt !== null;
   const willSaveStatus: SubmissionStatus =
     currentDraft.status === "requested_info" &&
     liveStatus === "info_received" &&
@@ -612,7 +618,7 @@ export function SubmissionReviewClient({
           </div>
         </div>
       ) : null}
-      {stageMode && (!isReadOnly || Boolean(stagedLayout)) ? (
+      {stageMode && !previewOnly && (!isReadOnly || Boolean(stagedLayout)) ? (
         <div
           className={
             stagedLayout

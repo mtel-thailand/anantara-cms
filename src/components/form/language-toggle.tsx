@@ -10,6 +10,8 @@ export type FormLanguageToggleProps = {
   size?: "default" | "sm";
   className?: string;
   disabled?: boolean;
+  disabledValues?: Locale[];
+  disabledTitle?: string;
   availability?: Partial<Record<Locale, boolean>>;
 };
 
@@ -20,6 +22,8 @@ export function FormLanguageToggle({
   size = "default",
   className,
   disabled = false,
+  disabledValues = [],
+  disabledTitle,
   availability,
 }: FormLanguageToggleProps) {
   return (
@@ -34,15 +38,18 @@ export function FormLanguageToggle({
       {LOCALES.map(({ value, label }) => {
         const active = selectedLanguage === value;
         const filled = availability?.[value];
+        const valueDisabled = disabled || disabledValues.includes(value);
 
         return (
           <button
             key={value}
             type="button"
-            disabled={disabled}
+            disabled={valueDisabled}
             aria-pressed={active}
             title={
-              availability
+              valueDisabled && disabledTitle
+                ? disabledTitle
+                : availability
                 ? `Edit in ${label} - ${filled ? "content added" : "empty"}`
                 : `Edit in ${label}`
             }

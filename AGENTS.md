@@ -414,6 +414,8 @@ Agenda editing is intentionally local-first:
 - `agendas` is the editable draft.
 - `publishedAgendas` is the latest server snapshot.
 - Changes persist to local storage only after initial storage hydration.
+- Treat local-storage data as untrusted: validate its versioned envelope and
+  contents with a feature-owned Zod schema before restoring it.
 - Never overwrite a valid draft with an empty array.
 - Remove the draft after publish or when it matches the published snapshot.
 - Add/edit/remove actions update local state only. Supabase writes happen on

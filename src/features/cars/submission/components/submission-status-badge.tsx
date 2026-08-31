@@ -16,7 +16,7 @@ export function SubmissionStatusBadge({
   return (
     <Badge
       variant="outline"
-      className={cn(SUBMISSION_STATUS_CLASSES[status], className, "font-normal")}
+      className={cn(SUBMISSION_STATUS_CLASSES[status], className, "w-fit font-normal")}
     >
       {SUBMISSION_STATUS_LABELS[status]}
     </Badge>
