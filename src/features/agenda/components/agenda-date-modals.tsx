@@ -38,6 +38,12 @@ function DateModalContent({
     () => usedDates.filter((date) => !isSameDate(date, editing?.date)),
     [editing?.date, usedDates],
   );
+  const selectedIso = selected ? toISODate(selected) : null;
+  const canSubmit = Boolean(
+    selectedIso &&
+      !hasDuplicateDate(used, selectedIso) &&
+      (!editing || !isSameDate(selectedIso, editing.date)),
+  );
 
   function submit() {
     if (!selected) return;
@@ -91,7 +97,7 @@ function DateModalContent({
         <Button variant="outline" onClick={modal.close}>
           {commonT("cancel")}
         </Button>
-        <Button onClick={submit} disabled={!selected}>
+        <Button onClick={submit} disabled={!canSubmit}>
           {editing ? t("save") : t("addTitle")}
         </Button>
       </div>

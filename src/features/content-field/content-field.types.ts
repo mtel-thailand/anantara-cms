@@ -12,12 +12,18 @@ export type ContentFieldPreviewProps<PreviewData = undefined> = {
 export type ContentFieldTranslationNamespace =
   | "cars.contentField"
   | "judges.contentField"
-  | "sponsors.contentField";
+  | "sponsors.contentField"
+  | "awards.bestInClass"
+  | "awards.bestOfShow"
+  | "awards.specialAwards";
 
 export const CONTENT_FIELD_PAGE_KEYS = [
   "cars.classes",
   "judges",
   "sponsors",
+  "awards.best_in_class",
+  "awards.best_of_show",
+  "awards.special_awards",
 ] as const;
 
 export type ContentFieldPageKey = (typeof CONTENT_FIELD_PAGE_KEYS)[number];
@@ -25,6 +31,7 @@ export type ContentFieldPageKey = (typeof CONTENT_FIELD_PAGE_KEYS)[number];
 export type ContentFieldFieldData = {
   app?: { en: string };
   desktop?: Record<ContentFieldLocale, string>;
+  shared?: { und: string };
 };
 
 export type ContentFieldData = Record<string, ContentFieldFieldData>;

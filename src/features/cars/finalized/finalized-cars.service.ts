@@ -164,6 +164,7 @@ export async function getCarClassCarDetails(submissionVehicleId: string) {
   const { data, error } = await supabase.rpc("get_car_class_car_details", {
     p_submission_vehicle_id: submissionVehicleId,
   });
+  console.log("data", data);
   const result = unwrap(data, error);
 
   if (!result) throw new Error("The car was not found.");

@@ -43,9 +43,9 @@ from (
     ('sponsors', 'header', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true,"requiredVariants":["web:en","app:en"]}'::jsonb),
     ('sponsors', 'footer', 'rich_text', 'footer', true, 'per_channel', true, 2, '{"appFallbackToWeb":true,"requiredVariants":["web:en"]}'::jsonb),
     ('judges', 'hero', 'rich_text', 'header', true, 'per_channel', true, 1, '{"appFallbackToWeb":true,"requiredVariants":["web:en","app:en"]}'::jsonb),
-    ('awards.best_of_show', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'::jsonb),
-    ('awards.best_in_class', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'::jsonb),
-    ('awards.special_awards', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'::jsonb),
+    ('awards.best_of_show', 'description', 'plain_text', 'header', false, 'shared', true, 1, '{"requiredVariants":["shared:und"]}'::jsonb),
+    ('awards.best_in_class', 'description', 'plain_text', 'header', false, 'shared', true, 1, '{"requiredVariants":["shared:und"]}'::jsonb),
+    ('awards.special_awards', 'description', 'plain_text', 'header', false, 'shared', true, 1, '{"requiredVariants":["shared:und"]}'::jsonb),
     ('gallery', 'contact_email', 'email', 'metadata', false, 'shared', true, 1, '{}'::jsonb),
     ('gallery', 'introduction', 'rich_text', 'header', true, 'per_channel', true, 2, '{"appFallbackToWeb":true,"requiredVariants":["web:en","app:en"]}'::jsonb)
 ) as definition(
@@ -62,6 +62,55 @@ set
   required = excluded.required,
   sequence = excluded.sequence,
   config = excluded.config;
+
+-- Award descriptions used to be stored as localized Web/App rich text. Move
+-- the best available legacy value into one shared, unlocalized plain-text row.
+insert into public.content_field_values (field_id, locale, channel, value)
+select
+  field.id,
+  'und',
+  'shared',
+  jsonb_build_object(
+    'text',
+    coalesce(legacy.value->>'text', legacy.value->>'content')
+  )
+from public.content_fields as field
+join public.content_pages as page on page.id = field.page_id
+cross join lateral (
+  select field_value.value
+  from public.content_field_values as field_value
+  where field_value.field_id = field.id
+    and nullif(
+      btrim(coalesce(field_value.value->>'text', field_value.value->>'content')),
+      ''
+    ) is not null
+  order by
+    case
+      when field_value.channel = 'app' and field_value.locale = 'en' then 1
+      when field_value.channel = 'web' and field_value.locale = 'en' then 2
+      else 3
+    end
+  limit 1
+) as legacy
+where page.key in (
+  'awards.best_of_show',
+  'awards.best_in_class',
+  'awards.special_awards'
+)
+  and field.key = 'description'
+on conflict (field_id, locale, channel) do nothing;
+
+delete from public.content_field_values as field_value
+using public.content_fields as field, public.content_pages as page
+where field_value.field_id = field.id
+  and field.page_id = page.id
+  and page.key in (
+    'awards.best_of_show',
+    'awards.best_in_class',
+    'awards.special_awards'
+  )
+  and field.key = 'description'
+  and (field_value.channel, field_value.locale) <> ('shared', 'und');
 
 -- Static pages are intentionally excluded; this migration neither creates,
 -- reads nor changes the project's existing static-page structure.

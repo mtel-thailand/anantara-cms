@@ -42,7 +42,6 @@ as $$
     select owner_reservation.id, owner_reservation.status
     from public.owner_reservations as owner_reservation
     where owner_reservation.submission_id = vehicle.submission_id
-      and owner_reservation.deleted_at is null
     order by owner_reservation.updated_at desc
     limit 1
   ) as reservation on true

@@ -12,6 +12,17 @@ const richTextValueSchema = z
   })
   .strict();
 
+const plainTextValueSchema = z
+  .object({
+    text: z.string(),
+  })
+  .strict();
+
+const contentFieldValueSchema = z.union([
+  richTextValueSchema,
+  plainTextValueSchema,
+]);
+
 const contentFieldFieldDataSchema = z
   .object({
     app: z
@@ -24,6 +35,12 @@ const contentFieldFieldDataSchema = z
       .object({
         en: z.string(),
         it: z.string(),
+      })
+      .strict()
+      .optional(),
+    shared: z
+      .object({
+        und: z.string(),
       })
       .strict()
       .optional(),
@@ -46,11 +63,16 @@ export function getContentFieldFormSchema(pageKey: ContentFieldPageKey) {
     for (const { fieldKey, variant } of getRequiredContentFieldVariants(
       pageKey,
     )) {
-      const [channel, locale] = variant.split(":") as ["web" | "app", "en"];
+      const [channel, locale] = variant.split(":") as [
+        "web" | "app" | "shared",
+        "en" | "und",
+      ];
       const content =
         channel === "web"
-          ? data[fieldKey]?.desktop?.[locale]
-          : data[fieldKey]?.app?.en;
+          ? data[fieldKey]?.desktop?.en
+          : channel === "app"
+            ? data[fieldKey]?.app?.en
+            : data[fieldKey]?.shared?.und;
 
       if (!content?.trim()) {
         context.addIssue({
@@ -59,7 +81,11 @@ export function getContentFieldFormSchema(pageKey: ContentFieldPageKey) {
           path: [
             "data",
             fieldKey,
-            channel === "web" ? "desktop" : "app",
+            channel === "web"
+              ? "desktop"
+              : channel === "app"
+                ? "app"
+                : "shared",
             locale,
           ],
         });
@@ -87,10 +113,10 @@ export const contentFieldSnapshotSchema = z
       .array(
         z
           .object({
-            channel: z.enum(["web", "app"]),
+            channel: z.enum(["web", "app", "shared"]),
             fieldKey: z.string().min(1),
-            locale: z.enum(["en", "it"]),
-            value: richTextValueSchema,
+            locale: z.enum(["en", "it", "und"]),
+            value: contentFieldValueSchema,
           })
           .strict(),
       )
@@ -101,10 +127,10 @@ export const contentFieldSnapshotSchema = z
 export const contentFieldAdminRowsSchema = z.array(
   z
     .object({
-      channel: z.enum(["web", "app"]).nullable(),
+      channel: z.enum(["web", "app", "shared"]).nullable(),
       field_key: z.string().min(1),
-      field_value: richTextValueSchema.nullable(),
-      locale: z.enum(["en", "it"]).nullable(),
+      field_value: contentFieldValueSchema.nullable(),
+      locale: z.enum(["en", "it", "und"]).nullable(),
       page_key: z.enum(CONTENT_FIELD_PAGE_KEYS),
       page_version: z.coerce.number().int().positive(),
     })

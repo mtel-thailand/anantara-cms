@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -84,6 +84,7 @@ export type Database = {
           award_color: string
           award_icon: string | null
           award_label: string
+          award_label_it: string | null
           badge_color: string
           car_category_id: number | null
           car_id: string
@@ -98,6 +99,7 @@ export type Database = {
           award_color: string
           award_icon?: string | null
           award_label: string
+          award_label_it?: string | null
           badge_color: string
           car_category_id?: number | null
           car_id: string
@@ -112,6 +114,7 @@ export type Database = {
           award_color?: string
           award_icon?: string | null
           award_label?: string
+          award_label_it?: string | null
           badge_color?: string
           car_category_id?: number | null
           car_id?: string
@@ -700,6 +703,159 @@ export type Database = {
         }
         Relationships: []
       }
+      content_field_values: {
+        Row: {
+          channel: string
+          created_at: string
+          field_id: string
+          id: string
+          locale: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          field_id: string
+          id?: string
+          locale: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          field_id?: string
+          id?: string
+          locale?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_field_values_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "content_fields"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_fields: {
+        Row: {
+          channel_mode: string
+          config: Json
+          content_type: string
+          created_at: string
+          id: string
+          is_localized: boolean
+          key: string
+          page_id: string
+          placement: string
+          required: boolean
+          sequence: number
+          updated_at: string
+        }
+        Insert: {
+          channel_mode?: string
+          config?: Json
+          content_type: string
+          created_at?: string
+          id?: string
+          is_localized?: boolean
+          key: string
+          page_id: string
+          placement?: string
+          required?: boolean
+          sequence?: number
+          updated_at?: string
+        }
+        Update: {
+          channel_mode?: string
+          config?: Json
+          content_type?: string
+          created_at?: string
+          id?: string
+          is_localized?: boolean
+          key?: string
+          page_id?: string
+          placement?: string
+          required?: boolean
+          sequence?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_fields_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "content_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_pages: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          published_at: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          published_at?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          published_at?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      content_publications: {
+        Row: {
+          id: string
+          page_id: string
+          published_at: string
+          published_by: string | null
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          id?: string
+          page_id: string
+          published_at?: string
+          published_by?: string | null
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          id?: string
+          page_id?: string
+          published_at?: string
+          published_by?: string | null
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_publications_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "content_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           active: boolean | null
@@ -990,42 +1146,45 @@ export type Database = {
         Row: {
           code: string
           created_at: string
-          default_arrival_date: string
-          default_departure_date: string
+          default_arrival_date: string | null
+          default_departure_date: string | null
           description: string | null
           id: string
           inclusions: Json
           is_active: boolean
           name: string
           price_eur: number
+          requires_stay_dates: boolean
           sequence: number
           updated_at: string
         }
         Insert: {
           code: string
           created_at?: string
-          default_arrival_date: string
-          default_departure_date: string
+          default_arrival_date?: string | null
+          default_departure_date?: string | null
           description?: string | null
           id?: string
           inclusions?: Json
           is_active?: boolean
           name: string
           price_eur: number
+          requires_stay_dates?: boolean
           sequence?: number
           updated_at?: string
         }
         Update: {
           code?: string
           created_at?: string
-          default_arrival_date?: string
-          default_departure_date?: string
+          default_arrival_date?: string | null
+          default_departure_date?: string | null
           description?: string | null
           id?: string
           inclusions?: Json
           is_active?: boolean
           name?: string
           price_eur?: number
+          requires_stay_dates?: boolean
           sequence?: number
           updated_at?: string
         }
@@ -1318,8 +1477,10 @@ export type Database = {
           award_category: string
           award_color: string
           award_description: string | null
+          award_description_it: string | null
           award_icon: string | null
           award_label: string
+          award_label_it: string | null
           badge_color: string
           created_at: string
           id: string
@@ -1332,8 +1493,10 @@ export type Database = {
           award_category: string
           award_color: string
           award_description?: string | null
+          award_description_it?: string | null
           award_icon?: string | null
           award_label: string
+          award_label_it?: string | null
           badge_color: string
           created_at?: string
           id?: string
@@ -1346,8 +1509,10 @@ export type Database = {
           award_category?: string
           award_color?: string
           award_description?: string | null
+          award_description_it?: string | null
           award_icon?: string | null
           award_label?: string
+          award_label_it?: string | null
           badge_color?: string
           created_at?: string
           id?: string
@@ -1370,7 +1535,9 @@ export type Database = {
           item_category: string | null
           item_id: string | null
           link_url: string | null
+          link_url_it: string | null
           price: number | null
+          price_prefix: string | null
           remark_en: string | null
           remark_it: string | null
           seq: number | null
@@ -1392,7 +1559,9 @@ export type Database = {
           item_category?: string | null
           item_id?: string | null
           link_url?: string | null
+          link_url_it?: string | null
           price?: number | null
+          price_prefix?: string | null
           remark_en?: string | null
           remark_it?: string | null
           seq?: number | null
@@ -1414,7 +1583,9 @@ export type Database = {
           item_category?: string | null
           item_id?: string | null
           link_url?: string | null
+          link_url_it?: string | null
           price?: number | null
+          price_prefix?: string | null
           remark_en?: string | null
           remark_it?: string | null
           seq?: number | null
@@ -1491,18 +1662,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      archive_finalized_cars: { Args: never; Returns: number }
       append_my_submission_vehicles: {
         Args: { p_access_token: string; p_vehicles: Json }
         Returns: Json
       }
+      archive_finalized_cars: { Args: never; Returns: number }
+      car_classes_revision: { Args: never; Returns: string }
       check_active_car_submission: {
         Args: { p_email: string }
         Returns: boolean
       }
-      car_classes_revision: { Args: never; Returns: string }
       clear_car_and_reservation_forms: { Args: never; Returns: Json }
+      finalize_car_entry_form_vehicle: {
+        Args: { p_submission_vehicle_id: string }
+        Returns: boolean
+      }
       gen_ref: { Args: { length: number; prefix: string }; Returns: string }
+      get_car_class_car_details: {
+        Args: { p_submission_vehicle_id: string }
+        Returns: Json
+      }
       get_car_entry_form: {
         Args: { p_access_token: string; p_vehicle_id: string }
         Returns: Json
@@ -1519,27 +1698,6 @@ export type Database = {
         }
         Returns: Json
       }
-      get_finalized_cars_list: {
-        Args: {
-          p_page?: number
-          p_page_size?: number
-          p_class_id?: number
-          p_query?: string
-          p_sort_desc?: boolean
-          p_sort_key?: string
-          p_status?: Database["public"]["Enums"]["submission_status"]
-          p_unassigned?: boolean
-        }
-        Returns: Json
-      }
-      get_car_class_car_details: {
-        Args: { p_submission_vehicle_id: string }
-        Returns: Json
-      }
-      finalize_car_entry_form_vehicle: {
-        Args: { p_submission_vehicle_id: string }
-        Returns: boolean
-      }
       get_car_submissions_list: {
         Args: {
           p_excluded_statuses?: Database["public"]["Enums"]["submission_status"][]
@@ -1554,6 +1712,65 @@ export type Database = {
         }
         Returns: Json
       }
+      get_content_page_admin: {
+        Args: { p_page_key: string }
+        Returns: {
+          channel: string
+          channel_mode: string
+          content_type: string
+          field_config: Json
+          field_id: string
+          field_key: string
+          field_sequence: number
+          field_value: Json
+          is_localized: boolean
+          locale: string
+          page_id: string
+          page_key: string
+          page_version: number
+          placement: string
+          published_at: string
+          required: boolean
+          value_id: string
+        }[]
+      }
+      get_content_page_public: {
+        Args: { p_channel: string; p_locale: string; p_page_key: string }
+        Returns: {
+          content_type: string
+          field_key: string
+          field_sequence: number
+          field_value: Json
+          page_key: string
+          page_version: number
+          placement: string
+        }[]
+      }
+      get_finalized_cars_list:
+        | {
+            Args: {
+              p_class_id?: number
+              p_page?: number
+              p_page_size?: number
+              p_query?: string
+              p_sort_desc?: boolean
+              p_sort_key?: string
+              p_status?: Database["public"]["Enums"]["submission_status"]
+              p_unassigned?: boolean
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_page?: number
+              p_page_size?: number
+              p_query?: string
+              p_sort_desc?: boolean
+              p_sort_key?: string
+              p_status?: Database["public"]["Enums"]["submission_status"]
+            }
+            Returns: Json
+          }
       get_my_submission: { Args: { p_access_token: string }; Returns: Json }
       get_my_submission_edit_vehicle: {
         Args: { p_access_token: string; p_car_id: string }
@@ -1561,10 +1778,6 @@ export type Database = {
       }
       get_owner_registration: {
         Args: { p_access_token: string }
-        Returns: Json
-      }
-      get_reservation_form_notification_counts: {
-        Args: never
         Returns: Json
       }
       get_owner_reservations_list: {
@@ -1579,6 +1792,12 @@ export type Database = {
         }
         Returns: Json
       }
+      get_reservation_form_notification_counts: { Args: never; Returns: Json }
+      is_cms_content_editor: { Args: never; Returns: boolean }
+      is_valid_content_field_value: {
+        Args: { p_content_type: string; p_value: Json }
+        Returns: boolean
+      }
       mark_car_submission_vehicles_deleted_by_statuses: {
         Args: { p_statuses: Database["public"]["Enums"]["submission_status"][] }
         Returns: number
@@ -1586,6 +1805,10 @@ export type Database = {
       publish_car_classes: {
         Args: { p_cars: Json; p_classes: Json; p_expected_revision: string }
         Returns: undefined
+      }
+      publish_content_page: {
+        Args: { p_page_key: string; p_values: Json }
+        Returns: Json
       }
       refresh_car_submission_deleted_at: {
         Args: { p_submission_id: string }

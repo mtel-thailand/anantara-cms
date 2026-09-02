@@ -18,6 +18,7 @@ import {
 } from "@/src/components/ui/popover";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { cn } from "@/src/lib/utils";
+import { Label } from "@/src/components/ui/label";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 /** Minute presets shown in the picker (5-minute steps). */
@@ -55,6 +56,10 @@ export interface TimePickerProps {
   disabled?: boolean;
   placeholder?: string;
   className?: string;
+  htmlFor?: string;
+  label?: string;
+  labelClassName?: string;
+  required?: boolean;
 }
 
 export function TimePicker({
@@ -68,6 +73,10 @@ export function TimePicker({
   disabled,
   placeholder = "Select time",
   className,
+  htmlFor,
+  label,
+  labelClassName,
+  required,
 }: TimePickerProps) {
   const [open, setOpen] = useState(false);
   const selected = parse(value);
@@ -111,21 +120,28 @@ export function TimePicker({
   return (
     <PopoverWrapper open={open} onOpenChange={disabled ? undefined : setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          id={id}
-          type="button"
-          variant="outline"
-          disabled={disabled}
-          aria-invalid={invalid}
-          className={cn(
-            "w-full justify-start font-normal tabular-nums",
-            !value && "text-muted-foreground",
-            className,
+        <div className="flex flex-col gap-2">
+          {label && (
+            <Label htmlFor={htmlFor} className={labelClassName}>
+              {label} {required && <span className="text-destructive">*</span>}
+            </Label>
           )}
-        >
-          <ClockIcon className="text-muted-foreground" />
-          {value || placeholder}
-        </Button>
+          <Button
+            id={id}
+            type="button"
+            variant="outline"
+            disabled={disabled}
+            aria-invalid={invalid}
+            className={cn(
+              "w-full justify-start font-normal tabular-nums",
+              !value && "text-muted-foreground",
+              className,
+            )}
+          >
+            <ClockIcon className="text-muted-foreground" />
+            {value || placeholder}
+          </Button>
+        </div>
       </PopoverTrigger>
       <PopoverContent
         className="z-[60] w-auto p-0"

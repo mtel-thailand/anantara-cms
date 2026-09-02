@@ -17,7 +17,7 @@ function AgendaTableSkeleton({ rows }: { rows: number }) {
       </div>
 
       <div className="overflow-hidden">
-        <div className="grid min-w-[720px] grid-cols-[110px_80px_minmax(180px,1fr)_minmax(180px,1fr)_100px_96px] border-b px-2">
+        <div className="grid min-w-[952px] grid-cols-[124px_56px_minmax(260px,1fr)_minmax(280px,1fr)_88px_144px] border-b px-2">
           {[64, 38, 52, 68, 62].map((width) => (
             <div key={width} className="p-2">
               <Skeleton className="h-3" style={{ width }} />
@@ -29,7 +29,7 @@ function AgendaTableSkeleton({ rows }: { rows: number }) {
         {Array.from({ length: rows }, (_, index) => (
           <div
             key={index}
-            className="grid min-h-14 min-w-[720px] grid-cols-[110px_80px_minmax(180px,1fr)_minmax(180px,1fr)_100px_96px] items-center border-b px-2 last:border-b-0"
+            className="grid min-h-14 min-w-[952px] grid-cols-[124px_56px_minmax(260px,1fr)_minmax(280px,1fr)_88px_144px] items-center border-b px-2 last:border-b-0"
           >
             <div className="p-2">
               <Skeleton className="h-4 w-20" />

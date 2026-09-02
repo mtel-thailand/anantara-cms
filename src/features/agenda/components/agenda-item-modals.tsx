@@ -127,7 +127,7 @@ function AgendaItemModalContent({
     <form onSubmit={handleSubmit(submit, handleInvalid)}>
       <div className="flex flex-col gap-5 overflow-y-auto px-6 pb-5">
         <div className="flex items-center justify-between gap-2">
-          <Text>{t("editingLanguage")}</Text>
+          <Text size='xs' color='muted-foreground'>{t("editingLanguage")}</Text>
           <FormLanguageToggle
             value={currentLocale}
             onValueChange={setCurrentLocale}
@@ -142,6 +142,11 @@ function AgendaItemModalContent({
           control={control}
           name={currentFields.name}
           label={t("title")}
+          placeholder={
+            currentLocale === "en"
+              ? t("titlePlaceholderEn")
+              : t("titlePlaceholderIt")
+          }
           required={currentLocale === "en"}
           error={{
             hasError: Boolean(formState.errors[currentFields.name]),
@@ -150,27 +155,28 @@ function AgendaItemModalContent({
         />
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-2">
-            <Label>{t("startTime")}</Label>
-            <ControlledTimePicker
-              control={control}
-              name="startedAt"
-              invalid={Boolean(formState.errors.startedAt)}
-              max={endTime}
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label>{t("endTime")}</Label>
-            <ControlledTimePicker
-              control={control}
-              name="endedAt"
-              invalid={Boolean(formState.errors.endedAt)}
-              min={startTime}
-            />
-          </div>
+          <ControlledTimePicker
+            control={control}
+            name="startedAt"
+            invalid={Boolean(formState.errors.startedAt)}
+            max={endTime}
+            label={t("startTime")}
+            required
+          />
+          <ControlledTimePicker
+            control={control}
+            name="endedAt"
+            invalid={Boolean(formState.errors.endedAt)}
+            min={startTime}
+            label={t("endTime")}
+          />
         </div>
 
-        {formState.errors.endedAt ? (
+        {formState.errors.startedAt ? (
+          <Text size="sm" color="destructive" className="-mt-3">
+            {formState.errors.startedAt.message}
+          </Text>
+        ) : formState.errors.endedAt ? (
           <Text size="sm" color="destructive" className="-mt-3">
             {formState.errors.endedAt.message}
           </Text>
@@ -181,7 +187,9 @@ function AgendaItemModalContent({
         )}
 
         <div className="flex flex-col gap-2">
-          <Label>{t("icon")}</Label>
+          <Label>
+            {t("icon")}{" "}<span className="text-destructive">*</span>
+          </Label>
           <div className="grid grid-cols-4 gap-2">
             {AGENDA_ICONS.map((value) => {
               const selected = selectedIcon === value;
@@ -222,6 +230,11 @@ function AgendaItemModalContent({
           control={control}
           name={currentFields.description}
           label={t("location")}
+          placeholder={
+            currentLocale === "en"
+              ? t("locationPlaceholderEn")
+              : t("locationPlaceholderIt")
+          }
           required={currentLocale === "en"}
           error={{
             hasError: Boolean(formState.errors[currentFields.description]),
@@ -233,7 +246,9 @@ function AgendaItemModalContent({
         <Button type="button" variant="outline" onClick={modal.close}>
           {commonT("cancel")}
         </Button>
-        <Button type="submit">{editing ? t("save") : t("add")}</Button>
+        <Button type="submit" disabled={!formState.isDirty}>
+          {editing ? t("save") : t("add")}
+        </Button>
       </div>
     </form>
   );

@@ -22,7 +22,50 @@ import {
   type CarClassFormValues,
 } from "@/src/features/cars/classes/car-classes.schema";
 import type { CarClass } from "@/src/features/cars/classes/car-classes.types";
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { romanNumeral } from "@/src/features/cars/car-class-number.helpers";
+
+type CarClassFormSaveState = ReturnType<typeof createCarClassFormSaveState>;
+
+function createCarClassFormSaveState() {
+  let canSave = false;
+  const listeners = new Set<() => void>();
+
+  return {
+    getSnapshot: () => canSave,
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    setCanSave: (nextCanSave: boolean) => {
+      if (canSave === nextCanSave) return;
+      canSave = nextCanSave;
+      listeners.forEach((listener) => listener());
+    },
+  };
+}
+
+function CarClassFormSaveButton({
+  carClass,
+  state,
+}: {
+  carClass?: CarClass;
+  state: CarClassFormSaveState;
+}) {
+  const canSave = useSyncExternalStore(
+    state.subscribe,
+    state.getSnapshot,
+    state.getSnapshot,
+  );
+  const commonT = useTranslations("common");
+  const t = useTranslations("cars.classes");
+
+  return (
+    <Button type="submit" disabled={!canSave}>
+      {carClass ? commonT("saveChanges") : t("addClass")}
+    </Button>
+  );
+}
 
 export function CarClassFormModal({
   carClass,
@@ -41,12 +84,28 @@ export function CarClassFormModal({
   const t = useTranslations("cars.classes");
   const commonT = useTranslations("common");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [saveState] = useState(createCarClassFormSaveState);
   const form = useForm<CarClassFormValues>({
     resolver: zodResolver(carClassFormSchema),
     defaultValues: { name: carClass?.name ?? "" },
     mode: "onSubmit",
     reValidateMode: "onChange",
   });
+
+  useEffect(() => {
+    const initialName = carClass?.name.trim() ?? "";
+    const updateCanSave = (name: string) => {
+      const normalizedName = name.trim();
+      saveState.setCanSave(
+        normalizedName.length > 0 && normalizedName !== initialName,
+      );
+    };
+
+    updateCanSave(form.getValues("name"));
+    const subscription = form.watch(({ name }) => updateCanSave(name ?? ""));
+
+    return () => subscription.unsubscribe();
+  }, [carClass?.name, form, saveState]);
 
   const submit = form.handleSubmit(({ name }) => {
     const error = onSave(name);
@@ -62,8 +121,8 @@ export function CarClassFormModal({
       <div>
         <Text.FormTitle size="base" weight="medium">
           {carClass
-            ? t("editClassNumber", { number: position })
-            : t("addClassNumber", { number: position })}
+            ? t("editClassNumber", { number: romanNumeral(position) })
+            : t("addClassNumber", { number: romanNumeral(position) })}
         </Text.FormTitle>
         <Text className="mt-1" size="sm" color="muted-foreground">
           {carClass ? t("editClassDescription") : t("addClassDescription")}
@@ -103,9 +162,7 @@ export function CarClassFormModal({
           <Button type="button" variant="outline" onClick={modal.close}>
             {commonT("cancel")}
           </Button>
-          <Button type="submit">
-            {carClass ? commonT("saveChanges") : t("addClass")}
-          </Button>
+          <CarClassFormSaveButton carClass={carClass} state={saveState} />
         </div>
       </div>
 

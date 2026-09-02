@@ -62,7 +62,14 @@ function emptyFieldData(variants: readonly string[]): ContentFieldData[string] {
     ...(variants.some((variant) => variant === "app:en")
       ? { app: { en: "" } }
       : {}),
+    ...(variants.some((variant) => variant === "shared:und")
+      ? { shared: { und: "" } }
+      : {}),
   };
+}
+
+function contentFromValue(value: { content: string } | { text: string }) {
+  return "content" in value ? value.content : value.text;
 }
 
 function emptyData(pageKey: ContentFieldPageKey): ContentFieldData {
@@ -80,7 +87,7 @@ function mapSnapshot(snapshot: unknown): ContentFieldDraft {
   const variants = new Map(
     parsed.values.map((variant) => [
       `${variant.fieldKey}:${variant.channel}:${variant.locale}`,
-      variant.value.content,
+      contentFromValue(variant.value),
     ]),
   );
 
@@ -121,6 +128,13 @@ function mapSnapshot(snapshot: unknown): ContentFieldDraft {
           ...(field.variants.some((variant) => variant === "app:en")
             ? { app: { en: variants.get(`${field.key}:app:en`) ?? "" } }
             : {}),
+          ...(field.variants.some((variant) => variant === "shared:und")
+            ? {
+                shared: {
+                  und: variants.get(`${field.key}:shared:und`) ?? "",
+                },
+              }
+            : {}),
         },
       ]),
     ),
@@ -146,11 +160,15 @@ function toPublishValues(pageKey: ContentFieldPageKey, data: ContentFieldData) {
 
     return field.variants.map((variant) => {
       const [channel, locale] = variant.split(":") as [
-        "web" | "app",
-        "en" | "it",
+        "web" | "app" | "shared",
+        "en" | "it" | "und",
       ];
       const content =
-        channel === "web" ? fieldData.desktop?.[locale] : fieldData.app?.en;
+        channel === "web"
+          ? fieldData.desktop?.[locale as "en" | "it"]
+          : channel === "app"
+            ? fieldData.app?.en
+            : fieldData.shared?.und;
       if (content === undefined) {
         throw new Error(
           `Content field \"${field.key}\" is missing ${variant}.`,
@@ -161,7 +179,11 @@ function toPublishValues(pageKey: ContentFieldPageKey, data: ContentFieldData) {
         fieldKey: field.key,
         locale,
         channel,
-        value: content.trim() ? { format: "html", content } : null,
+        value: content.trim()
+          ? field.contentType === "plain_text"
+            ? { text: content }
+            : { format: "html", content }
+          : null,
       };
     });
   });
@@ -191,7 +213,7 @@ function mapAdminRows(rows: unknown): ContentFieldDraft {
         ? [
             [
               `${row.field_key}:${row.channel}:${row.locale}`,
-              row.field_value.content,
+              contentFromValue(row.field_value),
             ] as const,
           ]
         : [],
@@ -215,6 +237,13 @@ function mapAdminRows(rows: unknown): ContentFieldDraft {
             : {}),
           ...(field.variants.some((variant) => variant === "app:en")
             ? { app: { en: variants.get(`${field.key}:app:en`) ?? "" } }
+            : {}),
+          ...(field.variants.some((variant) => variant === "shared:und")
+            ? {
+                shared: {
+                  und: variants.get(`${field.key}:shared:und`) ?? "",
+                },
+              }
             : {}),
         },
       ]),

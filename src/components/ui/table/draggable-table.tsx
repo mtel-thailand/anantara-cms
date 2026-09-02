@@ -59,10 +59,12 @@ export type DraggableTableProps<TData extends { id: string }> = {
   enableColumnSorting?: boolean;
   serverSideSorting?: boolean;
   enabledRowSorting?: boolean;
+  rowSortingDisabled?: boolean;
   emptyRow?: ReactNode;
   getRowClassName?: (data: TData) => string | undefined;
   canDragRow?: (data: TData) => boolean;
   renderExpandedRow?: (data: TData) => ReactNode;
+  respectColumnSizes?: boolean;
 };
 
 const dragModifiers = [
@@ -81,6 +83,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
   enableColumnSorting,
   serverSideSorting,
   enabledRowSorting,
+  rowSortingDisabled,
   emptyRow,
   getRowClassName,
   canDragRow,
@@ -88,6 +91,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
   columnVisibility,
   onColumnSortingChange,
   renderExpandedRow,
+  respectColumnSizes,
 }: DraggableTableProps<TData>) => {
   const dndContextId = useId();
   const sensors = useSensors(
@@ -123,6 +127,8 @@ const DraggableTableComponent = <TData extends { id: string }>({
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
+      if (rowSortingDisabled) return;
+
       const { active, over } = event;
 
       if (!over || active.id === over.id) return;
@@ -134,7 +140,7 @@ const DraggableTableComponent = <TData extends { id: string }>({
 
       onReorder(arrayMove(data, oldIndex, newIndex));
     },
-    [data, ids, onReorder],
+    [data, ids, onReorder, rowSortingDisabled],
   );
 
   return (
@@ -165,6 +171,11 @@ const DraggableTableComponent = <TData extends { id: string }>({
                       key={header.id}
                       className="p-2 text-left"
                       colSpan={header.colSpan}
+                      style={
+                        respectColumnSizes
+                          ? { width: header.getSize() }
+                          : undefined
+                      }
                     >
                       <div
                         className={cn(
@@ -222,9 +233,11 @@ const DraggableTableComponent = <TData extends { id: string }>({
                       sorting={enabledRowSorting}
                       draggable={
                         Boolean(enabledRowSorting) &&
+                        !rowSortingDisabled &&
                         (canDragRow?.(row.original) ?? true)
                       }
                       className={getRowClassName?.(row.original)}
+                      respectColumnSizes={respectColumnSizes}
                     />
 
                     {renderExpandedRow?.(row.original)}
@@ -266,6 +279,7 @@ function arePropsEqual<TData extends { id: string }>(
     oldProps.enableColumnSorting === newProps.enableColumnSorting &&
     oldProps.serverSideSorting === newProps.serverSideSorting &&
     oldProps.enabledRowSorting === newProps.enabledRowSorting &&
+    oldProps.rowSortingDisabled === newProps.rowSortingDisabled &&
     oldProps.tableClassName === newProps.tableClassName &&
     oldProps.headerClassName === newProps.headerClassName &&
     oldProps.bodyClassName === newProps.bodyClassName &&
@@ -273,7 +287,8 @@ function arePropsEqual<TData extends { id: string }>(
     oldProps.emptyRow === newProps.emptyRow &&
     oldProps.getRowClassName === newProps.getRowClassName &&
     oldProps.canDragRow === newProps.canDragRow &&
-    oldProps.renderExpandedRow === newProps.renderExpandedRow
+    oldProps.renderExpandedRow === newProps.renderExpandedRow &&
+    oldProps.respectColumnSizes === newProps.respectColumnSizes
   );
 }
 
@@ -284,11 +299,13 @@ function DraggableRowComponent<TData>({
   sorting,
   draggable,
   className,
+  respectColumnSizes,
 }: {
   row: Row<TData>;
   sorting?: boolean;
   draggable: boolean;
   className?: string;
+  respectColumnSizes?: boolean;
 }) {
   const {
     attributes,
@@ -336,7 +353,11 @@ function DraggableRowComponent<TData>({
       )}
 
       {row.getVisibleCells().map((cell) => (
-        <DraggableCell key={cell.id} cell={cell} />
+        <DraggableCell
+          key={cell.id}
+          cell={cell}
+          respectColumnSizes={respectColumnSizes}
+        />
       ))}
     </tr>
   );
@@ -346,11 +367,18 @@ const DraggableRow = genericMemo(DraggableRowComponent);
 
 function DraggableCellComponent<TData>({
   cell,
+  respectColumnSizes,
 }: {
   cell: Cell<TData, unknown>;
+  respectColumnSizes?: boolean;
 }) {
   return (
-    <td className="p-2">
+    <td
+      className="p-2"
+      style={
+        respectColumnSizes ? { width: cell.column.getSize() } : undefined
+      }
+    >
       {flexRender(cell.column.columnDef.cell, cell.getContext())}
     </td>
   );

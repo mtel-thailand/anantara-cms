@@ -5,7 +5,13 @@ import { Badge } from "@/src/components/ui/badge";
 import { Card } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
 import Text from "@/src/components/ui/text";
-import { CalendarPlus, Clock, Save, TriangleAlert, Undo2 } from "lucide-react";
+import {
+  CalendarPlus,
+  Clock,
+  TriangleAlert,
+  Undo2,
+  Upload,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getAgendas, saveAgendas } from "./api/agenda.service";
 import { AgendaState } from "./agenda.types";
@@ -225,11 +231,11 @@ export default function AgendaClient() {
           <Undo2 className="size-4" /> {t("discardChanges")}
         </Button>
         <Button
-          variant="outline"
+          variant="default"
           onClick={handlePublish}
           disabled={!agendaDirty || isLoading || duplicateDates.size > 0}
         >
-          <Save className="size-4" />
+          <Upload className="size-4" />
           {t("publishChanges")}
         </Button>
       </PageHeader>

@@ -121,6 +121,8 @@ const AgendaTable = memo(function AgendaTable({
   const removeItem = useCallback(
     (event: AgendaEventState) => {
       modal.open({
+        className: "gap-2",
+        headerClassName: "border-b-0 px-4 pt-4 pb-0",
         header: (
           <Text.FormTitle size="base" className="font-medium">
             {t("removeItemTitle", {
@@ -146,7 +148,9 @@ const AgendaTable = memo(function AgendaTable({
                   agendaId: agenda.id,
                   eventId: event.id,
                 });
-                toast.success(t("itemMarkedForRemoval"));
+                toast.success(t("itemMarkedForRemoval"), {
+                  description: t("restoreBeforePublish"),
+                });
                 closeModal();
               }}
             >
@@ -165,6 +169,7 @@ const AgendaTable = memo(function AgendaTable({
         accessorKey: "time",
         header: t("time"),
         enableSorting: false,
+        size: 124,
         cell: ({ row }) => (
           <span className="whitespace-nowrap tabular-nums text-muted-foreground">
             {row.original.time}
@@ -175,6 +180,7 @@ const AgendaTable = memo(function AgendaTable({
         accessorKey: "icon",
         header: t("icon"),
         enableSorting: false,
+        size: 56,
         cell: ({ row }) =>
           isAgendaIcon(row.original.icon) ? (
             <AgendaIconGlyph
@@ -189,8 +195,9 @@ const AgendaTable = memo(function AgendaTable({
         accessorKey: "title",
         header: t("title"),
         enableSorting: false,
+        size: 260,
         cell: ({ row }) => (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 break-words">
             <span
               className={cn(
                 "font-medium",
@@ -214,14 +221,18 @@ const AgendaTable = memo(function AgendaTable({
         accessorKey: "location",
         header: t("location"),
         enableSorting: false,
+        size: 280,
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.location}</span>
+          <span className="break-words text-muted-foreground">
+            {row.original.location}
+          </span>
         ),
       },
       {
         accessorKey: "languages",
         header: t("languages"),
         enableSorting: false,
+        size: 88,
         cell: ({ row }) => (
           <div className="flex gap-1">
             {(["en", "it"] as const).map((locale) => (
@@ -245,6 +256,7 @@ const AgendaTable = memo(function AgendaTable({
         id: "actions",
         header: "",
         enableSorting: false,
+        size: 144,
         cell: ({ row }) => {
           const event = row.original.event;
 
@@ -254,7 +266,7 @@ const AgendaTable = memo(function AgendaTable({
 
           if (event.removed) {
             return (
-              <div className="flex justify-end">
+              <div className="flex justify-end whitespace-nowrap">
                 <Button
                   type="button"
                   variant="outline"
@@ -275,7 +287,7 @@ const AgendaTable = memo(function AgendaTable({
           }
 
           return (
-            <div className="flex items-center justify-end gap-1">
+            <div className="flex items-center justify-end gap-1 whitespace-nowrap">
               {row.original.isDraft && (
                 <Badge
                   variant="outline"
@@ -348,7 +360,9 @@ const AgendaTable = memo(function AgendaTable({
                 type: "remove-date",
                 id: agenda.id,
               });
-              toast.success(t("dateMarkedForRemoval"));
+              toast.success(t("dateMarkedForRemoval"), {
+                description: t("restoreBeforePublish"),
+              });
               closeModal();
             }}
           >
@@ -419,9 +433,13 @@ const AgendaTable = memo(function AgendaTable({
               <Button
                 variant="outline"
                 size="sm"
+                className="bg-background!"
                 onClick={() => openAgendaItemModal()}
               >
-                <Plus className="size-3.5" /> {t("addAgenda")}
+                <Plus className="size-3.5 text-black" />
+                <Text size="sm" color="black">
+                  {t("addAgenda")}
+                </Text>
               </Button>
               <Button
                 variant="ghost"
@@ -450,6 +468,9 @@ const AgendaTable = memo(function AgendaTable({
         columns={columns}
         onReorder={handleReorder}
         getRowClassName={getRowClassName}
+        className="overflow-x-auto"
+        tableClassName="min-w-[952px] table-fixed"
+        respectColumnSizes
         emptyRow={
           <div className="flex h-20 items-center justify-center px-4 text-center text-sm text-muted-foreground">
             {t("empty")}

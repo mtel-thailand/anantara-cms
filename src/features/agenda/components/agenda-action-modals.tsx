@@ -22,13 +22,15 @@ export function useAgendaActionModals() {
     (onDiscard: () => void) => {
       modal.preventBackdropClose();
       modal.open({
+        className:"gap-2",
+        headerClassName: "border-b-0 px-4 pt-4 pb-0",
         header: (
           <Text.FormTitle size="base" weight="medium">
             {actionT("discardTitle")}
           </Text.FormTitle>
         ),
         content: (
-          <Text size="sm" color="muted-foreground">
+          <Text size="sm" color="muted-foreground" className="px-4">
             {actionT("discardDescription")}
           </Text>
         ),
@@ -98,9 +100,7 @@ export function useAgendaActionModals() {
                 })
               }
             >
-              {incompleteCount
-                ? actionT("publishAnyway")
-                : t("publishChanges")}
+              {incompleteCount ? actionT("publishAnyway") : t("publishChanges")}
             </Button>
           </>
         ),

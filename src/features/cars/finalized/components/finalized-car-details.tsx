@@ -73,7 +73,6 @@ export function FinalizedCarDetails({
       toast.error(t("downloadError"), { description: t("tryAgain") });
     }
   }
-
   return (
     <div className="flex min-h-full flex-col">
       <div className="relative px-5 pt-5 pr-16 pb-2">
@@ -141,7 +140,9 @@ export function FinalizedCarDetails({
                     statusTitle: t("statusLabel"),
                     statusValue: draft?.stagedStatus ?? car.status,
                   }}
-                  readOnly={previewOnly || readOnly || car.status === "archived"}
+                  readOnly={
+                    previewOnly || readOnly || car.status === "archived"
+                  }
                 />
               ),
             },
