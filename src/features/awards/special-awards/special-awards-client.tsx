@@ -278,10 +278,10 @@ export function SpecialAwardsClient({
                 key={locale}
                 variant="outline"
                 className={cn(
-                  "text-[10px] uppercase",
+                  "text-[10px] font-normal uppercase px-1! py-px",
                   availability[locale]
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
-                    : "text-muted-foreground",
+                    ? "border-transparent bg-secondary text-secondary-foreground"
+                    : "border-dashed border-border text-muted-foreground/60",
                 )}
               >
                 {locale}

@@ -27,6 +27,7 @@ import type {
   AwardPageInitialData,
   BestOfShowData,
 } from "../awards.types";
+import { romanNumeral } from "@/src/features/cars/car-class-number.helpers";
 
 const snapshot = (value: unknown) => JSON.stringify(value);
 const BEST_OF_SHOW_DRAFT_STORAGE_KEY =
@@ -85,7 +86,7 @@ export function BestOfShowClient({
         <div>
           <span className="block font-medium">
             {row.original.carClass
-              ? t("classNumber", { number: row.original.carClass.sequence })
+              ? t("classNumber", { number: romanNumeral(row.original.carClass.sequence) })
               : "—"}
           </span>
           <span className="text-xs text-muted-foreground">
@@ -142,7 +143,7 @@ export function BestOfShowClient({
                 description: t("removeWinnerDescription"),
                 confirmLabel: commonT("remove"),
                 cancelLabel: commonT("cancel"),
-                destructive: true,
+                destructive: false,
                 onConfirm: () => {
                   setDraft((current) => ({
                     ...current,
@@ -264,7 +265,7 @@ export function BestOfShowClient({
               description: commonT("discardDescription"),
               confirmLabel: commonT("discardChanges"),
               cancelLabel: commonT("keepEditing"),
-              destructive: true,
+              destructive: false,
               onConfirm: () => {
                 setDraft({
                   entry: publishedAwards.entry,

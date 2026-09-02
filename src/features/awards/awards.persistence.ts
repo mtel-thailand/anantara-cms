@@ -50,6 +50,7 @@ async function getAwardsCatalog(
       .select(
         "id, category_id, images, name, owner, ref, submission_vehicle_id, year",
       )
+      .not("category_id", "is", null)
       .order("name", { ascending: true }),
   ]);
   if (classResult.error) throw classResult.error;
@@ -167,7 +168,9 @@ export async function getSpecialAwardsData(
       .eq("active", true),
     supabase
       .from("special_awards")
-      .select("id, award_label, award_label_it, award_description, award_description_it, image, name, seq")
+      .select(
+        "id, award_label, award_label_it, award_description, award_description_it, image, name, seq",
+      )
       .eq("award_category", "notable_figure")
       .eq("active", true),
   ]);

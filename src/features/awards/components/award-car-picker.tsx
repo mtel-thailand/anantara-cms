@@ -112,7 +112,7 @@ export function AwardCarPicker({
                   >
                     <AwardCarThumbnail car={car} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium">
+                      <span className="text-sm block truncate font-medium">
                         {car.name}
                       </span>
                       <span className="block truncate text-xs text-muted-foreground">
