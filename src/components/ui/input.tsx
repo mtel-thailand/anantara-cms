@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  ReactNode,
   type ComponentProps,
   type MouseEvent as ReactMouseEvent,
 } from "react";
@@ -12,7 +13,7 @@ import { Label } from "./label";
 
 export interface InputProps extends ComponentProps<"input"> {
   containerClassName?: string;
-  label?: string;
+  label?: string | ReactNode;
   labelClassName?: string;
   htmlFor?: string;
   required?: boolean;

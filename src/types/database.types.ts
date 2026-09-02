@@ -915,23 +915,61 @@ export type Database = {
           },
         ]
       }
+      gallery_groups: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          name_it: string | null
+          sequence: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          name_it?: string | null
+          sequence: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          name_it?: string | null
+          sequence?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gallery_image: {
         Row: {
+          gallery_group_id: string
           id: string
           image: string
           sequence: number | null
         }
         Insert: {
+          gallery_group_id: string
           id?: string
           image: string
           sequence?: number | null
         }
         Update: {
+          gallery_group_id?: string
           id?: string
           image?: string
           sequence?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gallery_image_gallery_group_id_fkey"
+            columns: ["gallery_group_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       judges: {
         Row: {

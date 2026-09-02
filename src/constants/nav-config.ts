@@ -163,12 +163,12 @@ export const NAV_ITEMS: NavItem[] = [
   {
     titleKey: "gallery.root",
     icon: Images,
-    disabled: true,
     children: [
       { titleKey: "gallery.items", href: "/app/gallery/items" },
       {
         titleKey: "gallery.contentField",
         href: "/app/gallery/website-description",
+        disabled: true,
       },
     ],
   },
