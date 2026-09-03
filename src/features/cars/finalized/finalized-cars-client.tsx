@@ -23,6 +23,7 @@ import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
+import { LanguageChips } from "@/src/components/ui/language-chips";
 import { Pagination } from "@/src/components/ui/pagination";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import Text from "@/src/components/ui/text";
@@ -535,29 +536,12 @@ export function FinalizedCarsClient() {
         header: t("languages"),
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex gap-1">
-            {(["en", "it"] as const).map((language) => {
-              const available = Boolean(
-                (language === "en"
-                  ? row.original.descriptionEn
-                  : row.original.descriptionIt
-                ).trim(),
-              );
-              return (
-                <span
-                  key={language}
-                  className={cn(
-                    "rounded-sm border px-1 py-px text-[10px] font-medium tracking-wide uppercase",
-                    available
-                      ? "border-transparent bg-secondary text-secondary-foreground"
-                      : "border-dashed border-border text-muted-foreground/60",
-                  )}
-                >
-                  {language}
-                </span>
-              );
-            })}
-          </div>
+          <LanguageChips
+            availability={{
+              en: Boolean(row.original.descriptionEn.trim()),
+              it: Boolean(row.original.descriptionIt.trim()),
+            }}
+          />
         ),
       },
       {

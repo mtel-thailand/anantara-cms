@@ -5,6 +5,15 @@ import { memo, useState } from "react";
 
 import { cn } from "@/src/lib/utils";
 
+type GalleryProgressiveImageProps = {
+  alt: string;
+  className?: string;
+  draggable?: boolean;
+  hoverZoom?: boolean;
+  sizes: string;
+  src: string;
+};
+
 export const GalleryProgressiveImage = memo(function GalleryProgressiveImage({
   src,
   alt,
@@ -12,14 +21,7 @@ export const GalleryProgressiveImage = memo(function GalleryProgressiveImage({
   className,
   hoverZoom = false,
   draggable,
-}: {
-  src: string;
-  alt: string;
-  sizes: string;
-  className?: string;
-  hoverZoom?: boolean;
-  draggable?: boolean;
-}) {
+}: GalleryProgressiveImageProps) {
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const loaded = loadedSrc === src;
 

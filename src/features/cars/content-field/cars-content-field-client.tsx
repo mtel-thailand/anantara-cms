@@ -26,6 +26,7 @@ export function CarsContentFieldClient({
       description={description}
       fields={[
         {
+          contentType: "rich_text",
           key: "hero",
           label: "Content editor",
           description: "Hero copy shown above the public car classes.",

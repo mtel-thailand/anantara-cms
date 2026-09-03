@@ -6,7 +6,7 @@ import { ChevronDown, Mail, Menu } from "lucide-react";
 
 import AnantaraLogo from "@/public/images/logo-black.png";
 import { cn } from "@/src/lib/utils";
-import type { GalleryGroup, GalleryImage } from "../gallery-items.types";
+import type { GalleryGroup, GalleryImage } from "../gallery.types";
 import { GalleryProgressiveImage } from "./gallery-progressive-image";
 
 type GalleryPreviewLabels = {
@@ -25,14 +25,26 @@ type GalleryPreviewLabels = {
   empty: string;
 };
 
+const HERO_PROSE =
+  "[&_h1]:mt-5 [&_h1]:font-heading [&_h1]:text-[48px] [&_h1]:leading-tight [&_h1]:text-[#1c1917] sm:[&_h1]:text-[64px] " +
+  "[&_h2]:mt-4 [&_h2]:font-heading [&_h2]:text-[32px] [&_h2]:text-[#1c1917] " +
+  "[&_p]:mx-auto [&_p]:mt-5 [&_p]:max-w-2xl [&_p]:text-[17px] [&_p]:leading-8 [&_p]:text-[#57534e] " +
+  "[&_a]:text-[#c71a4e] [&_a]:underline";
+
 export function GalleryPreview({
+  descriptionHtml,
+  email,
   groups,
   images,
   labels,
+  locale = "en",
 }: {
+  descriptionHtml?: string;
+  email?: string;
   groups: GalleryGroup[];
   images: GalleryImage[];
   labels: GalleryPreviewLabels;
+  locale?: "en" | "it";
 }) {
   const liveGroups = groups.filter((group) => !group.removed);
   const [selectedId, setSelectedId] = useState(liveGroups[0]?.id ?? null);
@@ -92,21 +104,30 @@ export function GalleryPreview({
             "radial-gradient(105% 60% at 50% 0%, #FFEFF3 0%, #FFF8FA 38%, #FFFFFF 76%)",
         }}
       >
-        <p className="font-heading text-[15px] text-[#c71a4e]">
-          {labels.event}
-        </p>
-        <h1 className="mt-5 font-heading text-5xl leading-tight sm:text-6xl">
-          {labels.gallery}
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-[17px] leading-8 text-[#57534e]">
-          {labels.description}
-        </p>
+        {descriptionHtml === undefined ? (
+          <>
+            <p className="font-heading text-[15px] text-[#c71a4e]">
+              {labels.event}
+            </p>
+            <h1 className="mt-5 font-heading text-5xl leading-tight sm:text-6xl">
+              {labels.gallery}
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-[17px] leading-8 text-[#57534e]">
+              {labels.description}
+            </p>
+          </>
+        ) : (
+          <div
+            className={cn("text-center", HERO_PROSE)}
+            dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+          />
+        )}
 
         <div className="mx-auto mt-9 flex max-w-lg flex-col items-center justify-center gap-3 rounded-2xl bg-white px-7 py-6 shadow-[0_18px_60px_rgba(28,25,23,0.08)] ring-1 ring-[#e8e5e0]">
           <p className="font-heading text-xl">{labels.enquiries}</p>
           <div className="flex items-center gap-2 text-[15px] text-[#57534e]">
             <Mail className="size-4 shrink-0 text-[#c71a4e]" />
-            {labels.email}
+            {email?.trim() || labels.email}
           </div>
         </div>
       </section>
@@ -129,7 +150,7 @@ export function GalleryPreview({
                       : "border-transparent text-[#57534e] hover:text-[#1c1917]",
                   )}
                 >
-                  {group.name}
+                  {locale === "it" ? group.nameIt || group.name : group.name}
                 </button>
               );
             })}

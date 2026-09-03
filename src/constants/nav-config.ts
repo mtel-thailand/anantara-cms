@@ -168,7 +168,6 @@ export const NAV_ITEMS: NavItem[] = [
       {
         titleKey: "gallery.contentField",
         href: "/app/gallery/website-description",
-        disabled: true,
       },
     ],
   },

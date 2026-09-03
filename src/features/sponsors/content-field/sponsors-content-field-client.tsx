@@ -11,8 +11,8 @@ export function SponsorsContentFieldClient({ description, initialDraft, title }:
   return <ContentFieldClient
     description={description}
     fields={[
-      { key: "header", label: t("headerLabel"), description: t("headerDescription"), surfaces: ["desktop", "app"] },
-      { key: "footer", label: t("bodyLabel"), description: t("bodyDescription"), surfaces: ["desktop"] },
+      { contentType: "rich_text", key: "header", label: t("headerLabel"), description: t("headerDescription"), surfaces: ["desktop", "app"] },
+      { contentType: "rich_text", key: "footer", label: t("bodyLabel"), description: t("bodyDescription"), surfaces: ["desktop"] },
     ]}
     initialDraft={initialDraft}
     previewData={undefined}

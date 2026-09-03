@@ -22,7 +22,7 @@ import { GripVertical, Pencil, Plus, RotateCcw } from "lucide-react";
 
 import { cn } from "@/src/lib/utils";
 import type { Locale } from "@/src/types/locale";
-import type { GalleryGroup } from "../gallery-items.types";
+import type { GalleryGroup } from "../../gallery.types";
 
 function GroupTab({
   group,

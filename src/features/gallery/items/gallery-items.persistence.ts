@@ -5,7 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/src/types/database.types";
 import type { PublishGalleryItemsInput } from "./gallery-items.schema";
-import type { GalleryItemsData } from "./gallery-items.types";
+import type { GalleryItemsData } from "../gallery.types";
 
 type ServerSupabaseClient = SupabaseClient<Database>;
 

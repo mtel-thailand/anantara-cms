@@ -1,7 +1,7 @@
 import type { ContentFieldPageKey, ContentFieldSurface } from "./content-field.types";
 
 type ContentFieldDefinition = {
-  contentType: "plain_text" | "rich_text";
+  contentType: "email" | "plain_text" | "rich_text";
   key: string;
   requiredVariants: readonly ContentFieldVariant[];
   surfaces: readonly ContentFieldSurface[];
@@ -10,6 +10,7 @@ type ContentFieldDefinition = {
 
 type ContentFieldVariant =
   | `${"web" | "app"}:${"en" | "it"}`
+  | "web:und"
   | "shared:und";
 
 const heroField = {
@@ -64,6 +65,22 @@ export const contentFieldDefinitions = {
       requiredVariants: ["shared:und"],
       surfaces: [],
       variants: ["shared:und"],
+    },
+  ],
+  gallery: [
+    {
+      contentType: "email",
+      key: "contact_email",
+      requiredVariants: ["web:und"],
+      surfaces: ["desktop"],
+      variants: ["web:und"],
+    },
+    {
+      contentType: "rich_text",
+      key: "header",
+      requiredVariants: ["web:en"],
+      surfaces: ["desktop"],
+      variants: ["web:en", "web:it"],
     },
   ],
 } as const satisfies Record<ContentFieldPageKey, readonly ContentFieldDefinition[]>;
