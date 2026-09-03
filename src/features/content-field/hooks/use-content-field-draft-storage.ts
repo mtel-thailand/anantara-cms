@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import { contentFieldSnapshot } from "../content-field.helpers";
 import { contentFieldDraftStorageSchema } from "../content-field.schema";
 import type { ContentFieldFormValues } from "../content-field.schema";
 import type {
@@ -17,23 +18,53 @@ function getDraftStorageKey(pageKey: ContentFieldDraft["pageKey"]) {
 }
 
 export function useContentFieldDraftStorage({
-  dirty,
   draftData,
   form,
   initialDraft,
+  onDraftLoaded,
   publishedDraft,
 }: {
-  dirty: boolean;
   draftData: ContentFieldData;
   form: UseFormReturn<ContentFieldFormValues>;
   initialDraft: ContentFieldDraft;
+  onDraftLoaded: () => void;
   publishedDraft: ContentFieldDraft;
 }) {
   const [hydrated, setHydrated] = useState(false);
+  const storageKey = getDraftStorageKey(initialDraft.pageKey);
+  const clearDraft = useCallback(() => {
+    window.localStorage.removeItem(storageKey);
+  }, [storageKey]);
+  const syncDraft = useCallback(
+    (data: ContentFieldData) => {
+      if (
+        contentFieldSnapshot(data) ===
+        contentFieldSnapshot(publishedDraft.data)
+      ) {
+        clearDraft();
+        return;
+      }
+
+      try {
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            version: DRAFT_STORAGE_VERSION,
+            draft: {
+              data,
+              pageKey: publishedDraft.pageKey,
+            },
+          }),
+        );
+      } catch {
+        // The draft remains usable in memory if browser storage is unavailable.
+      }
+    },
+    [clearDraft, publishedDraft.data, publishedDraft.pageKey, storageKey],
+  );
 
   useEffect(() => {
     try {
-      const storageKey = getDraftStorageKey(initialDraft.pageKey);
       const rawDraft = window.localStorage.getItem(storageKey);
       if (!rawDraft) return;
 
@@ -41,41 +72,49 @@ export function useContentFieldDraftStorage({
         JSON.parse(rawDraft),
       );
       if (!parsed.success) {
-        window.localStorage.removeItem(storageKey);
+        clearDraft();
         return;
       }
 
       if (parsed.data.draft.pageKey === initialDraft.pageKey) {
         form.reset({ data: parsed.data.draft.data });
+        onDraftLoaded();
       }
     } catch {
-      window.localStorage.removeItem(getDraftStorageKey(initialDraft.pageKey));
+      clearDraft();
     } finally {
       setHydrated(true);
     }
-  }, [form, initialDraft.pageKey, initialDraft.version]);
+  }, [
+    clearDraft,
+    form,
+    initialDraft.pageKey,
+    initialDraft.version,
+    onDraftLoaded,
+    storageKey,
+  ]);
 
   useEffect(() => {
     if (!hydrated) return;
 
-    if (!dirty) {
-      window.localStorage.removeItem(getDraftStorageKey(initialDraft.pageKey));
-      return;
-    }
+    syncDraft(draftData);
+  }, [draftData, hydrated, syncDraft]);
 
-    try {
-      window.localStorage.setItem(
-        getDraftStorageKey(initialDraft.pageKey),
-        JSON.stringify({
-          version: DRAFT_STORAGE_VERSION,
-          draft: {
-            data: draftData,
-            pageKey: publishedDraft.pageKey,
-          },
-        }),
-      );
-    } catch {
-      // The draft remains usable in memory if browser storage is unavailable.
-    }
-  }, [draftData, dirty, hydrated, initialDraft.pageKey, publishedDraft]);
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const subscription = form.watch(() => {
+      syncDraft(form.getValues("data"));
+    });
+
+    const saveBeforePageExit = () => {
+      syncDraft(form.getValues("data"));
+    };
+    window.addEventListener("pagehide", saveBeforePageExit);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("pagehide", saveBeforePageExit);
+    };
+  }, [form, hydrated, syncDraft]);
 }

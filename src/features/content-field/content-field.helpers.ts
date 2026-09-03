@@ -30,8 +30,19 @@ export function hasContentFieldValue(
   );
 }
 
+function sortSnapshotValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortSnapshotValue);
+  if (!value || typeof value !== "object") return value;
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, nestedValue]) => [key, sortSnapshotValue(nestedValue)]),
+  );
+}
+
 export function contentFieldSnapshot(data: ContentFieldData) {
-  return JSON.stringify(data);
+  return JSON.stringify(sortSnapshotValue(data));
 }
 
 export function getContentFieldVariantValue(

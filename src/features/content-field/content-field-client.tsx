@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Path } from "react-hook-form";
@@ -124,12 +124,15 @@ export function ContentFieldClient<PreviewData>({
     contentFieldSnapshot(draftData) !==
     contentFieldSnapshot(publishedDraft.data);
   const hasAppContent = fields.some((field) => field.surfaces.includes("app"));
+  const remountEditors = useCallback(() => {
+    setEditorResetKey((current) => current + 1);
+  }, []);
 
   useContentFieldDraftStorage({
-    dirty,
     draftData,
     form,
     initialDraft,
+    onDraftLoaded: remountEditors,
     publishedDraft,
   });
 
@@ -143,7 +146,7 @@ export function ContentFieldClient<PreviewData>({
 
   function discard() {
     form.reset({ data: publishedDraft.data });
-    setEditorResetKey((current) => current + 1);
+    remountEditors();
     toast.success(t("discardSuccess"));
   }
 
