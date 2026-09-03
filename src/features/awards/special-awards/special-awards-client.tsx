@@ -11,6 +11,7 @@ import { PageHeader } from "@/src/components/page-header";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
+import { LanguageChips } from "@/src/components/ui/language-chips";
 import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
 import { cn } from "@/src/lib/utils";
 import { publishContentFieldAction } from "@/src/features/content-field/content-field.actions";
@@ -271,24 +272,7 @@ export function SpecialAwardsClient({
       cell: ({ row }) => {
         const availability = awardLanguageAvailability(row.original);
 
-        return (
-          <div className="flex gap-1">
-            {(["en", "it"] as const).map((locale) => (
-              <Badge
-                key={locale}
-                variant="outline"
-                className={cn(
-                  "text-[10px] font-normal uppercase px-1! py-px",
-                  availability[locale]
-                    ? "border-transparent bg-secondary text-secondary-foreground"
-                    : "border-dashed border-border text-muted-foreground/60",
-                )}
-              >
-                {locale}
-              </Badge>
-            ))}
-          </div>
-        );
+        return <LanguageChips availability={availability} />;
       },
     },
     {

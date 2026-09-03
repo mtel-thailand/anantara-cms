@@ -1,10 +1,10 @@
 export type GalleryGroup = {
   id: string;
-  persisted: boolean;
   name: string;
   nameIt: string;
-  sequence: number;
+  persisted: boolean;
   removed: boolean;
+  sequence: number;
 };
 
 export type GalleryImage = {

@@ -45,7 +45,7 @@ import type {
   GalleryGroup,
   GalleryImage,
   GalleryItemsData,
-} from "./gallery-items.types";
+} from "../gallery.types";
 import {
   clearGalleryItemsDraft,
   useGalleryItemsDraft,

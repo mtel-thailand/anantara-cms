@@ -18,8 +18,8 @@ import {
   GalleryGroupForm,
   type GalleryGroupFormHandle,
 } from "../components/gallery-group-form";
-import { GalleryPreview } from "../components/gallery-preview";
-import type { GalleryGroup, GalleryImage } from "../gallery-items.types";
+import { GalleryPreview } from "../../components/gallery-preview";
+import type { GalleryGroup, GalleryImage } from "../../gallery.types";
 import type { Locale } from "@/src/types/locale";
 
 function createCanSaveState() {

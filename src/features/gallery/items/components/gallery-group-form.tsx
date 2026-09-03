@@ -2,6 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 
 import ControlledInput from "@/src/components/form/input";
@@ -31,6 +32,7 @@ export const GalleryGroupForm = forwardRef<
     onCanSaveChange: (canSave: boolean) => void;
   }
 >(({ defaultValues, labels, initialLanguage = "en", onCanSaveChange }, ref) => {
+  const t = useTranslations("galleryItems");
   const [language, setLanguage] = useState<Locale>(initialLanguage);
   const form = useForm<GalleryGroupFormValues>({
     defaultValues,
@@ -59,15 +61,16 @@ export const GalleryGroupForm = forwardRef<
         const parsed = galleryGroupFormSchema.safeParse(form.getValues());
         form.clearErrors();
         if (!parsed.success) {
-          const message = parsed.error.flatten().fieldErrors.name?.[0];
-          if (message) form.setError("name", { message });
+          if (parsed.error.flatten().fieldErrors.name?.[0]) {
+            form.setError("name", { message: t("tabNameEnglishRequired") });
+          }
           setLanguage("en");
           return null;
         }
         return parsed.data;
       },
     }),
-    [form],
+    [form, t],
   );
 
   return (

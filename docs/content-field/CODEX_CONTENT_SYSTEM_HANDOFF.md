@@ -95,7 +95,8 @@ gallery
     forbidden: App
 
   header          rich_text
-    required: Web EN, Web IT
+    required: Web EN
+    optional: Web IT
     forbidden: App EN, App IT
 ```
 
@@ -147,7 +148,8 @@ gallery.contact_email
   allowed/required = web:und
 
 gallery.header
-  allowed/required = web:en, web:it
+  allowed = web:en, web:it
+  required = web:en
 ```
 
 Expected field-definition flags and config:
@@ -160,7 +162,7 @@ Expected field-definition flags and config:
 | `judges.hero` | `true` | `per_channel` | `web:en`, `web:it`, `app:en` |
 | Award `description` | `false` | `shared` | `shared:und` |
 | `gallery.contact_email` | `false` | `per_channel` | `web:und` |
-| `gallery.header` | `true` | `per_channel` | `web:en`, `web:it` |
+| `gallery.header` | `true` | `per_channel` | allowed: `web:en`, `web:it`; required: `web:en` |
 
 Update the SQL seed, example data, RPC validation, Zod schema, CMS tabs, and
 public mapping to follow these rules. The provided proposal migrations still

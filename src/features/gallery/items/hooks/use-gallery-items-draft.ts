@@ -3,7 +3,7 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 
 import { parseGalleryItemsDraft } from "../gallery-items.schema";
-import type { GalleryItemsData } from "../gallery-items.types";
+import type { GalleryItemsData } from "../../gallery.types";
 
 const STORAGE_KEY = "anantara-cms:gallery:items:draft:v1";
 

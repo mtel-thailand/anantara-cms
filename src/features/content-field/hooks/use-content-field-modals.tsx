@@ -47,7 +47,7 @@ export function useContentFieldModals({
             {t("keepEditing")}
           </Button>
           <Button
-            variant="destructive"
+            variant="default"
             onClick={() => {
               onDiscard();
               close();

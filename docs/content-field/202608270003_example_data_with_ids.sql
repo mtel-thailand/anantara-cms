@@ -22,10 +22,10 @@ values
   ('20000000-0000-4000-8000-000000000005', '10000000-0000-4000-8000-000000000004', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'),
   ('20000000-0000-4000-8000-000000000006', '10000000-0000-4000-8000-000000000005', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'),
   ('20000000-0000-4000-8000-000000000007', '10000000-0000-4000-8000-000000000006', 'description', 'plain_text', 'header', true, 'shared', true, 1, '{}'),
-  ('20000000-0000-4000-8000-000000000008', '10000000-0000-4000-8000-000000000007', 'contact_email', 'email', 'metadata', false, 'shared', true, 1, '{}'),
-  ('20000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000007', 'introduction', 'rich_text', 'header', true, 'per_channel', true, 2, '{"appFallbackToWeb":true}');
+  ('20000000-0000-4000-8000-000000000008', '10000000-0000-4000-8000-000000000007', 'contact_email', 'email', 'metadata', false, 'per_channel', true, 1, '{"allowedVariants":["web:und"],"requiredVariants":["web:und"]}'),
+  ('20000000-0000-4000-8000-000000000009', '10000000-0000-4000-8000-000000000007', 'header', 'rich_text', 'header', true, 'per_channel', true, 2, '{"allowedVariants":["web:en","web:it"],"requiredVariants":["web:en"]}');
 
--- Four variants for every per-channel localized rich-text field.
+-- Four variants for Web/App rich-text fields. Gallery has Web-only copy.
 insert into public.content_field_values (id, field_id, locale, channel, value)
 select
   md5(field.id::text || ':' || locale.code || ':' || channel.code)::uuid,
@@ -39,7 +39,23 @@ select
 from public.content_fields as field
 cross join (values ('en'), ('it')) as locale(code)
 cross join (values ('web'), ('app')) as channel(code)
-where field.content_type = 'rich_text';
+where field.content_type = 'rich_text'
+  and field.id <> '20000000-0000-4000-8000-000000000009';
+
+-- Gallery header is localized for Web only.
+insert into public.content_field_values (id, field_id, locale, channel, value)
+select
+  md5(field.id::text || ':' || locale.code || ':web')::uuid,
+  field.id,
+  locale.code,
+  'web',
+  jsonb_build_object(
+    'format', 'html',
+    'content', format('<h1>Gallery</h1><p>%s Gallery header example</p>', locale.code)
+  )
+from public.content_fields as field
+cross join (values ('en'), ('it')) as locale(code)
+where field.id = '20000000-0000-4000-8000-000000000009';
 
 -- Award descriptions use one value per language shared by Web/App.
 insert into public.content_field_values (id, field_id, locale, channel, value)
@@ -61,7 +77,7 @@ values (
   '30000000-0000-4000-8000-000000000001',
   '20000000-0000-4000-8000-000000000008',
   'und',
-  'shared',
+  'web',
   '{"email":"gallery@anantaraconcorsoroma.com"}'
 );
 

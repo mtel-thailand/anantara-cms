@@ -1,7 +1,9 @@
 import { z } from "zod";
 import {
+  getContentFieldDefinitions,
   getRequiredContentFieldVariants,
 } from "./content-field.config";
+import { hasContentFieldValue } from "./content-field.helpers";
 import { CONTENT_FIELD_PAGE_KEYS } from "./content-field.types";
 import type { ContentFieldData, ContentFieldPageKey } from "./content-field.types";
 
@@ -18,7 +20,14 @@ const plainTextValueSchema = z
   })
   .strict();
 
+const emailValueSchema = z
+  .object({
+    email: z.string().email(),
+  })
+  .strict();
+
 const contentFieldValueSchema = z.union([
+  emailValueSchema,
   richTextValueSchema,
   plainTextValueSchema,
 ]);
@@ -44,6 +53,12 @@ const contentFieldFieldDataSchema = z
       })
       .strict()
       .optional(),
+    web: z
+      .object({
+        und: z.string(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -63,18 +78,23 @@ export function getContentFieldFormSchema(pageKey: ContentFieldPageKey) {
     for (const { fieldKey, variant } of getRequiredContentFieldVariants(
       pageKey,
     )) {
+      const definition = getContentFieldDefinitions(pageKey).find(
+        (field) => field.key === fieldKey,
+      );
       const [channel, locale] = variant.split(":") as [
         "web" | "app" | "shared",
         "en" | "und",
       ];
       const content =
         channel === "web"
-          ? data[fieldKey]?.desktop?.en
+          ? locale === "und"
+            ? data[fieldKey]?.web?.und
+            : data[fieldKey]?.desktop?.[locale]
           : channel === "app"
             ? data[fieldKey]?.app?.en
             : data[fieldKey]?.shared?.und;
 
-      if (!content?.trim()) {
+      if (!definition || !hasContentFieldValue(definition.contentType, content)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           message: "Required content is missing.",
@@ -82,12 +102,25 @@ export function getContentFieldFormSchema(pageKey: ContentFieldPageKey) {
             "data",
             fieldKey,
             channel === "web"
-              ? "desktop"
+              ? locale === "und"
+                ? "web"
+                : "desktop"
               : channel === "app"
                 ? "app"
                 : "shared",
             locale,
           ],
+        });
+      }
+    }
+
+    if (pageKey === "gallery") {
+      const email = (data.contact_email?.web?.und ?? "").trim();
+      if (email && !z.string().email().safeParse(email).success) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A valid contact email is required.",
+          path: ["data", "contact_email", "web", "und"],
         });
       }
     }

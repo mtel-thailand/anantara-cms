@@ -1,6 +1,7 @@
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
+import { LanguageChips } from "@/src/components/ui/language-chips";
 import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
 import Text from "@/src/components/ui/text";
 import { AGENDA_ICONS, AgendaIcon } from "@/src/constants/agenda-icons";
@@ -234,22 +235,7 @@ const AgendaTable = memo(function AgendaTable({
         enableSorting: false,
         size: 88,
         cell: ({ row }) => (
-          <div className="flex gap-1">
-            {(["en", "it"] as const).map((locale) => (
-              <Badge
-                key={locale}
-                variant="outline"
-                className={cn(
-                  "rounded-sm border px-1 py-px text-[10px] font-medium uppercase tracking-wide",
-                  row.original.languages[locale]
-                    ? "border-transparent bg-secondary text-secondary-foreground"
-                    : "border-dashed border-border text-muted-foreground/60",
-                )}
-              >
-                {locale}
-              </Badge>
-            ))}
-          </div>
+          <LanguageChips availability={row.original.languages} />
         ),
       },
       {

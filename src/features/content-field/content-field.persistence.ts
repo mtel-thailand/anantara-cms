@@ -12,6 +12,7 @@ import {
   getContentFieldDefinitions,
   getRequiredContentFieldVariants,
 } from "./content-field.config";
+import { hasContentFieldValue } from "./content-field.helpers";
 import type {
   ContentFieldData,
   ContentFieldDraft,
@@ -65,11 +66,18 @@ function emptyFieldData(variants: readonly string[]): ContentFieldData[string] {
     ...(variants.some((variant) => variant === "shared:und")
       ? { shared: { und: "" } }
       : {}),
+    ...(variants.some((variant) => variant === "web:und")
+      ? { web: { und: "" } }
+      : {}),
   };
 }
 
-function contentFromValue(value: { content: string } | { text: string }) {
-  return "content" in value ? value.content : value.text;
+function contentFromValue(
+  value: { content: string } | { email: string } | { text: string },
+) {
+  if ("content" in value) return value.content;
+  if ("email" in value) return value.email;
+  return value.text;
 }
 
 function emptyData(pageKey: ContentFieldPageKey): ContentFieldData {
@@ -135,6 +143,9 @@ function mapSnapshot(snapshot: unknown): ContentFieldDraft {
                 },
               }
             : {}),
+          ...(field.variants.some((variant) => variant === "web:und")
+            ? { web: { und: variants.get(`${field.key}:web:und`) ?? "" } }
+            : {}),
         },
       ]),
     ),
@@ -165,7 +176,9 @@ function toPublishValues(pageKey: ContentFieldPageKey, data: ContentFieldData) {
       ];
       const content =
         channel === "web"
-          ? fieldData.desktop?.[locale as "en" | "it"]
+          ? locale === "und"
+            ? fieldData.web?.und
+            : fieldData.desktop?.[locale as "en" | "it"]
           : channel === "app"
             ? fieldData.app?.en
             : fieldData.shared?.und;
@@ -179,10 +192,12 @@ function toPublishValues(pageKey: ContentFieldPageKey, data: ContentFieldData) {
         fieldKey: field.key,
         locale,
         channel,
-        value: content.trim()
+        value: hasContentFieldValue(field.contentType, content)
           ? field.contentType === "plain_text"
             ? { text: content }
-            : { format: "html", content }
+            : field.contentType === "email"
+              ? { email: content }
+              : { format: "html", content }
           : null,
       };
     });
@@ -244,6 +259,9 @@ function mapAdminRows(rows: unknown): ContentFieldDraft {
                   und: variants.get(`${field.key}:shared:und`) ?? "",
                 },
               }
+            : {}),
+          ...(field.variants.some((variant) => variant === "web:und")
+            ? { web: { und: variants.get(`${field.key}:web:und`) ?? "" } }
             : {}),
         },
       ]),

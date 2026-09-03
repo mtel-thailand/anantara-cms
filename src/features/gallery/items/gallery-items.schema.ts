@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { GalleryItemsData } from "./gallery-items.types";
+import type { GalleryItemsData } from "../gallery.types";
 
 export const galleryGroupFormSchema = z.object({
   name: z.string().trim().min(1, "Add the tab name in English."),

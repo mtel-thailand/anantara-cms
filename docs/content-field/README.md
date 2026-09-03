@@ -142,8 +142,8 @@ awards.special_awards
   description     plain_text EN/IT  shared
 
 gallery
-  contact_email   email      und    shared
-  introduction    rich_text  EN/IT  Web/App
+  contact_email   email      und    Web
+  header          rich_text  EN/IT  Web
 ```
 
 Existing domain records remain in their current tables. Cars, car classes,

@@ -46,8 +46,8 @@ from (
     ('awards.best_of_show', 'description', 'plain_text', 'header', false, 'shared', true, 1, '{"requiredVariants":["shared:und"]}'::jsonb),
     ('awards.best_in_class', 'description', 'plain_text', 'header', false, 'shared', true, 1, '{"requiredVariants":["shared:und"]}'::jsonb),
     ('awards.special_awards', 'description', 'plain_text', 'header', false, 'shared', true, 1, '{"requiredVariants":["shared:und"]}'::jsonb),
-    ('gallery', 'contact_email', 'email', 'metadata', false, 'shared', true, 1, '{}'::jsonb),
-    ('gallery', 'introduction', 'rich_text', 'header', true, 'per_channel', true, 2, '{"appFallbackToWeb":true,"requiredVariants":["web:en","app:en"]}'::jsonb)
+    ('gallery', 'contact_email', 'email', 'metadata', false, 'per_channel', true, 1, '{"allowedVariants":["web:und"],"requiredVariants":["web:und"]}'::jsonb),
+    ('gallery', 'header', 'rich_text', 'header', true, 'per_channel', true, 2, '{"allowedVariants":["web:en","web:it"],"requiredVariants":["web:en"]}'::jsonb)
 ) as definition(
   page_key, field_key, content_type, placement, is_localized,
   channel_mode, required, sequence, config

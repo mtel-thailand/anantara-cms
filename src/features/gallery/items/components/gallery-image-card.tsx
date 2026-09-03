@@ -7,8 +7,8 @@ import { Eye, RotateCcw, Trash2 } from "lucide-react";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { cn } from "@/src/lib/utils";
-import type { GalleryImage } from "../gallery-items.types";
-import { GalleryProgressiveImage } from "./gallery-progressive-image";
+import { GalleryProgressiveImage } from "../../components/gallery-progressive-image";
+import type { GalleryImage } from "../../gallery.types";
 
 export function GalleryImageCard({
   image,

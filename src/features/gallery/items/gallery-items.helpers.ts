@@ -2,7 +2,7 @@ import type {
   GalleryGroup,
   GalleryImage,
   GalleryItemsData,
-} from "./gallery-items.types";
+} from "../gallery.types";
 
 export function resequenceGalleryGroups(groups: GalleryGroup[]) {
   let sequence = 0;
