@@ -331,7 +331,7 @@ export function useGalleryItemsModals() {
       const missing = options.incompleteCount > 0;
       modal.preventBackdropClose();
       modal.open({
-        className: "gap-1.5 p-0 sm:max-w-sm",
+        className: "gap-1.5 p-0 sm:max-w-lg",
         headerClassName: "border-0 px-4 pb-0 pt-4",
         header: (
           <Text.FormTitle size="base" weight="medium">
@@ -344,7 +344,7 @@ export function useGalleryItemsModals() {
             {t(missing ? "missingLanguageDescription" : "publishDescription")}
           </Text>
         ),
-        footerClassName: "px-4",
+        footerClassName: "px-4 flex-wrap",
         footer: ({ close, loading, run }) => (
           <>
             <Button variant="outline" disabled={loading} onClick={close}>
@@ -415,7 +415,7 @@ export function useGalleryItemsModals() {
   );
 
   const openPreview = useCallback(
-    (groups: GalleryGroup[], images: GalleryImage[]) => {
+    (groups: GalleryGroup[], images: GalleryImage[], locale: Locale) => {
       modal.handleShowShowCloseButton();
       modal.disableBackdropClose();
       modal.open({
@@ -426,6 +426,7 @@ export function useGalleryItemsModals() {
           <GalleryPreview
             groups={groups}
             images={images}
+            locale={locale}
             labels={{
               home: t("previewHome"),
               about: t("previewAbout"),

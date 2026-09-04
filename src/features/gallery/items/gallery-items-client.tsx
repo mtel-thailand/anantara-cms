@@ -349,6 +349,7 @@ export function GalleryItemsClient({
             modals.openPreview(
               liveGroups,
               draft.images.filter((image) => !image.removed),
+              locale,
             )
           }
         >
