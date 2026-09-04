@@ -949,7 +949,7 @@
     "specialAwards": {
       "title": "Premi speciali",
       "subtitle": "Una serie di premi speciali assegnati ad auto e figure di rilievo.",
-      "addAward": "Aggiungi premio",
+      "addAward": "Aggiungi premio speciale",
       "editAward": "Modifica premio speciale",
       "formDescription": "I premi speciali riconoscono un’auto o una figura di rilievo.",
       "awardType": "Tipo di premio",

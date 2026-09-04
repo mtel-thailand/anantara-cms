@@ -130,7 +130,7 @@ export function useSpecialAwardModal() {
         headerClassName: "border-b px-6",
         header: (
           <div>
-            <Text.FormTitle size="base" weight="medium">
+            <Text.FormTitle size="xl" weight="medium">
               {editing ? t("editAward") : t("addAward")}
             </Text.FormTitle>
             <Text className="mt-1" size="sm" color="muted-foreground">

@@ -949,7 +949,7 @@
     "specialAwards": {
       "title": "Special Awards",
       "subtitle": "A series of special awards presented to cars and notable figures.",
-      "addAward": "Add award",
+      "addAward": "Add special award",
       "editAward": "Edit special award",
       "formDescription": "Special awards recognise either a car or a notable figure.",
       "awardType": "Award type",
