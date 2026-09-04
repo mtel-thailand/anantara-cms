@@ -146,9 +146,9 @@ export const SpecialAwardForm = forwardRef<
   const selectedCar = cars.find((car) => car.id === selectedCarId);
   const hasRequiredContent = Boolean(
     trimContent(title) &&
-      (kind === "car"
-        ? selectedCarId
-        : trimContent(personName) && trimContent(description)),
+    (kind === "car"
+      ? selectedCarId
+      : trimContent(personName) && trimContent(description)),
   );
   const hasMeaningfulEdit =
     editing !== undefined &&
@@ -269,7 +269,10 @@ export const SpecialAwardForm = forwardRef<
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
           <Label>
-            {labels.awardTitle} <span className="text-destructive">*</span>
+            {labels.awardTitle}{" "}
+            {editingLanguage === "en" && (
+              <span className="text-destructive">*</span>
+            )}
           </Label>
           <FormLanguageToggle
             size="sm"
@@ -475,7 +478,10 @@ export const SpecialAwardForm = forwardRef<
           </div>
           <div className="flex items-center justify-between gap-2">
             <Label>
-              {labels.description} <span className="text-destructive">*</span>
+              {labels.description}{" "}
+              {editingLanguage === "en" && (
+                <span className="text-destructive">*</span>
+              )}
             </Label>
             <FormLanguageToggle
               size="sm"
