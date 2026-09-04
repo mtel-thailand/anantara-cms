@@ -109,7 +109,7 @@ async function getCarClassesDataSnapshot(
     supabase
       .from("cars")
       .select(
-        "id, category_id, images, name, owner, ref, seq, submission_vehicle_id, year",
+        "id, category_id, hide_owner_name, images, name, owner, ref, seq, submission_vehicle_id, year",
       )
       .order("seq", { ascending: true, nullsFirst: false })
       .order("name", { ascending: true }),
@@ -145,6 +145,7 @@ async function getCarClassesDataSnapshot(
         reference: car.ref ?? vehicle?.vehicle_ref ?? "",
         name: car.name,
         owner: car.owner,
+        hideOwnerName: car.hide_owner_name,
         year: car.year,
         imageUrl: firstImageUrl(car.images),
         status: vehicle?.status ?? null,

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
+import { PrivateCollectionWarning } from "@/src/components/ui/private-collection-warning";
 import { SubmissionStatusBadge } from "@/src/features/cars/submission/components/submission-status-badge";
 import type { ClassAssignableCar } from "../car-classes.types";
 
@@ -17,6 +18,7 @@ type CarRosterProps = {
 
 export function CarRoster({ cars, onOpen, onRemove }: CarRosterProps) {
   const t = useTranslations("cars.classes");
+  const privacyT = useTranslations("cars.finalized");
 
   if (!cars.length) {
     return (
@@ -59,9 +61,17 @@ export function CarRoster({ cars, onOpen, onRemove }: CarRosterProps) {
 
           <span className="text-sm text-muted-foreground">{car.year}</span>
 
-          <span className="truncate text-sm text-muted-foreground">
-            {car.owner}
-          </span>
+          <div className="min-w-0">
+            <span className="block truncate text-sm text-muted-foreground">
+              {car.owner}
+            </span>
+            {car.hideOwnerName ? (
+              <PrivateCollectionWarning
+                label={privacyT("privateCollection")}
+                hint={privacyT("privateCollectionHint")}
+              />
+            ) : null}
+          </div>
 
           {car.status ? (
             <SubmissionStatusBadge status={car.status} />

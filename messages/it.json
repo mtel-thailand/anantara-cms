@@ -972,7 +972,7 @@
       "portrait": "Ritratto",
       "uploadImage": "Carica immagine",
       "removeImage": "Rimuovi (usa segnaposto)",
-      "imagePlaceholder": "Se non carichi un’immagine verrà mostrato un segnaposto.",
+      "imagePlaceholder": "Segnaposto mostrato se non viene caricata alcuna immagine. JPG o PNG, massimo 10 MB ciascuno.",
       "languages": "Lingue",
       "missingLanguageTitle": "Alcuni contenuti non hanno una lingua",
       "missingLanguageDescription": "Alcuni contenuti sono compilati solo in una lingua. Aggiungi ora la traduzione mancante oppure salva e completala più tardi. I contenuti pubblicati appariranno nell’app e sul sito web.",

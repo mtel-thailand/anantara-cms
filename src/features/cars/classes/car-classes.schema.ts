@@ -155,6 +155,7 @@ const carClassesDraftCarSchema = z
     reference: z.string(),
     name: z.string(),
     owner: z.string(),
+    hideOwnerName: z.boolean().default(false),
     year: z.number().finite(),
     imageUrl: z.string().nullable(),
     status: z

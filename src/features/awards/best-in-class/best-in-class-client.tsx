@@ -10,6 +10,7 @@ import { PageHeader } from "@/src/components/page-header";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Card } from "@/src/components/ui/card";
+import { PrivateCollectionWarning } from "@/src/components/ui/private-collection-warning";
 import ClientSideDraggableTable from "@/src/components/ui/table/client-side-custom-table";
 import { publishContentFieldAction } from "@/src/features/content-field/content-field.actions";
 import { romanNumeral } from "@/src/features/cars/car-class-number.helpers";
@@ -52,6 +53,7 @@ export function BestInClassClient({
 }) {
   const t = useTranslations("awards.bestInClass");
   const commonT = useTranslations("awards.common");
+  const privacyT = useTranslations("cars.finalized");
   const [publishedAwards, setPublishedAwards] = useState(initialData.awards);
   const [publishedContent, setPublishedContent] = useState(initialData.content);
   const [draft, setDraft] = useState<BestInClassAwardDraft>({
@@ -317,7 +319,18 @@ export function BestInClassClient({
                   header: commonT("owner"),
                   enableSorting: false,
                   size: 110,
-                  cell: ({ row }) => row.original.car?.owner,
+                  cell: ({ row }) =>
+                    row.original.car ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span>{row.original.car.owner}</span>
+                        {row.original.car.hideOwnerName ? (
+                          <PrivateCollectionWarning
+                            label={privacyT("privateCollection")}
+                            hint={privacyT("privateCollectionHint")}
+                          />
+                        ) : null}
+                      </div>
+                    ) : null,
                 },
                 {
                   id: "actions",

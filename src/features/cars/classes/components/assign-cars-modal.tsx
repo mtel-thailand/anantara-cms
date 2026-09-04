@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
+import { PrivateCollectionWarning } from "@/src/components/ui/private-collection-warning";
 import type { ClassAssignableCar } from "@/src/features/cars/classes/car-classes.types";
 
 export function AssignCarsModal({
@@ -17,6 +18,7 @@ export function AssignCarsModal({
   onAssign: (car: ClassAssignableCar) => void;
 }) {
   const t = useTranslations("cars.classes");
+  const privacyT = useTranslations("cars.finalized");
   const [query, setQuery] = useState("");
   const [availableCars, setAvailableCars] = useState(() =>
     cars.filter(({ assignable, categoryId }) => assignable && categoryId === null),
@@ -78,6 +80,12 @@ export function AssignCarsModal({
                 <p className="truncate text-xs text-muted-foreground">
                   {car.owner} · {t("unassigned")}
                 </p>
+                {car.hideOwnerName ? (
+                  <PrivateCollectionWarning
+                    label={privacyT("privateCollection")}
+                    hint={privacyT("privateCollectionHint")}
+                  />
+                ) : null}
               </div>
               <Button
                 variant="outline"

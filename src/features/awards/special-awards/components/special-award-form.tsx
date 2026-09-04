@@ -10,6 +10,7 @@ import {
 } from "react";
 import Image from "next/image";
 import { Car as CarIcon, ImageUp, User, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ import {
   DialogTitle,
 } from "@/src/components/ui/dialog";
 import { Label } from "@/src/components/ui/label";
+import { PrivateCollectionWarning } from "@/src/components/ui/private-collection-warning";
 import type { Locale } from "@/src/types/locale";
 import { cn } from "@/src/lib/utils";
 import { AwardCarThumbnail } from "../../components/award-car-thumbnail";
@@ -97,6 +99,7 @@ export const SpecialAwardForm = forwardRef<
     onCanSaveChange: (canSave: boolean) => void;
   }
 >(({ editing, cars, classes, labels, onCanSaveChange }, ref) => {
+  const privacyT = useTranslations("cars.finalized");
   const [kind, setKind] = useState<SpecialAwardItem["kind"]>(
     editing?.kind ?? "car",
   );
@@ -304,6 +307,12 @@ export const SpecialAwardForm = forwardRef<
                 <p className="truncate text-xs text-muted-foreground">
                   {selectedCar.year} · {selectedCar.owner}
                 </p>
+                {selectedCar.hideOwnerName ? (
+                  <PrivateCollectionWarning
+                    label={privacyT("privateCollection")}
+                    hint={privacyT("privateCollectionHint")}
+                  />
+                ) : null}
               </div>
               <Button
                 type="button"
@@ -409,7 +418,7 @@ export const SpecialAwardForm = forwardRef<
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/jpeg,image/png"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                 hidden
                 onChange={(event) => {
                   const file = event.target.files?.[0];
