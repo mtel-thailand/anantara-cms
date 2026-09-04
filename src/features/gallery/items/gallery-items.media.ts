@@ -1,19 +1,30 @@
 import { uploadFileWithPresignedUrl } from "@/src/lib/s3/presigned-upload-client";
 
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
-const IMAGE_TYPES = new Set(["image/jpeg", "image/png"]);
+const MAX_IMAGE_MB = 10;
+const MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024;
+const IMAGE_TYPES = new Set(["image/jpg", "image/jpeg", "image/png"]);
 const galleryImageScope = ["gallery", "items"] as const;
 
+export function hasSupportedGalleryImageType(file: File) {
+  return IMAGE_TYPES.has(file.type);
+}
+
+export function hasSupportedGalleryImageSize(file: File) {
+  return file.size <= MAX_IMAGE_SIZE;
+}
+
 export function isSupportedGalleryImage(file: File) {
-  return IMAGE_TYPES.has(file.type) && file.size <= MAX_IMAGE_SIZE;
+  return (
+    hasSupportedGalleryImageType(file) && hasSupportedGalleryImageSize(file)
+  );
 }
 
 export async function uploadGalleryImage(file: File) {
-  if (!IMAGE_TYPES.has(file.type)) {
+  if (!hasSupportedGalleryImageType(file)) {
     throw new Error("Only JPG and PNG images can be uploaded.");
   }
-  if (file.size > MAX_IMAGE_SIZE) {
-    throw new Error("Use a JPG or PNG up to 10MB.");
+  if (!hasSupportedGalleryImageSize(file)) {
+    throw new Error(`Use a JPG or PNG up to ${MAX_IMAGE_MB}MB.`);
   }
 
   const uploaded = await uploadFileWithPresignedUrl(file, {

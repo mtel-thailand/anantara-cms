@@ -37,6 +37,8 @@ import {
   resequenceGalleryImages,
 } from "./gallery-items.helpers";
 import {
+  hasSupportedGalleryImageSize,
+  hasSupportedGalleryImageType,
   isSupportedGalleryImage,
   removeGalleryImage,
   uploadGalleryImage,
@@ -183,15 +185,25 @@ export function GalleryItemsClient({
     const selected = Array.from(event.target.files ?? []);
     event.target.value = "";
     if (!activeGroup || !selected.length) return;
+    const invalidTypeCount = selected.filter(
+      (file) => !hasSupportedGalleryImageType(file),
+    ).length;
+    const oversizedCount = selected.filter(
+      (file) => !hasSupportedGalleryImageSize(file),
+    ).length;
     const supported = selected.filter(isSupportedGalleryImage);
-    if (!supported.length) {
-      toast.error(t("chooseImages"));
-      return;
-    }
-    if (supported.length !== selected.length) {
-      toast.warning(t("filesSkipped"), {
-        description: t("filesSkippedDescription"),
+    if (invalidTypeCount) {
+      toast.error(t("unsupportedImageType"), {
+        description: t("unsupportedImageTypeDescription"),
       });
+    }
+    if (oversizedCount) {
+      toast.error(t("imageTooLarge"), {
+        description: t("imageTooLargeDescription"),
+      });
+    }
+    if (!supported.length) {
+      return;
     }
     setUploading(true);
     const results = await Promise.allSettled(supported.map(uploadGalleryImage));
@@ -371,7 +383,7 @@ export function GalleryItemsClient({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png"
+        accept="image/jpg,image/jpeg,image/png"
         multiple
         className="hidden"
         onChange={addImages}
