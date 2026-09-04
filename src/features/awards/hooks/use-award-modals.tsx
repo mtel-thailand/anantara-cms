@@ -149,7 +149,7 @@ export function useAwardModals() {
       const languageGap = options.languageGap;
       modal.preventBackdropClose();
       modal.open({
-        className: "gap-1.5 p-0 sm:max-w-sm",
+        className: "gap-1.5 p-0 sm:max-w-lg",
         headerClassName: "border-0 px-4 pb-0 pt-4",
         header: (
           <Text.FormTitle size="base" weight="medium">
