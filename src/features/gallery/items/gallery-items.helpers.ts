@@ -31,7 +31,8 @@ export function normalizedGalleryItems(data: GalleryItemsData) {
         nameIt: nameIt.trim(),
         sequence,
         removed,
-      })),
+      }))
+      .sort((left, right) => left.id.localeCompare(right.id)),
     images: data.images
       .map(({ id, persisted, groupId, imageKey, sequence, removed }) => ({
         id,
@@ -40,7 +41,8 @@ export function normalizedGalleryItems(data: GalleryItemsData) {
         imageKey,
         sequence,
         removed,
-      })),
+      }))
+      .sort((left, right) => left.id.localeCompare(right.id)),
   };
 }
 
