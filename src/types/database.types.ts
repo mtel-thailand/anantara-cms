@@ -599,6 +599,7 @@ export type Database = {
           created_at: string
           description: string
           description_it: string | null
+          hide_owner_name: boolean
           id: string
           images: Json
           name: string
@@ -616,6 +617,7 @@ export type Database = {
           created_at?: string
           description: string
           description_it?: string | null
+          hide_owner_name?: boolean
           id?: string
           images?: Json
           name: string
@@ -633,6 +635,7 @@ export type Database = {
           created_at?: string
           description?: string
           description_it?: string | null
+          hide_owner_name?: boolean
           id?: string
           images?: Json
           name?: string

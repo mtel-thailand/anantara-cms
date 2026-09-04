@@ -3,6 +3,7 @@ import type { ContentFieldDraft } from "@/src/features/content-field/content-fie
 export type AwardCar = {
   id: string;
   categoryId: number | null;
+  hideOwnerName: boolean;
   imageUrl: string | null;
   name: string;
   owner: string;

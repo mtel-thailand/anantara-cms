@@ -25,6 +25,7 @@ import { Card } from "@/src/components/ui/card";
 import { Input } from "@/src/components/ui/input";
 import { LanguageChips } from "@/src/components/ui/language-chips";
 import { Pagination } from "@/src/components/ui/pagination";
+import { PrivateCollectionWarning } from "@/src/components/ui/private-collection-warning";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import Text from "@/src/components/ui/text";
 import { Dropdown } from "@/src/components/ui/dropdown/dropdown";
@@ -484,23 +485,9 @@ export function FinalizedCarsClient() {
               ) : null}
             </div>
             {row.original.hideOwnerName ? (
-              <GenericTooltip
-                trigger={
-                  <span
-                    className="inline-flex w-fit items-center gap-1 focus-visible:outline-none"
-                    tabIndex={0}
-                  >
-                    <CircleAlert className="size-3.5 text-amber-600" />
-                    <Text size="xs" weight="medium" className="text-amber-600">
-                      {t("privateCollection")}
-                    </Text>
-                  </span>
-                }
-                content={
-                  <span className="block max-w-60">
-                    {t("privateCollectionHint")}
-                  </span>
-                }
+              <PrivateCollectionWarning
+                label={t("privateCollection")}
+                hint={t("privateCollectionHint")}
               />
             ) : null}
           </div>

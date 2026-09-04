@@ -14,6 +14,7 @@ export type ClassAssignableCar = {
   reference: string;
   name: string;
   owner: string;
+  hideOwnerName: boolean;
   year: number;
   imageUrl: string | null;
   status: DbSubmissionStatus | null;

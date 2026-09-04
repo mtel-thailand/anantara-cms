@@ -26,6 +26,7 @@ import {
   restrictToVerticalAxis,
 } from "@dnd-kit/modifiers";
 import { cn } from "@/src/lib/utils";
+import { PrivateCollectionWarning } from "@/src/components/ui/private-collection-warning";
 
 function SortableCar({
   car,
@@ -34,6 +35,7 @@ function SortableCar({
   car: ClassAssignableCar;
   position: number;
 }) {
+  const privacyT = useTranslations("cars.finalized");
   const {
     attributes,
     listeners,
@@ -79,6 +81,12 @@ function SortableCar({
           {car.name} · {car.year}
         </p>
         <p className="truncate text-xs text-muted-foreground">{car.owner}</p>
+        {car.hideOwnerName ? (
+          <PrivateCollectionWarning
+            label={privacyT("privateCollection")}
+            hint={privacyT("privateCollectionHint")}
+          />
+        ) : null}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 import { Dropdown } from "@/src/components/ui/dropdown/dropdown";
 import { Input } from "@/src/components/ui/input";
+import { PrivateCollectionWarning } from "@/src/components/ui/private-collection-warning";
 import { romanNumeral } from "@/src/features/cars/car-class-number.helpers";
 import { cn } from "@/src/lib/utils";
 import type { AwardCar, AwardClass } from "../awards.types";
@@ -27,6 +28,7 @@ export function AwardCarPicker({
   onSelect: (carId: string) => void;
 }) {
   const t = useTranslations("awards.common");
+  const privacyT = useTranslations("cars.finalized");
   const [query, setQuery] = useState("");
   const [classFilter, setClassFilter] = useState("all");
   const classById = useMemo(
@@ -120,6 +122,12 @@ export function AwardCarPicker({
                           ? `${t("classNumber", { number: romanNumeral(carClass.sequence) })} · ${carClass.name} · ${car.owner}`
                           : car.owner}
                       </span>
+                      {car.hideOwnerName ? (
+                        <PrivateCollectionWarning
+                          label={privacyT("privateCollection")}
+                          hint={privacyT("privateCollectionHint")}
+                        />
+                      ) : null}
                     </span>
                     <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
                       {car.year}

@@ -972,7 +972,7 @@
       "portrait": "Portrait",
       "uploadImage": "Upload image",
       "removeImage": "Remove (use placeholder)",
-      "imagePlaceholder": "Placeholder shown if no image is uploaded.",
+      "imagePlaceholder": "Placeholder shown if no image is uploaded. JPG or PNG, maximum 10MB each",
       "languages": "Languages",
       "missingLanguageTitle": "Some content is missing a language",
       "missingLanguageDescription": "Some content is filled in only one language. Add the missing translation now or save and complete it later. Published content will appear on the app and website.",

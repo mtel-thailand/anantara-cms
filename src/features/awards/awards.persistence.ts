@@ -48,7 +48,7 @@ async function getAwardsCatalog(
     supabase
       .from("cars")
       .select(
-        "id, category_id, images, name, owner, ref, submission_vehicle_id, year",
+        "id, category_id, hide_owner_name, images, name, owner, ref, submission_vehicle_id, year",
       )
       .not("category_id", "is", null)
       .order("name", { ascending: true }),
@@ -65,6 +65,7 @@ async function getAwardsCatalog(
     cars: carResult.data.map((car) => ({
       id: car.id,
       categoryId: car.category_id,
+      hideOwnerName: car.hide_owner_name,
       imageUrl: firstImageUrl(car.images),
       name: car.name,
       owner: car.owner,

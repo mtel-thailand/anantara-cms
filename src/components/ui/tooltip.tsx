@@ -61,10 +61,12 @@ function GenericTooltip({
   side?: ComponentProps<typeof TooltipPrimitive.Content>["side"];
 }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-      <TooltipContent side={side}>{content}</TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+        <TooltipContent side={side}>{content}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
